@@ -13,3 +13,14 @@
 .bar { position: sticky; bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line-2); box-shadow: 0 8px 30px rgba(16, 40, 29, 0.12); }
 .done { padding: 40px 24px; display: grid; gap: 12px; justify-items: center; text-align: center; }
 .check { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--verified-soft); color: var(--verified); font-size: 32px; font-weight: 800; }
+.celebrate { display: flex; align-items: center; gap: 24px; padding: 18px 22px; border-radius: 18px; background: var(--primary-soft); text-align: left; margin: 6px 0; }
+.celebrateText { display: grid; gap: 6px; }
+.tierMove { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 700; color: var(--ink-2); }
+.tierOld { color: var(--field); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.tierPulse { animation: tierGlow 1.6s var(--ease) 1.1s 1 both; font-size: 14px; height: 30px; padding: 0 14px; }
+@keyframes tierGlow {
+  0% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(217, 169, 60, 0.55); }
+  40% { transform: scale(1.06); box-shadow: 0 0 0 10px rgba(217, 169, 60, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 1px rgba(107, 76, 7, 0.15); }
+}
+@media (max-width: 600px) { .celebrate { flex-direction: column; text-align: center; } }

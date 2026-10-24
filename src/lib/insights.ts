@@ -198,6 +198,14 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
   const score = known.length === 3 ? Math.round(parts.reduce((s, p) => s + p.weight * (p.score ?? 0), 0)) : null;
   const index: IndexResult = { score, tier: tierFor(score), provisional: verified.length < 3, parts };
 
+  // One point per verified event, oldest first: feeds the sparklines and the hours chart.
+  const series = [...verified]
+    .sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at))
+    .map((e) => {
+      const rows = attested.filter((a) => a.event_id === e.id);
+      return { id: e.id, title: e.title, date: new Date(e.starts_at), people: rows.length, hours: rows.reduce((s, a) => s + hoursTotal(a), 0) };
+    });
+
   const totals = {
     verifiedHours: attested.reduce((s, a) => s + hoursTotal(a), 0),
     attendances: attested.length,
@@ -220,6 +228,7 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
     awards,
     index,
     totals,
+    series,
   };
 }
 

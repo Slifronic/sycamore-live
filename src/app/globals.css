@@ -1,31 +1,47 @@
 /* SycaMore Live. Colour carries meaning: green = verified, amber = needs you,
    red = problem. Everything else is ink on parchment. */
 :root {
-  --parchment: #f6f5f0;
+  /* Refined SycaMore theme (pitch walkthrough). Existing names map onto it. */
+  --parchment: #f7f6f1;
   --paper: #ffffff;
-  --ink: #10281d;
-  --ink-2: #3d5247;
-  --ink-3: #6b7d72;
-  --line: #e3e1d8;
-  --line-2: #d3d0c4;
-  --canopy: #1d4b35;
-  --primary: #2f6b4f;
-  --primary-soft: #e6f0e9;
-  --verified: #237a4b;
-  --verified-soft: #e3f3e8;
-  --amber: #a8650f;
-  --amber-soft: #fbf0dc;
-  --red: #b3372b;
-  --red-soft: #f9e4e1;
+  --ink: #0f261b;
+  --ink-2: #55665b;   /* bark */
+  --ink-3: #5f6d64;   /* lichen */
+  --field: #878579;
+  --line: #e2e0d6;    /* rule */
+  --line-2: #d6d3c7;
+  --rule-soft: #edebe3;
+  --canopy: #1b4632;
+  --primary: #1f6e45; /* sap-deep */
+  --sap: #2c8a57;
+  --primary-soft: #edf4ee; /* moss */
+  --verified: #155030;
+  --verified-soft: #d9efe0; /* meadow */
+  --amber: #6b4c07;
+  --amber-soft: #f9eecd;    /* butter */
+  --red: #8a2b21;
+  --red-soft: #f8e0dd;      /* blush */
+  --mist: #e4edf1;
+  --mist-ink: #1f4b60;
   --gold: #a07c1f;
-  --radius: 12px;
-  --shadow: 0 1px 2px rgba(16, 40, 29, 0.05), 0 1px 3px rgba(16, 40, 29, 0.06);
+  --star: #d9a93c;
+  --radius: 14px;
+  --shadow: 0 1px 1px rgba(15, 38, 27, 0.03), 0 10px 24px -14px rgba(15, 38, 27, 0.16), 0 0 0 1px rgba(15, 38, 27, 0.055);
+  --shadow-hi: 0 1px 1px rgba(15, 38, 27, 0.03), 0 30px 60px -24px rgba(15, 38, 27, 0.28), 0 0 0 1px rgba(15, 38, 27, 0.07);
+  --band: linear-gradient(150deg, #215a3d, #0f261b);
+  --fill: linear-gradient(90deg, #6fbf90, #1b4632);
+  --ease: cubic-bezier(0.25, 0.6, 0.3, 1);
+  --out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  background: var(--parchment);
+  background:
+    radial-gradient(1200px 600px at 100% 0%, rgba(44, 138, 87, 0.07), transparent 60%),
+    radial-gradient(900px 500px at 0% 100%, rgba(201, 162, 79, 0.06), transparent 60%),
+    var(--parchment);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 15px;
@@ -34,9 +50,17 @@ body {
 }
 a { color: inherit; }
 h1, h2, h3 { font-family: var(--font-display), Georgia, serif; font-weight: 600; letter-spacing: -0.01em; margin: 0; color: var(--canopy); }
-h1 { font-size: 28px; line-height: 1.15; }
-h2 { font-size: 20px; line-height: 1.2; }
+h1 { font-size: 30px; line-height: 1.1; letter-spacing: -0.02em; }
+h2 { font-size: 21px; line-height: 1.2; letter-spacing: -0.015em; }
 h3 { font-size: 15px; font-family: var(--font-sans), system-ui, sans-serif; font-weight: 700; color: var(--ink); }
+/* Paper grain over everything, like the field journal it imitates. */
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.05; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); }
+.figure { font-family: var(--font-display), Georgia, serif; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--canopy); line-height: 1; }
+.figure-unit { font-family: var(--font-sans), system-ui, sans-serif; font-size: 0.42em; font-weight: 600; letter-spacing: 0; color: var(--field); margin-left: 4px; }
 p { margin: 0; }
 .muted { color: var(--ink-3); }
 .small { font-size: 13px; }
@@ -49,9 +73,9 @@ p { margin: 0; }
   height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line-2);
   background: var(--paper); color: var(--ink); font: 600 14px var(--font-sans), system-ui, sans-serif;
   text-decoration: none; cursor: pointer; white-space: nowrap;
-  transition: transform 0.08s ease, background 0.15s ease;
+  transition: transform 0.16s var(--ease), background 0.16s var(--ease), box-shadow 0.16s var(--ease);
 }
-.btn:hover { background: #fbfaf6; }
+.btn:hover { background: #fbfaf6; transform: translateY(-1px); }
 .btn:active { transform: translateY(1px); }
 .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: var(--ink); border-color: var(--ink); color: #fff; }
@@ -61,7 +85,9 @@ p { margin: 0; }
 .btn-quiet:hover { background: rgba(16, 40, 29, 0.05); }
 .btn-sm { height: 32px; padding: 0 12px; font-size: 13px; border-radius: 8px; }
 
-.card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.card { background: var(--paper); border: 0; border-radius: var(--radius); box-shadow: var(--shadow); }
+a.card, .card.lift { transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+a.card:hover, .card.lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-hi); }
 .card-pad { padding: 20px; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
 
@@ -70,7 +96,7 @@ p { margin: 0; }
 .chip-amber { background: var(--amber-soft); color: var(--amber); }
 .chip-red { background: var(--red-soft); color: var(--red); }
 .chip-ink { background: #edf0ec; color: var(--ink-2); }
-.chip-gold { background: #f6eed2; color: var(--gold); }
+.chip-gold { background: var(--amber-soft); color: var(--amber); box-shadow: 0 0 0 1px rgba(107, 76, 7, 0.15); }
 
 .field { display: grid; gap: 6px; }
 .field label { font-weight: 600; font-size: 14px; }
@@ -102,8 +128,8 @@ table.t tr.flash td { animation: flash 2.2s ease-out; }
 .notice-red { background: var(--red-soft); color: #7d2219; }
 .notice-green { background: var(--verified-soft); color: #145230; }
 
-.bar { height: 8px; border-radius: 999px; background: #e9e7df; overflow: hidden; }
-.bar > span { display: block; height: 100%; background: var(--primary); border-radius: 999px; }
+.bar { height: 7px; border-radius: 999px; background: var(--rule-soft); overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--fill); border-radius: 999px; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }

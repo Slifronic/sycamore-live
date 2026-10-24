@@ -1,0 +1,69 @@
+# Organization dashboard: design brief
+
+The reference is the team's refined pitch walkthrough (`Canopy/SycaMore/dashboard/sycamore-walkthrough-refined.html`, org dashboard slides) and the earlier SycaMore design system: a botanical field journal for verified service. Not dashboards v8/v9 (older palette).
+
+## The one job per screen
+
+| Screen | Primary job | Rank-1 element |
+|---|---|---|
+| Home | Show what needs the coordinator now | "Needs you" cards, then the Index |
+| Event day | Get people checked in | The QR code and the live roster |
+| Verify | Confirm hours quickly and correctly | The roster rows and the Verify & close bar |
+| Index | Explain the score and the next move | The score ring and the weakest part |
+| Report | Hand a funder proof | The report sheet itself |
+
+## Rules
+
+1. **Colour is information.** Green means verified, butter means needs you, blush means a problem. The primary action is ink, never a colour. One live green (sap) for eyebrows, focus and the live dot.
+2. **Paper on parchment.** Cards are white paper lifted off a warm parchment page with a faint grain; rings, not borders, define edges.
+3. **Fraunces carries numbers.** Every metric is a Fraunces numeral with tabular figures; labels are small uppercase Jakarta.
+4. **Motion is rationed.** Working surfaces get count-ups, the Index ring filling, input bars, a sliding nav pill and hover lift. The check-in and verify paths never wait on an animation. The one celebration is after verifying: the Index counts from the old score to the new one and the tier pulses if it changed. Everything respects `prefers-reduced-motion`.
+
+## Tokens (from the walkthrough's refined theme)
+
+| Token | Value | Use |
+|---|---|---|
+| parchment | #f7f6f1 | page |
+| paper | #ffffff | cards |
+| ink | #0f261b | text, primary buttons |
+| canopy | #1b4632 | headings, numbers |
+| bark / lichen / field | #55665b / #5f6d64 / #878579 | secondary text, captions, table heads |
+| rule / rule-soft | #e2e0d6 / #edebe3 | lines |
+| sap / sap-deep | #2c8a57 / #1f6e45 | live accent, focus, eyebrows |
+| meadow / meadow-ink | #d9efe0 / #155030 | verified |
+| butter / butter-ink | #f9eecd / #6b4c07 | needs you, Gold |
+| blush / blush-ink | #f8e0dd / #8a2b21 | problem |
+| lift | 0 1px 1px rgba(15,38,27,.03), 0 10px 24px -14px rgba(15,38,27,.16), 0 0 0 1px rgba(15,38,27,.055) | cards |
+| lift-hi | adds 0 30px 60px -24px rgba(15,38,27,.28) | hover |
+| radius | 14px cards, 999px pills | |
+| ease / out | cubic-bezier(.25,.6,.3,1) / cubic-bezier(.16,1,.3,1) | all motion |
+
+Type: display numbers 44/1, -0.03em; h1 30, -0.02em; h2 21, -0.015em; h3 17; body 15/1.55; micro-label 11px 700 uppercase 0.09em in bark.
+
+## Signature pieces
+
+- **Index gauge:** a 270° ring (track dasharray 311 of 415, rotated 135°), gradient #6fbf90 → #1b4632, score in Fraunces inside, three 7px input bars beneath.
+- **KPI row:** micro-label, Fraunces number, one quiet line of context; the "waiting" number turns butter-ink.
+- **Event rows:** 1.5px rule-soft border; the waiting row gets a butter wash and a "Needs verification" chip.
+- **Org tile:** a gradient initials tile (canopy) next to the org name.
+- **Sliding nav pill** behind the active nav item.
+
+## Motion values
+
+- Count-ups: easeOutCubic, 900 ms for KPIs, 1.4 s for the Index; start from the true value when reduced motion is on.
+- Ring fill: stroke-dasharray transition 1.6 s, `out` easing.
+- Input bars: 1.2 s each, staggered 150 ms + 160 ms × index.
+- Hover lift: translateY(-2px) cards, -1px buttons, 160 to 200 ms.
+- Nav pill: spring (stiffness 380, damping 32).
+- Verify celebration: old score to new over 1.4 s; tier chip pulse 1.6 s once.
+
+## Ideas taken from the Instagram reference (code.xr reel, light dashboards)
+
+The reel itself has no in-UI motion; these are layout ideas only, translated into SycaMore's palette.
+
+- One saturated hero band: the four headline numbers sit on a canopy gradient band (linear-gradient(150deg, #215a3d, #0f261b)) with parchment text and a sparkline each. Everything else stays paper on parchment.
+- A chart card with a hover value pill: hours per verified event as rounded bars.
+- One dark contrast panel: "Happening now" becomes an ink panel with the live dot, the check-in code and the head count.
+- Muted secondary figures ("/ 100", units) at ~60% size in a lighter tone.
+- Fat pill progress bars with the percentage inside, for the course and "almost there" badges.
+- Grouped sidebar navigation with small section labels.

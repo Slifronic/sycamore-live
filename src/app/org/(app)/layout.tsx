@@ -8,6 +8,7 @@ import { NavLinks } from '@/components/NavLinks';
 import { CoachBar } from '@/components/CoachBar';
 import { TierChip } from '@/components/TierChip';
 import s from './shell.module.css';
+import { initials } from '@/lib/format';
 
 // Every org screen reads the coordinator's cookie, so it renders per request.
 export const instant = false;
@@ -24,9 +25,14 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
           <span className={s.leaf} aria-hidden>❦</span> SycaMore
         </Link>
         <div className={s.org}>
-          <p className={s.orgName}>{org.name}</p>
-          <p className="muted small">{org.kind === 'school' ? 'School' : 'Nonprofit'} · {org.coordinator_name}</p>
-          <div style={{ marginTop: 8 }}>
+          <span className={s.tile} aria-hidden>
+            {initials(org.name)}
+          </span>
+          <div className={s.orgText}>
+            <p className={s.orgName}>{org.name}</p>
+            <p className="muted small">{org.kind === 'school' ? 'School' : 'Nonprofit'} · {org.coordinator_name}</p>
+          </div>
+          <div className={s.orgTier}>
             <TierChip tier={ins.index.tier} provisional={ins.index.provisional} score={ins.index.score} />
           </div>
         </div>

@@ -21,7 +21,7 @@ type Row = Pick<AttendanceRow, 'id' | 'display_name' | 'method'> & {
 const ROLES = Object.keys(ROLE_LABEL) as Role[];
 const initials = (n: string) => n.split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
 
-export function VerifyConsole({ eventId, endsAt, goalText, signer, initial }: { eventId: string; endsAt: string; goalText: string | null; signer: string; initial: (AttendanceRow & { checked_in_at: string | null; checked_out_at: string | null })[] }) {
+export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initial }: { eventId: string; before: number | null; endsAt: string; goalText: string | null; signer: string; initial: (AttendanceRow & { checked_in_at: string | null; checked_out_at: string | null })[] }) {
   const [rows, setRows] = useState<Row[]>(() =>
     initial.map((a) => ({
       id: a.id,
@@ -106,7 +106,8 @@ export function VerifyConsole({ eventId, endsAt, goalText, signer, initial }: { 
         { goal_outcome: goal, cohort_rating: rating, outcome_text: outcome || null },
       );
       if (res.error) setError(res.error);
-      else router.refresh(); // the page re-renders as the “records issued” screen
+      // The page re-renders as the “records issued” screen; `from` lets the Index count up from where it was.
+      else router.replace(before != null ? `?from=${before}` : '?done=1', { scroll: true });
     });
   }
 
