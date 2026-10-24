@@ -13,6 +13,9 @@ import { requestNow } from '@/lib/format';
 import { orgChats } from '@/lib/event-chat';
 import { ensureWalkinToken } from '@/lib/walkin';
 import { walkinPanel } from '@/lib/walkin-panel';
+import { tagsForEvents } from '@/lib/event-intake';
+import { announcement, eventLinks } from '@/lib/event-public';
+import { SharePanel } from '@/components/events/SharePanel';
 
 export default async function EventPage({ params, searchParams }: PageProps<'/org/events/[id]'>) {
   const org = await requireOrg();
@@ -20,7 +23,10 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
   const created = (await searchParams).created === '1';
   const event = await getEvent(org.id, id);
   if (!event) notFound();
-  const roster = await getRoster(id);
+  const [roster, tagMap] = await Promise.all([getRoster(id), tagsForEvents([id])]);
+  const tags = tagMap.get(id) ?? [];
+  const links = eventLinks(event);
+  const saved = (await searchParams).saved === '1';
   const url = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/checkin?code=${event.checkin_code}`;
   const qr = await QRCode.toString(url, { type: 'svg', margin: 1, color: { dark: '#10281d', light: '#ffffff' } });
   const now = requestNow();
@@ -30,6 +36,10 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
   // Walk-in sign-up QR (not for practice events or ones already verified).
   const walkinToken = event.is_practice || event.attested_at ? null : await ensureWalkinToken(org.id, id);
   const walkin = walkinToken ? await walkinPanel({ ...event, walkin_token: walkinToken }) : null;
+
+  // Before the day, sharing the event is the job, so it comes first; on the day, the QR code is.
+  const share = !event.is_practice && !event.attested_at && !ended;
+  const sharePanel = <SharePanel url={links.page} title={event.title} announcement={announcement(event, org.name)} links={{ google: links.google, ics: links.ics, outlook: links.outlook }} />;
 
   return (
     <div className="page" style={{ gap: 20 }}>
@@ -46,7 +56,29 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
         lede={
           <>
             {fmtDay(event.starts_at)} · {fmtTime(event.starts_at)} to {fmtTime(event.ends_at)}
-            {event.location ? ` · ${event.location}` : ''}
+            {event.location ? (
+              <>
+                {' · '}
+                {links.directions ? (
+                  <a href={links.directions} target="_blank" rel="noopener">
+                    {event.location}
+                  </a>
+                ) : (
+                  event.location
+                )}
+              </>
+            ) : (
+              ''
+            )}
+            {tags.length > 0 && (
+              <span className="row wrap" style={{ gap: 6, marginTop: 6 }}>
+                {tags.map((t) => (
+                  <Link key={t.id} href={`/org/events?tag=${encodeURIComponent(t.name)}`} className={`tag tag-${t.color}`} style={{ textDecoration: 'none' }}>
+                    {t.name}
+                  </Link>
+                ))}
+              </span>
+            )}
             {event.goal_text && (
               <>
                 <br />
@@ -81,7 +113,12 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
         }
       />
       {!event.is_practice && (
-        <nav className="row wrap" style={{ gap: 8 }} aria-label="Message this event’s volunteers">
+        <nav className="row wrap" style={{ gap: 8 }} aria-label="This event">
+          {!event.attested_at && (
+            <Link className="btn btn-sm" href={`/org/events/${id}/edit`}>
+              ✎ Edit details
+            </Link>
+          )}
           <Link className="btn btn-sm" href={`/org/messages/broadcasts?new=1&event=${id}`}>
             📣 Send announcement
           </Link>
@@ -92,11 +129,13 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
           </Link>
         </nav>
       )}
+      {saved && <p className="notice notice-green">Saved. The event page and calendar feeds show the new details.</p>}
       {created && (
         <p className="notice notice-green">
-          <strong>Event created.</strong> On the day, tap “Show QR full screen” and set your phone or laptop on the sign-in table. That’s it.
+          <strong>Event created.</strong> Share the link below in your group chats now. On the day, tap “Show QR full screen” and set your phone or laptop on the sign-in table. That’s it.
         </p>
       )}
+      {share && !live && sharePanel}
       <EventDay
         eventId={id}
         code={event.checkin_code}
@@ -111,6 +150,7 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
         walkin={walkin}
         now={now}
       />
+      {share && live && sharePanel}
     </div>
   );
 }

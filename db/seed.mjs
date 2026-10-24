@@ -4,6 +4,7 @@
 //   node db/seed.mjs            (uses DATABASE_URL or postgres://localhost/sycamore_live)
 import postgres from 'postgres';
 import { readFileSync } from 'node:fs';
+import { seedIntake } from './seed-intake.mjs';
 
 const url = process.env.DATABASE_URL ?? 'postgres://localhost:5432/sycamore_live';
 const sql = postgres(url, { max: 1, onnotice: () => {} });
@@ -246,6 +247,8 @@ async function main() {
       (${org.id}, 'missing_checkout', true, ${'Hi {first_name}, {event} ended at {time}. You’re still checked in: open SycaMore and tap Check out so your hours count. If you left earlier, reply with the time and {org} will fix it.'}),
       (${org.id}, 'invite_back', true, ${'Hi {first_name}, we miss you at {org}! Our next event is {next_event}. Want to come?'})`;
   }
+
+  await seedIntake(sql, org.id);
 
   const [t] = await sql`select count(*)::int as n, coalesce(sum(coalesce(hours_adjusted, hours_captured)),0)::float as h from attendance where status = 'attested'`;
   console.log(`Seeded Riverside Restoration Crew (PIN 246810): ${vols.length} volunteers, ${t.n} attested attendances, ${t.h} hours.`);

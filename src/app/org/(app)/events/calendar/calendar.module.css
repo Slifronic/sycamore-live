@@ -1,0 +1,26 @@
+.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); overflow: hidden; }
+.dow { padding: 10px 10px 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); border-bottom: 1px solid var(--line); }
+.day { min-height: 112px; padding: 6px; border-right: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft); display: grid; grid-template-rows: auto 1fr; gap: 4px; min-width: 0; }
+.day:nth-child(7n + 7) { border-right: 0; }
+.out { background: #fbfaf6; }
+.out .num { color: var(--line-2); }
+.today { background: #f6faf7; box-shadow: inset 0 2px 0 var(--sap); }
+.today .num { background: var(--ink); color: #fff; }
+.dayHead { display: flex; justify-content: space-between; align-items: center; }
+.num { font-size: 12px; font-weight: 700; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.add { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; text-decoration: none; color: var(--ink-3); opacity: 0; font-weight: 700; }
+.day:hover .add, .add:focus-visible { opacity: 1; background: var(--primary-soft); color: var(--primary); }
+.evs { display: grid; gap: 3px; align-content: start; min-width: 0; }
+.ev { display: flex; gap: 5px; align-items: baseline; padding: 3px 6px; border-radius: 6px; font-size: 12px; text-decoration: none; background: var(--tag-bg); color: var(--tag-fg); box-shadow: inset 3px 0 0 var(--tag-dot); min-width: 0; }
+.ev:hover { filter: brightness(0.97); }
+.evTime { font-weight: 700; flex: none; font-variant-numeric: tabular-nums; }
+.evTitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.done .evTitle::after { content: ' ✓'; }
+.needs { box-shadow: inset 3px 0 0 var(--amber); }
+.agenda { display: none; }
+.agendaDay { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.agendaDay .ev { font-size: 14px; padding: 8px 10px; }
+@media (max-width: 720px) {
+  .grid { display: none; }
+  .agenda { display: grid; }
+}

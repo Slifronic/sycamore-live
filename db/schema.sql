@@ -262,3 +262,43 @@ create trigger attendance_lock before update on attendance
 create index on event (org_id, starts_at desc);
 create index on attendance (event_id);
 create index on attendance (volunteer_id);
+
+-- org addition: event intake. Where the event is (a picked place with
+-- coordinates and a maps link), notes for volunteers, where the details came
+-- from (an imported invite, a pasted flyer...), tags, a public page per event
+-- and a calendar feed per org. Volatile defaults give every existing row its
+-- own random slug and token.
+alter table event
+  add column place_name text,                 -- "Guadalupe River Park"
+  add column place_address text,              -- full address from the map search
+  add column place_lat double precision,      -- the pin; also offered for the leave-the-area check
+  add column place_lng double precision,
+  add column place_url text,                  -- the maps link the coordinator pasted, if any
+  add column volunteer_notes text,            -- what to bring, parking, where to meet
+  add column source text not null default 'manual'
+    check (source in ('manual','ics','feed','link','text','image','repeat')),
+  add column source_uid text,                 -- the calendar UID when imported, to catch double imports
+  add column public_slug text not null unique default encode(gen_random_bytes(5), 'hex');
+
+alter table org
+  add column calendar_token text not null unique default encode(gen_random_bytes(16), 'hex');
+
+drop table if exists event_tag cascade;
+drop table if exists tag cascade;
+
+create table tag (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references org(id),
+  name text not null check (length(trim(name)) between 1 and 32),
+  color text not null default 'sap' check (color in ('sap','sky','sun','clay','plum','stone')),
+  created_at timestamptz not null default now()
+);
+create unique index tag_org_name on tag (org_id, lower(name));
+
+create table event_tag (
+  event_id uuid not null references event(id) on delete cascade,
+  tag_id uuid not null references tag(id) on delete cascade,
+  primary key (event_id, tag_id)
+);
+create index on event_tag (tag_id);
+create index on event (org_id, source_uid);

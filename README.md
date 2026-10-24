@@ -29,6 +29,16 @@ This repo holds the **organization side** (Bryant, built with Claude). The volun
     - An email that's already signed up needs its matching birth date, so typing someone else's email doesn't open their record or messages.
     - Google ID tokens are verified with Google on the server (audience, issuer, expiry, verified email).
   - **Code:** logic in `src/lib/walkin.ts` and `src/lib/google.ts`. `POST /api/vol/checkout` is a reference implementation of the contract route for the volunteer side.
+- **New event, from what you already have:** one box takes a paste or a dropped file and fills in the form. Nothing saves until the coordinator presses Create, and imported fields are tinted, with anything uncertain marked amber.
+  - **Calendars, no sign-in:** an `.ics` invite or the invite email (`.eml`), a Google or Outlook "add to calendar" link, or a calendar's iCal address (Google's "secret address", Apple public calendars, Outlook ICS links). Feeds list the next four months, with repeating events expanded, and an event imported twice is flagged.
+  - **Event pages:** Eventbrite, Meetup and most org sites are read from their schema.org data; other pages and any pasted message go to Claude.
+  - **Claude:** a pasted group-chat message or email, or a photo of a flyer or screenshot (`claude-opus-5-5`, structured output). The server checks the date and time shapes, relative dates ("this Saturday") resolve against today, and instructions inside the material are ignored.
+  - **Repeat a past event:** same place, hours, notes and tags, next week on the same weekday.
+  - Pasted links are fetched only from public addresses, with redirects re-checked, a size cap and a timeout (`src/lib/safe-fetch.ts`).
+- **Place picker:** search a park or address (OpenStreetMap, no API key), paste a Google or Apple Maps link (short links are expanded), or use the coordinator's location. The pin can also turn on the leave-the-area check.
+- **Tags:** the org's own labels in six colours, created inline. Events and the calendar filter by them, and each tag has its own calendar feed.
+- **Calendar:** a month view (an agenda list on phones) with subscribe links for Google, Apple and Outlook. The feed `/cal/<token>.ics` is unguessable and updates every few hours; practice events never appear in it.
+- **Share with volunteers:** every event gets a public page `/e/<slug>` with a map, one-tap directions, add to Google / Apple / Outlook, notes and how check-in works. The check-in code is not on it. The event page has a ready-to-send announcement for group chats, with Share, Copy, WhatsApp, text, email and Telegram buttons.
 - **Event story (Claude):** after an event, the coordinator records a voice debrief and adds phone videos.
   - **Voice:** a live transcript from the browser's speech service; the audio is kept privately.
   - **Videos:** the browser cuts a few still frames from each clip, and Claude describes them: what's happening, usable moments, a caption, and a flag when people or possibly minors are recognizable.

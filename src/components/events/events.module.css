@@ -1,0 +1,68 @@
+/* New event / edit event: the form on the left, what volunteers see on the right. */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.layout > * { min-width: 0; }
+@media (max-width: 1180px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* Intake: a quiet panel above the form, a dashed drop target while dragging. */
+.intake > *, .intakeBox > * { min-width: 0; }
+.intake { display: grid; gap: 12px; padding: 18px 20px; border-radius: var(--radius); background: var(--primary-soft); box-shadow: inset 0 0 0 1px rgba(31, 110, 69, 0.12); transition: box-shadow 0.15s var(--ease), background 0.15s var(--ease); }
+.intakeDrag { background: #e1efe5; box-shadow: inset 0 0 0 2px var(--sap); }
+.intakeBox { display: grid; gap: 10px; }
+.intakeBox textarea { resize: vertical; min-height: 74px; background: var(--paper); }
+.intakeActions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.howto summary { cursor: pointer; color: var(--ink-2); font-weight: 600; width: fit-content; }
+.howto ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+
+.choices { background: var(--paper); border-radius: 12px; padding: 12px; display: grid; gap: 8px; box-shadow: var(--shadow); }
+.choices ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 300px; overflow: auto; }
+.choices button { width: 100%; text-align: left; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); cursor: pointer; font: inherit; color: inherit; }
+.choices button:hover, .choices button:focus-visible { border-color: var(--primary); background: #fbfaf6; }
+.choices button > span:not(:global(.chip)) { grid-column: 1; }
+.choices button > :global(.chip) { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+
+/* After an import: what came across is tinted green; what to check is amber. */
+.filledBanner { display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px; background: var(--verified-soft); color: #145230; position: relative; padding-right: 110px; }
+.filledBanner > button { position: absolute; right: 8px; top: 8px; }
+.fromImport, :global(.input).fromImport { background: #f3f9f4; border-color: #9cc9ad; }
+.checkThis, :global(.input).checkThis { background: #fdf7e4; border-color: #d9b45a; box-shadow: 0 0 0 3px rgba(217, 180, 90, 0.18); }
+.checkKey { background: var(--amber-soft); color: var(--amber); padding: 0 6px; border-radius: 5px; font-weight: 700; }
+
+.tile { padding: 10px 12px; display: flex; gap: 10px; cursor: pointer; box-shadow: none; border: 1px solid var(--line); }
+.tileOn { border-color: var(--primary); background: #f6faf7; }
+.checkRow { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: #fbfaf6; border: 1px solid var(--line); cursor: pointer; }
+.checkRow input { margin-top: 3px; }
+
+/* Place picker */
+.placePicker { position: relative; display: grid; gap: 6px; }
+.results { position: absolute; z-index: 20; top: 48px; left: 0; right: 0; margin: 0; padding: 6px; list-style: none; background: var(--paper); border-radius: 12px; box-shadow: var(--shadow-hi); max-height: 320px; overflow: auto; }
+.results li { display: grid; gap: 2px; padding: 9px 10px; border-radius: 8px; cursor: pointer; }
+.results li:hover, .resultActive { background: var(--primary-soft); }
+.placeCard { display: grid; border: 1px solid var(--line-2); border-radius: 12px; overflow: hidden; background: var(--paper); }
+.placeMap { width: 100%; height: 180px; border: 0; display: block; filter: saturate(0.85); }
+.placeBody { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; align-items: flex-start; }
+@media (max-width: 560px) { .placeMap { height: 150px; } }
+
+/* Tags */
+.tagBox { border: 1px solid var(--line-2); border-radius: 10px; background: var(--paper); padding: 6px; display: grid; gap: 6px; }
+.tagBox:focus-within { border-color: var(--primary); outline: 2px solid var(--primary); outline-offset: 1px; }
+.tagRow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 30px; cursor: text; }
+.tagInput { flex: 1 1 140px; border: 0; outline: 0; font: 15px var(--font-sans), system-ui, sans-serif; height: 30px; padding: 0 6px; background: transparent; color: var(--ink); }
+.tagX { border: 0; background: transparent; color: inherit; cursor: pointer; font-size: 15px; line-height: 1; padding: 0 0 0 2px; opacity: 0.6; }
+.tagX:hover { opacity: 1; }
+.tagSuggest { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 2px 2px; border-top: 1px dashed var(--line); }
+.tagPick { border: 0; cursor: pointer; font-family: inherit; opacity: 0.85; }
+.tagPick:hover { opacity: 1; }
+
+/* Volunteer preview, sticky beside the form */
+.previewCol { position: sticky; top: 24px; display: grid; gap: 10px; }
+@media (max-width: 1180px) { .previewCol { position: static; max-width: 560px; } }
+.preview { overflow: hidden; }
+.previewMap { width: 100%; height: 170px; border: 0; display: block; pointer-events: none; filter: saturate(0.85); }
+.previewNoMap { height: 90px; display: grid; place-items: center; background: repeating-linear-gradient(135deg, #f4f3ee, #f4f3ee 10px, #efede6 10px, #efede6 20px); color: var(--ink-3); font-size: 13px; }
+.previewBody { padding: 14px 16px 16px; display: grid; gap: 6px; }
+.previewTitle { font-family: var(--font-display), Georgia, serif; font-size: 20px; color: var(--canopy); line-height: 1.15; }
+.previewNotes { background: #fbfaf6; border-radius: 8px; padding: 8px 10px; color: var(--ink-2); white-space: pre-wrap; }
+.previewButtons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.previewButtons :global(.btn) { pointer-events: none; }
+.dim { opacity: 0.45; }
+.fieldLabel { font-weight: 600; font-size: 14px; }
