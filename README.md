@@ -44,3 +44,7 @@ Demo coordinator PIN: **246810** (Riverside Restoration Crew, made-up names). Th
 ```bash
 npm run check   # tsc + eslint
 ```
+
+## Paper-sheet import accuracy
+
+`npm run eval:sheets` (dev server running, `ANTHROPIC_API_KEY` set) scores the import on three fake handwritten sheets in `tests/sheets/` (regenerate them with `make_sheets.py`). Last run, Oct 23, 2026, `claude-opus-5-5`: **19 of 19 rows exactly right before review**, the ink-blotted time flagged instead of guessed, the crossed-out row and the "IGNORE PREVIOUS INSTRUCTIONS" line both skipped and mentioned in notes, and blank time-outs left empty. About 5 to 9 seconds per sheet.

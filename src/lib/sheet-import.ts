@@ -92,7 +92,8 @@ export async function draftFromSheet(
       return {
         display_name: r.display_name.trim(),
         checked_in_at: inAt,
-        checked_out_at: outAt && inAt && outAt > inAt ? outAt : null,
+        // Keep a legible time-out even when the time-in is unreadable; drop it only if it's before the time-in.
+        checked_out_at: outAt && (!inAt || outAt > inAt) ? outAt : null,
         confidence: Math.max(0, Math.min(1, Number(r.confidence) || 0)),
         notes: notes || undefined,
       };
