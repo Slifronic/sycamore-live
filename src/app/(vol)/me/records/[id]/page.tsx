@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { RecordWording, longDate } from '@/components/vol/RecordWording';
 import { PrintButton } from '@/app/org/(app)/reports/PrintButton';
 import { SharePanel } from './SharePanel';
+import { BlurbPanel } from './BlurbPanel';
 import s from '../../../pages.module.css';
 
 // Contract: one record. The exact record wording, captured versus adjusted with
@@ -70,6 +71,7 @@ export default async function RecordPage({ params }: PageProps<'/me/records/[id]
 
         <aside className={`${s.col} no-print`}>
           <SharePanel recordId={r.id} url={url} qrSvg={qr} isMinor={vol.is_minor} revoked={revoked} />
+          {!revoked && <BlurbPanel recordId={r.id} orgName={r.org.name} />}
           <div className="card card-pad stack">
             <h3>Keep a copy</h3>
             <p className="small muted">{`Print this record or save it as a PDF for a school or scholarship file.${url && !revoked ? ' The link above is what proves it.' : ''}`}</p>
