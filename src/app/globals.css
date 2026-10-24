@@ -185,3 +185,14 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 .card-head { flex-wrap: wrap; }
 .t.tight th, .t.tight td { padding-left: 12px; padding-right: 12px; }
 .t.tight td { padding-top: 10px; padding-bottom: 10px; }
+
+/* Tags: an org's own labels for events. Six soft colours, none of them the
+   green/amber/red that mean verified / needs you / problem. */
+.tag { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 7px; font-size: 12px; font-weight: 600; white-space: nowrap; background: var(--tag-bg); color: var(--tag-fg); }
+.tag::before { content: ''; width: 7px; height: 7px; border-radius: 2px; background: var(--tag-dot); }
+.tag-sap { --tag-bg: #e9f1ec; --tag-fg: #1d4d35; --tag-dot: #3f8f63; }
+.tag-sky { --tag-bg: #e6eff5; --tag-fg: #1f4b60; --tag-dot: #4a87ad; }
+.tag-sun { --tag-bg: #f6f0dc; --tag-fg: #5c4a12; --tag-dot: #c79a2b; }
+.tag-clay { --tag-bg: #f4e7e0; --tag-fg: #6e3420; --tag-dot: #c06a45; }
+.tag-plum { --tag-bg: #efe8f2; --tag-fg: #4d2f5c; --tag-dot: #8a5fa3; }
+.tag-stone { --tag-bg: #ecebe6; --tag-fg: #45493f; --tag-dot: #8b8d82; }

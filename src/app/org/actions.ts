@@ -14,10 +14,6 @@ export type FormState = { error?: string; ok?: string } | null;
 
 const PRACTICE_NAMES = ['Ana Practice', 'Ben Practice', 'Cleo Practice', 'Dev Practice', 'Eli Practice', 'Fay Practice'];
 
-// Local wall-clock time from a <input type="datetime-local"> in Pacific time.
-function pacific(value: string): Date {
-  return new Date(`${value}:00-07:00`);
-}
 
 export async function startOrg(_: FormState, form: FormData): Promise<FormState> {
   const name = String(form.get('name') ?? '').trim();
@@ -64,30 +60,6 @@ export async function signIn(_: FormState, form: FormData): Promise<FormState> {
 export async function signOut() {
   await clearOrgCookie();
   redirect('/');
-}
-
-export async function newEvent(_: FormState, form: FormData): Promise<FormState> {
-  const org = await requireOrg();
-  const date = String(form.get('date') ?? '');
-  const start = String(form.get('start') ?? '');
-  const end = String(form.get('end') ?? '');
-  if (!date || !start || !end) return { error: 'Pick a date, a start time and an end time.' };
-  let id: string;
-  try {
-    const ev = await createEvent(org.id, {
-      title: String(form.get('title') ?? ''),
-      location: String(form.get('location') ?? '') || null,
-      starts_at: pacific(`${date}T${start}`),
-      ends_at: pacific(`${date}T${end}`),
-      activity: (String(form.get('activity') ?? 'general') as Activity) || 'general',
-      goal_text: String(form.get('goal') ?? '') || null,
-    });
-    id = ev.id;
-  } catch (e) {
-    if (e instanceof RuleError) return { error: e.message };
-    throw e;
-  }
-  redirect(`/org/events/${id}?created=1`);
 }
 
 export async function addByName(eventId: string, _: FormState, form: FormData): Promise<FormState> {

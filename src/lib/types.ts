@@ -39,6 +39,7 @@ export type Org = {
   kind: 'nonprofit' | 'school';
   city: string | null;
   course: Record<string, string>;
+  calendar_token: string;
 };
 
 export type Activity = 'general' | 'planting' | 'logistics' | 'outreach' | 'education';
@@ -63,6 +64,16 @@ export type EventRow = {
   site_lat: number | null;
   site_lng: number | null;
   site_radius_m: number;
+  // event intake (org addition)
+  place_name: string | null;
+  place_address: string | null;
+  place_lat: number | null;
+  place_lng: number | null;
+  place_url: string | null;
+  volunteer_notes: string | null;
+  source: 'manual' | 'ics' | 'feed' | 'link' | 'text' | 'image' | 'repeat';
+  source_uid: string | null;
+  public_slug: string;
 };
 
 export type AttendanceRow = {

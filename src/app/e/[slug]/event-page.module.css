@@ -1,0 +1,19 @@
+.page { max-width: 720px; margin: 0 auto; padding: 40px 20px 64px; display: grid; gap: 22px; }
+.head { display: grid; gap: 8px; }
+.org { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--primary); }
+.title { margin: 0; font-family: var(--font-display), Georgia, serif; font-weight: 600; font-size: clamp(30px, 6vw, 44px); line-height: 1.05; letter-spacing: -0.03em; color: var(--canopy); }
+.when { margin: 0; font-size: 18px; color: var(--ink); font-weight: 600; }
+.h2 { font-size: 19px; margin: 0; }
+.where { overflow: hidden; display: grid; }
+.map { width: 100%; height: 240px; border: 0; display: block; filter: saturate(0.85); }
+.whereBody { padding: 16px 18px 18px; display: grid; gap: 10px; }
+.cal { display: grid; gap: 10px; }
+.notes { display: grid; gap: 8px; }
+.noteText { white-space: pre-wrap; font-size: 16px; }
+.hours { padding: 16px 18px; display: grid; gap: 6px; background: var(--primary-soft); box-shadow: none; }
+.foot { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 16px; }
+@media (max-width: 520px) {
+  .page { padding-top: 24px; }
+  .map { height: 200px; }
+  .where :global(.btn), .cal :global(.btn) { flex: 1 1 auto; }
+}
