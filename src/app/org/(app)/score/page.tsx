@@ -1,6 +1,5 @@
 import { requireOrg } from '@/lib/session';
 import { loadOrgInsights } from '@/lib/insights';
-import { markLesson } from '@/lib/org-data';
 import Link from 'next/link';
 import { IndexCard } from '@/components/IndexCard';
 import { PageHeader } from '@/components/PageHeader';
@@ -16,7 +15,6 @@ const TIERS = [
 export default async function IndexPage() {
   const org = await requireOrg();
   const ins = await loadOrgInsights(org.id);
-  await markLesson(org.id, 'index_viewed');
   const lowest = ins.index.parts.filter((p) => p.score != null).sort((a, b) => (a.score ?? 0) - (b.score ?? 0))[0];
   const score = ins.index.score;
   const nextTier = score == null ? null : [...TIERS].reverse().find((t) => t.from > score);

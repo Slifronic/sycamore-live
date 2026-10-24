@@ -6,10 +6,10 @@ The reference is the team's refined pitch walkthrough (`Canopy/SycaMore/dashboar
 
 | Screen | Primary job | Rank-1 element |
 |---|---|---|
-| Home | Show what needs the coordinator now | "Needs you" cards, then the Index |
+| Home | Show what needs the coordinator now | "Needs you" cards, then the observed facts (verified hours, attendances, unique volunteers, events verified within 24 hours) |
 | Event day | Get people checked in | The QR code and the live roster |
 | Verify | Confirm hours quickly and correctly | The roster rows and the Verify & close bar |
-| Index | Explain the score and the next move | The score ring and the weakest part |
+| Index (hidden until Phase 4: 30 orgs, 200 events) | Explain the score and the next move | The score ring and the weakest part; not linked from anywhere |
 | Report | Hand a funder proof | The report sheet itself |
 
 ## Rules
@@ -17,7 +17,7 @@ The reference is the team's refined pitch walkthrough (`Canopy/SycaMore/dashboar
 1. **Colour is information.** Green means verified, butter means needs you, blush means a problem. The primary action is ink, never a colour. One live green (sap) for eyebrows, focus and the live dot.
 2. **Paper on parchment.** Cards are white paper lifted off a warm parchment page with a faint grain; rings, not borders, define edges.
 3. **Fraunces carries numbers.** Every metric is a Fraunces numeral with tabular figures; labels are small uppercase Jakarta.
-4. **Motion is rationed.** Working surfaces get count-ups, the Index ring filling, input bars, a sliding nav pill and hover lift. The check-in and verify paths never wait on an animation. The one celebration is after verifying: the Index counts from the old score to the new one and the tier pulses if it changed. Everything respects `prefers-reduced-motion`.
+4. **Motion is rationed.** Working surfaces get count-ups, the Index ring filling, input bars, a sliding nav pill and hover lift. The check-in and verify paths never wait on an animation. After verifying, the screen lists what is now on the record (hours added, attendances, volunteers, events verified within 24 hours); no score or tier is shown. Everything respects `prefers-reduced-motion`.
 
 ## Tokens (from the walkthrough's refined theme)
 

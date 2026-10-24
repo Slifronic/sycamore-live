@@ -8,7 +8,6 @@ import { orgChatUnread } from '@/lib/event-chat';
 import { signOut } from '../actions';
 import { NavLinks } from '@/components/NavLinks';
 import { CoachBar } from '@/components/CoachBar';
-import { TierChip } from '@/components/TierChip';
 import s from './shell.module.css';
 import { initials } from '@/lib/format';
 import { PinReveal } from '@/components/PinReveal';
@@ -40,8 +39,10 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
             <p className={s.orgName}>{org.name}</p>
             <p className="muted small">{org.kind === 'school' ? 'School' : 'Nonprofit'} · {org.coordinator_name}</p>
           </div>
-          <div className={s.orgTier}>
-            <TierChip tier={ins.index.tier} provisional={ins.index.provisional} score={ins.index.score} />
+          <div className={s.orgFact}>
+            <span className="chip chip-ink" title="Hours you have verified, from check-ins and your sign-offs">
+              {ins.totals.verifiedHours.toLocaleString()} verified hours
+            </span>
           </div>
         </div>
         <NavLinks awaiting={ins.totals.awaiting} badgeReady={ins.badgeReady.length} unread={unread} />

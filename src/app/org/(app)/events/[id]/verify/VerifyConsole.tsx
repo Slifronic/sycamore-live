@@ -124,7 +124,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
         { goal_outcome: goal, cohort_rating: rating, outcome_text: outcome || null },
       );
       if (res.error) setError(res.error);
-      // The page re-renders as the “records issued” screen; `from` lets the Index count up from where it was.
+      // The page re-renders as the “records issued” screen; `from` is the verified hours before, so it can say how many were added.
       else router.replace(before != null ? `?from=${before}` : '?done=1', { scroll: true });
     });
   }

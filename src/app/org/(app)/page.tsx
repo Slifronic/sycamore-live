@@ -5,7 +5,7 @@ import { LESSONS, courseProgress } from '@/lib/course';
 import { badgeByKey } from '@/lib/badges';
 import { HOUR_RATES, money, rateKeyFor } from '@/lib/value';
 import { ago, fmtDay, plural } from './util';
-import { IndexCard } from '@/components/IndexCard';
+import { FactsCard } from '@/components/FactsCard';
 import { PageHeader } from '@/components/PageHeader';
 import { CountUp } from '@/components/motion/CountUp';
 import { Sparkline } from '@/components/motion/Sparkline';
@@ -177,7 +177,7 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
       </div>
 
       <div className={s.two}>
-        <IndexCard index={ins.index} />
+        <FactsCard totals={ins.totals} />
         <section className={`card ${s.chartCard}`}>
           <div className="row between">
             <div>

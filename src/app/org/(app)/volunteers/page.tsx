@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { requireOrg } from '@/lib/session';
+import { markLesson } from '@/lib/org-data';
 import { sql } from '@/lib/db';
 import { loadOrgInsights, SLIPPING_AFTER_DAYS } from '@/lib/insights';
 import { badgeByKey } from '@/lib/badges';
@@ -23,6 +24,7 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
   const tab = (typeof sp.tab === 'string' ? sp.tab : 'all') as (typeof TABS)[number]['key'];
   const q = typeof sp.q === 'string' ? sp.q.trim().toLowerCase() : '';
   const invite = typeof sp.invite === 'string' ? sp.invite : null;
+  await markLesson(org.id, 'index_viewed');
   const ins = await loadOrgInsights(org.id);
   const emails = new Map(
     ((await sql`select id, email from volunteer where id = any(${ins.volunteers.map((v) => v.volunteer_id).filter(Boolean) as string[]})`) as unknown as { id: string; email: string }[]).map(

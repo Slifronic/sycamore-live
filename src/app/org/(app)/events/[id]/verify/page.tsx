@@ -2,11 +2,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireOrg } from '@/lib/session';
 import { getEvent, getRoster } from '@/lib/org-data';
-import { loadOrgInsights, tierFor } from '@/lib/insights';
-import { Gauge } from '@/components/motion/Gauge';
+import { loadOrgInsights } from '@/lib/insights';
 import { ago, fmtDay, requestNow } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
-import { tierClass } from '@/components/TierChip';
 import { FocusOnMount } from './FocusOnMount';
 import { VerifyConsole } from './VerifyConsole';
 import s from './verify.module.css';
@@ -20,13 +18,14 @@ export default async function VerifyPage({ params, searchParams }: PageProps<'/o
 
   if (event.attested_at) {
     // Shown right after Verify & close (and on any later visit). `from` is the
-    // Index before this verify, so the gauge can count up to the new score.
+    // org's verified hours before this verify, so the screen can say what changed.
     const ins = await loadOrgInsights(org.id);
     const issued = roster.filter((r) => r.status === 'attested').length;
-    const fromRaw = Number((await searchParams).from);
-    const from = Number.isFinite(fromRaw) && fromRaw > 0 ? fromRaw : null;
-    const before = from != null ? tierFor(from) : null;
-    const moved = before != null && before !== ins.index.tier;
+    const fromParam = (await searchParams).from;
+    const fromRaw = typeof fromParam === 'string' && fromParam !== '' ? Number(fromParam) : NaN;
+    const from = Number.isFinite(fromRaw) && fromRaw >= 0 ? fromRaw : null;
+    const added = from != null ? Math.round((ins.totals.verifiedHours - from) * 100) / 100 : 0;
+    const t = ins.totals;
     return (
       <section className={`card ${s.done}`} style={{ maxWidth: 760 }}>
         <p className={s.check} aria-hidden>✓</p>
@@ -39,24 +38,28 @@ export default async function VerifyPage({ params, searchParams }: PageProps<'/o
             ? 'That’s the whole loop. On a real event, every volunteer could now share their record from their phone.'
             : `${event.title} is verified. Volunteers can share their records from their phones now.`}
         </p>
-        {!event.is_practice && ins.index.score != null && (
+        {!event.is_practice && (
           <div className={s.celebrate}>
-            <Gauge value={ins.index.score} from={from ?? ins.index.score} size={176} />
             <div className={s.celebrateText}>
-              <p className="eyebrow eyebrow-sap">Your SycaMore Index</p>
-              {moved ? (
-                <p className={s.tierMove}>
-                  <span className={s.tierOld}>★ {before}</span> → <span className={`chip ${tierClass(ins.index.tier)} ${s.tierPulse}`}>★ {ins.index.tier} certified</span>
-                </p>
-              ) : (
-                <p className={s.tierMove}>
-                  <span className={`chip ${tierClass(ins.index.tier)}`}>★ {ins.index.tier}</span>
-                </p>
-              )}
-              <p className="small muted">
-                {from != null && from !== ins.index.score ? `Up ${ins.index.score - from} points from ${from}. ` : ''}
-                {ins.badgeReady.length > 0 ? `${ins.badgeReady.length} badges are ready for your sign-off.` : ''}
-              </p>
+              <p className="eyebrow eyebrow-sap">Now on your record</p>
+              <ul className={s.factList}>
+                <li>
+                  <b className="num">{t.verifiedHours.toLocaleString()}</b> verified hours{added > 0 ? ` (${added.toLocaleString()} added just now)` : ''}
+                </li>
+                <li>
+                  <b className="num">{t.attendances.toLocaleString()}</b> attendances
+                </li>
+                <li>
+                  <b className="num">{t.uniqueVolunteers.toLocaleString()}</b> unique volunteers
+                </li>
+                <li>
+                  <b className="num">
+                    {t.verifiedWithin24h} of {t.verifiedEvents}
+                  </b>{' '}
+                  events verified within 24 hours of ending
+                </li>
+              </ul>
+              {ins.badgeReady.length > 0 && <p className="small muted">{ins.badgeReady.length} badges are ready for your sign-off.</p>}
             </div>
           </div>
         )}
@@ -64,8 +67,8 @@ export default async function VerifyPage({ params, searchParams }: PageProps<'/o
           <Link className="btn btn-primary" href="/org">
             Back to dashboard
           </Link>
-          <Link className="btn" href="/org/score">
-            See your Index
+          <Link className="btn" href="/org/reports">
+            Funder report
           </Link>
           {ins.badgeReady.length > 0 && (
             <Link className="btn" href="/org/badges">
@@ -77,7 +80,7 @@ export default async function VerifyPage({ params, searchParams }: PageProps<'/o
     );
   }
 
-  const before = (await loadOrgInsights(org.id)).index.score;
+  const before = (await loadOrgInsights(org.id)).totals.verifiedHours;
 
   return (
     <div className="page" style={{ gap: 20 }}>

@@ -140,6 +140,9 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
   volunteers.sort((a, b) => b.hours - a.hours || a.name.localeCompare(b.name));
 
   // ── The SycaMore Index (weights from the pitch: .35 / .30 / .35) ──
+  // Hidden from the product until the business model's Phase 4 trigger (30 orgs,
+  // 200 events): no nav link, card, tier chip or seal shows it. /org/score still
+  // renders it for anyone who types the URL. Screens show observed facts instead.
   // Retention: of volunteers whose first event was 14+ days ago, the share who came back.
   const eligible = volunteers.filter((v) => (now.getTime() - v.first_seen.getTime()) / DAY >= 14);
   const returned = eligible.filter((v) => v.events >= 2);
@@ -201,11 +204,16 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
       return { id: e.id, title: e.title, date: new Date(e.starts_at), people: rows.length, hours: rows.reduce((s, a) => s + hoursTotal(a), 0) };
     });
 
+  // Observed, not scored: how many verified events were signed off within a
+  // day of ending (the timestamps come from the app, never typed in).
+  const verifiedWithin24h = verified.filter((e) => new Date(e.attested_at!).getTime() - new Date(e.ends_at).getTime() <= 24 * 3_600_000).length;
+
   const totals = {
     verifiedHours: attested.reduce((s, a) => s + hoursTotal(a), 0),
     attendances: attested.length,
     uniqueVolunteers: volunteers.length,
     verifiedEvents: verified.length,
+    verifiedWithin24h,
     awaiting: awaiting.length,
     standouts: attested.filter((a) => a.standout).length,
   };

@@ -4,8 +4,7 @@
 .head { display: flex; justify-content: space-between; gap: 20px; align-items: start; border-bottom: 2px solid var(--canopy); padding-bottom: 18px; }
 .title { font-size: 28px; }
 .seal { display: grid; justify-items: center; gap: 4px; padding: 12px 16px; border-radius: 14px; background: #f4f5f1; box-shadow: 0 0 0 1px rgba(15, 38, 27, 0.08); min-width: 128px; }
-.sealGold { background: #fbf6e6; box-shadow: 0 0 0 1.5px #e3cf8f; }
-.sealScore { font-family: var(--font-display), Georgia, serif; font-size: 40px; font-weight: 600; color: var(--canopy); line-height: 1; }
+.sealScore { font-family: var(--font-display), Georgia, serif; font-size: 32px; white-space: nowrap; font-weight: 600; color: var(--canopy); line-height: 1; }
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-radius: 14px; background: var(--primary-soft); }
 .kpiBox { display: grid; gap: 4px; padding: 16px 18px; }
 .kpiBox + .kpiBox { box-shadow: inset 1px 0 0 rgba(15, 38, 27, 0.07); }

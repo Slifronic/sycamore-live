@@ -26,7 +26,6 @@ const GROUPS = [
   {
     label: 'Proof',
     items: [
-      { href: '/org/score', label: 'SycaMore Index' },
       { href: '/org/reports', label: 'Funder report' },
     ],
   },
