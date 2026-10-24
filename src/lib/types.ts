@@ -1,0 +1,94 @@
+// Shared types. The first block mirrors build/00-SHARED-CONTRACT.md exactly;
+// the second block is organization-side additions.
+
+export type Role = 'general' | 'team_lead' | 'event_coordinator' | 'program_manager';
+export type AttendanceStatus = 'checked_in' | 'checked_out' | 'no_show' | 'attested';
+export type Method = 'qr' | 'code' | 'coordinator' | 'paper_import';
+
+export type SheetDraft = {
+  display_name: string;
+  checked_in_at: string | null;
+  checked_out_at: string | null;
+  confidence: number;
+  notes?: string;
+};
+
+export type RecordView = {
+  id: string;
+  code: string | null;
+  status: 'active' | 'revoked';
+  volunteer_name: string;
+  org: { name: string; contact_phone: string; contact_email: string };
+  event: { title: string; location: string | null; date: string };
+  role: Role;
+  hours_total: number;
+  hours_captured: number;
+  hours_adjusted: number | null;
+  adjusted_by: string | null;
+  adjustment_reason: string | null;
+  attested_at: string;
+};
+
+export type Org = {
+  id: string;
+  name: string;
+  contact_phone: string;
+  contact_email: string;
+  coordinator_name: string;
+  coordinator_pin: string;
+  kind: 'nonprofit' | 'school';
+  city: string | null;
+  course: Record<string, string>;
+};
+
+export type Activity = 'general' | 'planting' | 'logistics' | 'outreach' | 'education';
+
+export type EventRow = {
+  id: string;
+  org_id: string;
+  title: string;
+  location: string | null;
+  starts_at: Date;
+  ends_at: Date;
+  checkin_code: string;
+  status: 'open' | 'closed';
+  closed_at: Date | null;
+  activity: Activity;
+  is_practice: boolean;
+  goal_outcome: 'yes' | 'partly' | 'no' | null;
+  cohort_rating: number | null;
+  attested_at: Date | null;
+};
+
+export type AttendanceRow = {
+  id: string;
+  event_id: string;
+  volunteer_id: string | null;
+  display_name: string;
+  method: Method;
+  checked_in_at: Date | null;
+  checked_out_at: Date | null;
+  hours_captured: number;
+  hours_adjusted: number | null;
+  adjustment_reason: string | null;
+  role: Role;
+  status: AttendanceStatus;
+  attested_at: Date | null;
+  ai_confidence: number | null;
+  standout: boolean;
+};
+
+export const ROLE_LABEL: Record<Role, string> = {
+  general: 'General volunteer',
+  team_lead: 'Team lead',
+  event_coordinator: 'Event coordinator',
+  program_manager: 'Program manager',
+};
+
+export const ACTIVITY_LABEL: Record<Activity, string> = {
+  general: 'General service',
+  planting: 'Tree planting & restoration',
+  logistics: 'Sorting & logistics',
+  outreach: 'Outreach',
+  education: 'Tutoring & education',
+};
