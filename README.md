@@ -89,7 +89,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3311
 ANTHROPIC_API_KEY=...        # for "Import paper sheet", "Event story" and the volunteer blurb
 OPENAI_API_KEY=...           # optional: the blurb uses OpenAI instead of Claude when set
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=...apps.googleusercontent.com   # optional: "Continue with Google" for walk-ins
+SYCAMORE_DEMO=1              # optional: keep the "Demo data · made-up names" ribbon on in a production build
 ```
+
+Org and volunteer pages show a slim "Demo data · made-up names" ribbon whenever `SYCAMORE_DEMO=1` or `NODE_ENV` isn't `production` (`src/lib/demo.ts`).
 
 **Google sign-in for walk-ins (optional).** Without a client ID the walk-in page shows only the short form, which works on its own. To turn Google on:
 1. Google Cloud Console → APIs & Services → Credentials → Create credentials → OAuth client ID → **Web application**.

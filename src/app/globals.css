@@ -196,3 +196,6 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 .tag-clay { --tag-bg: #f4e7e0; --tag-fg: #6e3420; --tag-dot: #c06a45; }
 .tag-plum { --tag-bg: #efe8f2; --tag-fg: #4d2f5c; --tag-dot: #8a5fa3; }
 .tag-stone { --tag-bg: #ecebe6; --tag-fg: #45493f; --tag-dot: #8b8d82; }
+
+/* Demo mode (lib/demo.ts): one quiet line above the shell. */
+.demo-ribbon { margin: 0; padding: 3px 16px; text-align: center; font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em; color: var(--ink-2); background: var(--amber-soft); border-bottom: 1px solid var(--line); }
