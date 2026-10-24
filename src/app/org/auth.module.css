@@ -2,3 +2,13 @@
 .box { width: 100%; max-width: 520px; display: grid; gap: 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 28px; box-shadow: var(--shadow); }
 .back { font-size: 13px; color: var(--ink-3); text-decoration: none; }
 .pin { font-size: 28px; letter-spacing: 0.4em; text-align: center; height: 60px; font-variant-numeric: tabular-nums; }
+/* Big tap targets: the back link, the set-up link and the org-type choice. */
+.back { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; margin: -8px 0 -8px -4px; justify-self: start; }
+.cta { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+.kinds { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.kinds legend { font-size: 14px; font-weight: 600; margin-bottom: 8px; padding: 0; }
+.kind { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 10px 14px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--paper); font-weight: 600; cursor: pointer; }
+.kind input { width: 20px; height: 20px; margin: 0; accent-color: var(--ink); flex: none; }
+.kind:has(input:checked) { border-color: var(--ink); background: var(--primary-soft); }
+.kind:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 2px; }
+@media (max-width: 380px) { .kinds { grid-template-columns: minmax(0, 1fr); } }

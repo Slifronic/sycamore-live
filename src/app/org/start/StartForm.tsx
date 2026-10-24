@@ -2,17 +2,18 @@
 
 import { useActionState } from 'react';
 import { startOrg } from '../actions';
+import s from '../auth.module.css';
 
 export function StartForm() {
   const [state, action, pending] = useActionState(startOrg, null);
   return (
     <form action={action} className="stack" style={{ gap: 16 }}>
-      <fieldset style={{ border: 0, padding: 0, margin: 0, display: 'flex', gap: 8 }}>
-        <legend className="small" style={{ fontWeight: 600, marginBottom: 6 }}>We are a</legend>
-        <label className="chip chip-ink" style={{ height: 36, padding: '0 14px', cursor: 'pointer' }}>
+      <fieldset className={s.kinds}>
+        <legend>We are a</legend>
+        <label className={s.kind}>
           <input type="radio" name="kind" value="nonprofit" defaultChecked /> Nonprofit
         </label>
-        <label className="chip chip-ink" style={{ height: 36, padding: '0 14px', cursor: 'pointer' }}>
+        <label className={s.kind}>
           <input type="radio" name="kind" value="school" /> School or club
         </label>
       </fieldset>

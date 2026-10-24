@@ -11,6 +11,7 @@ import { CoachBar } from '@/components/CoachBar';
 import { TierChip } from '@/components/TierChip';
 import s from './shell.module.css';
 import { initials } from '@/lib/format';
+import { PinReveal } from '@/components/PinReveal';
 
 // Every org screen reads the coordinator's cookie, so it renders per request.
 export const instant = false;
@@ -56,7 +57,7 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
           </Link>
         )}
         <form action={signOut} className={s.signout}>
-          <p className="small muted">PIN {org.coordinator_pin}</p>
+          <PinReveal pin={org.coordinator_pin} />
           <button className="btn btn-quiet btn-sm">Sign out</button>
         </form>
       </aside>

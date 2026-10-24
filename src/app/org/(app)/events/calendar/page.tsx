@@ -70,6 +70,12 @@ export default async function CalendarPage({ searchParams }: PageProps<'/org/eve
       <Link key={e.id} href={`/org/events/${e.id}`} className={`${s.ev} ${state} tag-${e.tags[0]?.color ?? 'stone'}`} title={`${e.title} · ${fmtTime(e.starts_at)} to ${fmtTime(e.ends_at)}${e.location ? ` · ${e.location}` : ''}`}>
         <span className={s.evTime}>{fmtTime(e.starts_at).replace(':00', '').replace(' ', '').toLowerCase()}</span>
         <span className={s.evTitle}>{e.title}</span>
+        {e.attested_at && (
+          <span className={s.evDone}>
+            <span aria-hidden>✓</span>
+            <span className="sr-only">Verified</span>
+          </span>
+        )}
       </Link>
     );
   };

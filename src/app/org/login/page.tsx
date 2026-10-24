@@ -11,7 +11,11 @@ export default function LoginPage() {
         <p className="muted">Enter your organization’s 6-digit PIN.</p>
         <LoginForm />
         <p className="small muted">
-          New here? <Link href="/org/start">Set up your organization</Link> in about a minute. Demo PIN: <strong>246810</strong>
+          New here?{' '}
+          <Link href="/org/start" className={s.cta}>
+            Set up your organization
+          </Link>{' '}
+          in about a minute. Demo PIN: <strong>246810</strong>
         </p>
       </div>
     </main>

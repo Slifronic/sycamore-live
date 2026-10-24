@@ -169,6 +169,10 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
         </fieldset>
       </section>
 
+      <p className="small">
+        Verifying as <strong>{signer}</strong>. Your name goes on every record as the person who confirmed these hours.
+      </p>
+
       <section className="card">
         <div className="card-head wrap">
           <div className="row wrap" style={{ gap: 8 }}>
@@ -200,7 +204,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
             <input className="input" style={{ height: 34, width: 220 }} placeholder="Find a name" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Find a name" />
           )}
         </div>
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', position: 'relative' }}>
           <table className={`t ${s.table}`}>
             <thead>
               <tr>
@@ -336,9 +340,6 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
               {error}
             </p>
           )}
-          <p className="small" style={{ marginTop: 4 }}>
-            Verifying as <strong>{signer}</strong>. Your name goes on every record as the person who confirmed these hours.
-          </p>
         </div>
         <button className="btn btn-primary btn-big" disabled={blockers.length > 0 || pending} aria-describedby="blockers" onClick={submit}>
           {pending ? 'Verifying…' : '✓ Verify & close'}

@@ -166,6 +166,23 @@ export function EventDay(props: {
               )}
             </div>
           </div>
+          {/* Above the roster, so it stays in reach on a 58-person event. */}
+          {!props.verified && (
+            <div className={s.tools}>
+              <form action={addAction} className="row" style={{ flex: '1 1 320px' }}>
+                <input ref={nameRef} className="input" name="name" placeholder="No phone? Type their name" aria-label="Volunteer name" />
+                <button className="btn" disabled={adding}>
+                  Add by name
+                </button>
+              </form>
+              <SheetImport eventId={props.eventId} enabled={props.aiEnabled} eventDate={props.eventDate} rosterNames={rows.map((r) => r.display_name)} />
+            </div>
+          )}
+          {addState?.error && (
+            <p className="notice notice-red" role="alert" style={{ margin: '12px 20px 0' }}>
+              {addState.error}
+            </p>
+          )}
           {rows.length === 0 ? (
             <div className="card-pad stack" style={{ justifyItems: 'start' }}>
               <p className="muted">
@@ -174,7 +191,7 @@ export function EventDay(props: {
               {props.practice && <p className="small">This is a practice event. Tap “Add a practice volunteer” to see how it fills in.</p>}
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', position: 'relative' }}>
               <table className="t tight">
                 <thead>
                   <tr>
@@ -230,22 +247,6 @@ export function EventDay(props: {
                 </tbody>
               </table>
             </div>
-          )}
-          {!props.verified && (
-            <div className={s.tools}>
-              <form action={addAction} className="row" style={{ flex: '1 1 320px' }}>
-                <input ref={nameRef} className="input" name="name" placeholder="No phone? Type their name" aria-label="Volunteer name" />
-                <button className="btn" disabled={adding}>
-                  Add by name
-                </button>
-              </form>
-              <SheetImport eventId={props.eventId} enabled={props.aiEnabled} eventDate={props.eventDate} rosterNames={rows.map((r) => r.display_name)} />
-            </div>
-          )}
-          {addState?.error && (
-            <p className="notice notice-red" role="alert" style={{ margin: '0 20px 16px' }}>
-              {addState.error}
-            </p>
           )}
         </section>
       </div>

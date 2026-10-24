@@ -155,7 +155,7 @@ export function IntakePanel({
           {repeats.length > 0 && (
             <select
               className="select"
-              style={{ width: 'auto', height: 40 }}
+              style={{ width: 'auto', maxWidth: '100%', height: 40 }}
               aria-label="Repeat a past event"
               value=""
               disabled={!!busy}

@@ -1,0 +1,10 @@
+/* Events table on phones: a short date, and People / Hours give way to the title and status. */
+.when { white-space: nowrap; }
+.short, .inlineAction { display: none; }
+@media (max-width: 600px) {
+  .full, .narrowHide { display: none; }
+  .short { display: inline; }
+  /* The action moves under the status, and a long status wraps instead of being cut off. */
+  .inlineAction { display: block; margin-top: 8px; }
+  .status :global(.chip) { white-space: normal; height: auto; min-height: 24px; padding: 3px 10px; }
+}

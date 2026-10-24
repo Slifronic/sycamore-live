@@ -75,7 +75,7 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
         </p>
       )}
 
-      <div className="card" style={{ overflowX: 'auto' }}>
+      <div className="card" style={{ overflowX: 'auto', position: 'relative' }}>
         <table className="t tight">
           <thead>
             <tr>

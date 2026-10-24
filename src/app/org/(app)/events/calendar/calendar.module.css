@@ -11,11 +11,12 @@
 .add { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; text-decoration: none; color: var(--ink-3); opacity: 0; font-weight: 700; }
 .day:hover .add, .add:focus-visible { opacity: 1; background: var(--primary-soft); color: var(--primary); }
 .evs { display: grid; gap: 3px; align-content: start; min-width: 0; }
-.ev { display: flex; gap: 5px; align-items: baseline; padding: 3px 6px; border-radius: 6px; font-size: 12px; text-decoration: none; background: var(--tag-bg); color: var(--tag-fg); box-shadow: inset 3px 0 0 var(--tag-dot); min-width: 0; }
+.ev { position: relative; display: flex; gap: 5px; align-items: baseline; padding: 3px 6px; border-radius: 6px; font-size: 12px; text-decoration: none; background: var(--tag-bg); color: var(--tag-fg); box-shadow: inset 3px 0 0 var(--tag-dot); min-width: 0; }
 .ev:hover { filter: brightness(0.97); }
 .evTime { font-weight: 700; flex: none; font-variant-numeric: tabular-nums; }
-.evTitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-.done .evTitle::after { content: ' ✓'; }
+.evTitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; min-width: 0; flex: 1 1 auto; }
+/* The ✓ sits outside the title, so a long title is cut but the ✓ always shows. */
+.evDone { flex: none; margin-left: auto; font-weight: 700; color: var(--verified); }
 .needs { box-shadow: inset 3px 0 0 var(--amber); }
 .agenda { display: none; }
 .agendaDay { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--line); }

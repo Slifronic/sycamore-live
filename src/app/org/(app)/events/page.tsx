@@ -2,11 +2,12 @@ import Link from 'next/link';
 import { requireOrg } from '@/lib/session';
 import { sql } from '@/lib/db';
 import { ACTIVITY_LABEL, type EventRow } from '@/lib/types';
-import { fmtDay, fmtTime } from '@/lib/format';
+import { fmtDate, fmtDay, fmtTime } from '@/lib/format';
 import { requestNow } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { Segmented } from '@/components/Segmented';
 import { listTags, tagsForEvents } from '@/lib/event-intake';
+import l from './list.module.css';
 
 type Row = EventRow & { people: number; hours: number };
 
@@ -67,16 +68,16 @@ export default async function EventsPage({ searchParams }: PageProps<'/org/event
         />
       )}
       {tag && events.length === 0 && <p className="notice notice-amber">No events tagged “{tag}” yet.</p>}
-      <div className="card" style={{ overflowX: 'auto' }}>
+      <div className="card" style={{ overflowX: 'auto', position: 'relative' }}>
         <table className="t">
           <thead>
             <tr>
               <th scope="col">Event</th>
               <th scope="col">When</th>
-              <th scope="col">People</th>
-              <th scope="col">Hours</th>
+              <th scope="col" className={l.narrowHide}>People</th>
+              <th scope="col" className={l.narrowHide}>Hours</th>
               <th scope="col">Status</th>
-              <th scope="col">
+              <th scope="col" className={l.narrowHide}>
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
@@ -94,6 +95,16 @@ export default async function EventsPage({ searchParams }: PageProps<'/org/event
               ) : (
                 <span className="chip chip-ink">Upcoming</span>
               );
+              const action =
+                !e.attested_at && (ended || e.is_practice) ? (
+                  <Link className="btn btn-primary btn-sm" href={`/org/events/${e.id}/verify`}>
+                    Verify
+                  </Link>
+                ) : (
+                  <Link className="btn btn-sm" href={`/org/events/${e.id}`}>
+                    {live ? 'Open check-in' : 'Open'}
+                  </Link>
+                );
               return (
                 <tr key={e.id}>
                   <td>
@@ -114,26 +125,28 @@ export default async function EventsPage({ searchParams }: PageProps<'/org/event
                       </span>
                     )}
                   </td>
-                  <td className="small">
-                    {fmtDay(e.starts_at)}
-                    <br />
-                    <span className="muted">
-                      {fmtTime(e.starts_at)} to {fmtTime(e.ends_at)}
+                  <td className={`small ${l.when}`}>
+                    <span className={l.full}>
+                      {fmtDay(e.starts_at)}
+                      <br />
+                      <span className="muted">
+                        {fmtTime(e.starts_at)} to {fmtTime(e.ends_at)}
+                      </span>
+                    </span>
+                    <span className={l.short}>
+                      {fmtDate(e.starts_at)}
+                      <br />
+                      <span className="muted">{fmtTime(e.starts_at)}</span>
                     </span>
                   </td>
-                  <td className="num">{e.people}</td>
-                  <td className="num">{e.hours.toLocaleString()}</td>
-                  <td>{status}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    {!e.attested_at && (ended || e.is_practice) ? (
-                      <Link className="btn btn-primary btn-sm" href={`/org/events/${e.id}/verify`}>
-                        Verify
-                      </Link>
-                    ) : (
-                      <Link className="btn btn-sm" href={`/org/events/${e.id}`}>
-                        {live ? 'Open check-in' : 'Open'}
-                      </Link>
-                    )}
+                  <td className={`num ${l.narrowHide}`}>{e.people}</td>
+                  <td className={`num ${l.narrowHide}`}>{e.hours.toLocaleString()}</td>
+                  <td className={l.status}>
+                    {status}
+                    <span className={l.inlineAction}>{action}</span>
+                  </td>
+                  <td className={l.narrowHide} style={{ textAlign: 'right' }}>
+                    {action}
                   </td>
                 </tr>
               );

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, useReducedMotion } from 'motion/react';
 import { COURSE_MINUTES } from '@/lib/course';
@@ -44,8 +45,15 @@ const COUNT_LABEL: Record<string, [string, string]> = {
 export function NavLinks({ awaiting, badgeReady, unread = 0 }: { awaiting: number; badgeReady: number; unread?: number }) {
   const path = usePathname();
   const reduce = useReducedMotion();
+  const nav = useRef<HTMLElement>(null);
+  // Phones: the tabs scroll sideways, so bring the current one into view.
+  useEffect(() => {
+    const el = nav.current;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    el.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }, [path]);
   return (
-    <nav className={s.nav} aria-label="Organization">
+    <nav ref={nav} className={s.nav} aria-label="Organization">
       {GROUPS.map((g) => (
         <div key={g.label} className={s.group}>
           <p className={s.groupLabel}>{g.label}</p>

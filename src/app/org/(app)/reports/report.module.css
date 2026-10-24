@@ -1,6 +1,6 @@
 .layout { display: grid; grid-template-columns: minmax(0, 900px) 220px; gap: 24px; align-items: start; }
 .rail { position: sticky; top: 24px; display: grid; gap: 22px; }
-.report { padding: 32px; display: grid; gap: 24px; }
+.report { padding: 32px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
 .head { display: flex; justify-content: space-between; gap: 20px; align-items: start; border-bottom: 2px solid var(--canopy); padding-bottom: 18px; }
 .title { font-size: 28px; }
 .seal { display: grid; justify-items: center; gap: 4px; padding: 12px 16px; border-radius: 14px; background: #f4f5f1; box-shadow: 0 0 0 1px rgba(15, 38, 27, 0.08); min-width: 128px; }
@@ -23,6 +23,12 @@
   .kpiBox:nth-child(3) { box-shadow: none; }
   .head { flex-direction: column; }
   .report { padding: 20px; }
+}
+@media (max-width: 480px) {
+  .two { grid-template-columns: minmax(0, 1fr); }
+  .report { padding: 16px; }
+  .report :global(table.t) th, .report :global(table.t) td { padding: 8px 6px; }
+  .report :global(table.t) th { letter-spacing: 0.04em; }
 }
 @media print {
   .layout { display: block; }
