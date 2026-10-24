@@ -9,7 +9,9 @@ import type { Activity, AttendanceRow, EventRow, Role } from './types';
 // to check-ins and a coordinator's sign-off.
 
 const DAY = 86_400_000;
-export const SLIPPING_AFTER_DAYS = 30;
+// Came 2+ times but not in this many days: shown as a plain fact ("Last came
+// 34 days ago"), never as a label about the person.
+export const AWAY_AFTER_DAYS = 30;
 export const MILESTONES = [10, 25, 50, 100, 250];
 
 export type Tier = 'Platinum' | 'Gold' | 'Silver' | 'Bronze' | 'Building';
@@ -33,7 +35,7 @@ export type VolunteerSummary = {
   last_seen: Date;
   standouts: number;
   topRole: Role;
-  status: 'new' | 'active' | 'slipping';
+  status: 'new' | 'active' | 'away';
   stats: VolunteerStats;
   badgesEarned: BadgeKey[];
   badgesReady: BadgeKey[];
@@ -99,7 +101,7 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
     const last = new Date(Math.max(...times));
     const sinceLast = (now.getTime() - last.getTime()) / DAY;
     const status: VolunteerSummary['status'] =
-      list.length >= 2 && sinceLast > SLIPPING_AFTER_DAYS ? 'slipping' : list.length === 1 ? 'new' : 'active';
+      list.length >= 2 && sinceLast > AWAY_AFTER_DAYS ? 'away' : list.length === 1 ? 'new' : 'active';
     const earned = list[0].volunteer_id ? awardsByVol.get(list[0].volunteer_id) ?? [] : [];
     const ready: BadgeKey[] = [];
     const close: { key: BadgeKey; progress: number }[] = [];
@@ -171,7 +173,7 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
       weight: 0.35,
       score: retention,
       detail: eligible.length ? `${returned.length} of ${eligible.length} volunteers came back for a second event` : 'Needs volunteers whose first event was 2+ weeks ago',
-      how: 'Invite first-timers back within two weeks. The slipping list shows who to message.',
+      how: 'Invite first-timers back within two weeks. The “Haven’t come in 30+ days” list shows who to message.',
     },
     {
       key: 'efficiency',
@@ -224,7 +226,7 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
     verified,
     awaiting,
     volunteers,
-    slipping: volunteers.filter((v) => v.status === 'slipping').sort((a, b) => b.events - a.events),
+    away: volunteers.filter((v) => v.status === 'away').sort((a, b) => b.events - a.events),
     milestones: volunteers.filter((v) => v.milestone).sort((a, b) => b.milestone!.hours - a.milestone!.hours || +b.milestone!.at - +a.milestone!.at),
     badgeReady: volunteers.flatMap((v) => v.badgesReady.map((k) => ({ v, badge: k }))),
     badgeClose: volunteers.flatMap((v) => v.badgesClose.map((c) => ({ v, ...c }))).sort((a, b) => b.progress - a.progress),

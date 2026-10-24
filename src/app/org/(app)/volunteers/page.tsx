@@ -2,12 +2,12 @@ import Link from 'next/link';
 import { requireOrg } from '@/lib/session';
 import { markLesson } from '@/lib/org-data';
 import { sql } from '@/lib/db';
-import { loadOrgInsights, SLIPPING_AFTER_DAYS } from '@/lib/insights';
+import { AWAY_AFTER_DAYS, loadOrgInsights } from '@/lib/insights';
 import { badgeByKey } from '@/lib/badges';
 import { ROLE_LABEL } from '@/lib/types';
 import { ago, fmtDay, initials } from '@/lib/format';
 import { inviteBack, sayThanks } from '@/lib/mailto';
-import { requestNow } from '@/lib/format';
+import { lastCame, requestNow } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { Segmented } from '@/components/Segmented';
 
@@ -15,7 +15,7 @@ const TABS = [
   { key: 'all', label: 'Everyone' },
   { key: 'new', label: 'First-timers' },
   { key: 'active', label: 'Regulars' },
-  { key: 'slipping', label: 'Slipping away' },
+  { key: 'away', label: 'Haven’t come in 30+ days' },
 ] as const;
 
 export default async function VolunteersPage({ searchParams }: PageProps<'/org/volunteers'>) {
@@ -58,7 +58,7 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
             on: tab === t.key,
             label: (
               <>
-                <span className="figure" style={{ fontSize: 24, color: t.key === 'slipping' && counts[t.key] > 0 ? 'var(--amber)' : undefined }}>
+                <span className="figure" style={{ fontSize: 24 }}>
                   {counts[t.key]}
                 </span>
                 <span className="eyebrow" style={{ fontSize: 10.5 }}>{t.label}</span>
@@ -71,9 +71,9 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
           <input className="input" style={{ height: 40, width: 220 }} name="q" defaultValue={q} placeholder="Find a name" aria-label="Find a name" />
         </form>
       </div>
-      {tab === 'slipping' && (
-        <p className="notice notice-amber small">
-          Came at least twice, but not in the last {SLIPPING_AFTER_DAYS} days. “Invite back” opens a ready-to-send email with your next event in it.
+      {tab === 'away' && (
+        <p className="notice small">
+          Came at least twice, but not in the last {AWAY_AFTER_DAYS} days. “Invite back” opens a ready-to-send email with your next event in it.
         </p>
       )}
 
@@ -127,13 +127,7 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                     <span className="muted">{v.events} {v.events === 1 ? 'event' : 'events'}</span>
                   </td>
                   <td className="small">
-                    {ago(v.last_seen)}
-                    {v.status === 'slipping' && (
-                      <>
-                        <br />
-                        <span className="chip chip-amber">slipping</span>
-                      </>
-                    )}
+                    {v.status === 'away' ? lastCame(v.last_seen) : ago(v.last_seen)}
                     {v.status === 'new' && (
                       <>
                         <br />
@@ -143,7 +137,7 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                   </td>
                   <td>
                     <div className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
-                    {email && v.status === 'slipping' ? (
+                    {email && v.status === 'away' ? (
                       <a className="btn btn-sm" href={inviteBack(org, v.name, email, next)}>
                         Invite back
                       </a>

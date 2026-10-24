@@ -4,7 +4,7 @@ import { sql } from '@/lib/db';
 import { loadOrgInsights } from '@/lib/insights';
 import { automationByKey, canMessage, getThread, listThreads, type AutomationKey } from '@/lib/messages';
 import { isUuid } from '@/lib/ids';
-import { ago, fmtDay, fmtTime, initials, plural, requestNow } from '@/lib/format';
+import { ago, fmtDay, fmtTime, initials, lastCame, plural, requestNow } from '@/lib/format';
 import { ROLE_LABEL } from '@/lib/types';
 import { PageHeader } from '@/components/PageHeader';
 import { orgChatUnread } from '@/lib/event-chat';
@@ -17,7 +17,7 @@ const FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'unread', label: 'Unread' },
   { key: 'reply', label: 'Needs reply' },
-  { key: 'slipping', label: 'Slipping away' },
+  { key: 'away', label: 'Haven’t come in 30+ days' },
 ] as const;
 type Filter = (typeof FILTERS)[number]['key'];
 
@@ -29,7 +29,7 @@ function dayLabel(d: Date, now: number) {
   return day;
 }
 
-const STATUS_CHIP ={ new: ['chip-ink', 'first-timer'], active: ['chip-green', 'regular'], slipping: ['chip-amber', 'slipping'] } as const;
+const STATUS_CHIP = { new: ['chip-ink', 'first-timer'], active: ['chip-green', 'regular'] } as const;
 
 export default async function InboxPage({ searchParams }: PageProps<'/org/messages'>) {
   const org = await requireOrg();
@@ -47,11 +47,11 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
     all: threads.length,
     unread: threads.filter((t) => t.unread > 0).length,
     reply: threads.filter((t) => t.last_direction === 'in').length,
-    slipping: threads.filter((t) => t.status === 'slipping').length,
+    away: threads.filter((t) => t.status === 'away').length,
   };
   const shown = threads.filter(
     (t) =>
-      (f === 'all' || (f === 'unread' && t.unread > 0) || (f === 'reply' && t.last_direction === 'in') || (f === 'slipping' && t.status === 'slipping')) &&
+      (f === 'all' || (f === 'unread' && t.unread > 0) || (f === 'reply' && t.last_direction === 'in') || (f === 'away' && t.status === 'away')) &&
       (!q || t.name.toLowerCase().includes(q) || t.last_body.toLowerCase().includes(q)),
   );
 
@@ -126,7 +126,11 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                     <span className={s.channel}>
                       <span className={`${s.dot} ${t.last_source === 'automation' ? s.dotAuto : t.last_source === 'broadcast' ? s.dotBroadcast : ''}`} aria-hidden />
                       {t.last_source === 'automation' ? 'Automation' : t.last_source === 'broadcast' ? 'Broadcast' : 'In app'}
-                      {t.status && <span className={`chip ${STATUS_CHIP[t.status][0]}`} style={{ height: 18, fontSize: 10.5, padding: '0 7px' }}>{STATUS_CHIP[t.status][1]}</span>}
+                      {t.status === 'away' && t.last_seen ? (
+                        <span className="chip chip-ink" style={{ height: 18, fontSize: 10.5, padding: '0 7px' }}>{lastCame(t.last_seen, new Date(now))}</span>
+                      ) : t.status && t.status !== 'away' ? (
+                        <span className={`chip ${STATUS_CHIP[t.status][0]}`} style={{ height: 18, fontSize: 10.5, padding: '0 7px' }}>{STATUS_CHIP[t.status][1]}</span>
+                      ) : null}
                     </span>
                   </span>
                   <span className={s.tMeta}>
@@ -166,7 +170,7 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                             <b>{vol.events}</b> {vol.events === 1 ? 'event' : 'events'}
                           </span>
                           <span className={s.hideNarrow}>{ROLE_LABEL[vol.topRole]}</span>
-                          <span className={s.hideNarrow}>last came {ago(vol.last_seen)}</span>
+                          <span className={s.hideNarrow}>{lastCame(vol.last_seen, new Date(now))}</span>
                         </>
                       ) : (
                         <span>No verified hours yet</span>

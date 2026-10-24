@@ -20,6 +20,12 @@ export function ago(d: Date | string, now = new Date()) {
   return `${Math.round(days / 7)} weeks ago`;
 }
 
+// A plain fact, no label: "Last came 34 days ago". Exact days, not weeks.
+export function lastCame(d: Date | string, now = new Date()) {
+  const days = Math.floor((now.getTime() - new Date(d).getTime()) / 86_400_000);
+  return `Last came ${days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days.toLocaleString()} days ago`}`;
+}
+
 export const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
 // Server components render once per request, so "now" is the request time.

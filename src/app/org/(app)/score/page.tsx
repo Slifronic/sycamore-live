@@ -19,8 +19,8 @@ export default async function IndexPage() {
   const score = ins.index.score;
   const nextTier = score == null ? null : [...TIERS].reverse().find((t) => t.from > score);
 
-  const focusHref = { retention: '/org/volunteers?tab=slipping', efficiency: '/org/events', completion: '/org/events' } as const;
-  const focusCta = { retention: 'See who’s slipping →', efficiency: 'Events waiting to verify →', completion: 'Set a goal on your next event →' } as const;
+  const focusHref = { retention: '/org/volunteers?tab=away', efficiency: '/org/events', completion: '/org/events' } as const;
+  const focusCta = { retention: 'See who hasn’t come in 30+ days →', efficiency: 'Events waiting to verify →', completion: 'Set a goal on your next event →' } as const;
 
   return (
     <div className="page">

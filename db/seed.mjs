@@ -79,7 +79,7 @@ async function main() {
     if (i === 1 || i === 2) set.add(jay);
     // About 40% of each crew are returning volunteers, the rest are first-timers.
     const returning = Math.round(p.n * (i === 0 ? 0 : 0.42));
-    // Event 4 deliberately skips a group who came to 1 and 2 (they're "slipping").
+    // Event 4 deliberately skips a group who came to 1 and 2 (they haven't come in 30+ days).
     const skip = i === 3 ? new Set(attendees[1].slice(0, 14)) : new Set();
     for (const v of seen.sort(() => rand() - 0.5)) {
       if (set.size >= returning) break;
@@ -228,9 +228,9 @@ async function main() {
     await msg(forgot, 'in', 'Hi! I forgot to tap Check out on Saturday. I left around 12:15 if that helps.', at(-1, 9, 32));
     await msg(forgot, 'in', 'Sorry about that!', at(-1, 9, 33));
 
-    const slipping = attendees[1].slice(0, 14).find((v) => attendees[0].includes(v) && !attendees[2].includes(v)) ?? attendees[1][0];
-    await msg(slipping, 'out', `Hi ${firstName(slipping)}, we miss you at Riverside Restoration Crew! Our next event is Earth Day Outreach Table at the Downtown Farmers Market. Want to come?`, at(-3, 10), { source: 'automation', automation: 'invite_back', dedupe: `invite_back:${slipping.id}:${new Date().toISOString().slice(0, 7)}`, read: at(-2, 19) });
-    await msg(slipping, 'in', 'Sorry, finals week! Is there anything on a Sunday this month?', at(0, 8, 5));
+    const away = attendees[1].slice(0, 14).find((v) => attendees[0].includes(v) && !attendees[2].includes(v)) ?? attendees[1][0];
+    await msg(away, 'out', `Hi ${firstName(away)}, we miss you at Riverside Restoration Crew! Our next event is Earth Day Outreach Table at the Downtown Farmers Market. Want to come?`, at(-3, 10), { source: 'automation', automation: 'invite_back', dedupe: `invite_back:${away.id}:${new Date().toISOString().slice(0, 7)}`, read: at(-2, 19) });
+    await msg(away, 'in', 'Sorry, finals week! Is there anything on a Sunday this month?', at(0, 8, 5));
 
     await msg(jay, 'in', 'Do I need a parent to sign anything to get my hours?', at(-6, 16, 2), { read: at(-6, 17) });
     await msg(jay, 'out', 'No signature needed. Your hours are verified by us when we close the event, and they show in My hours. Sharing your record with your school will need a parent or guardian’s OK, and that part isn’t available yet.', at(-6, 17, 4), { read: at(-6, 18, 30) });

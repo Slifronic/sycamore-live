@@ -45,8 +45,9 @@ export type ThreadSummary = {
   last_source: MessageRow['source'];
   last_at: Date;
   unread: number; // incoming the coordinator hasn't opened
-  status: 'new' | 'active' | 'slipping' | null;
+  status: 'new' | 'active' | 'away' | null;
   hours: number;
+  last_seen: Date | null; // their last verified event with this org
 };
 
 // ---------- placeholders ----------
@@ -105,10 +106,10 @@ export async function listThreads(orgId: string, ins?: OrgInsights): Promise<Thr
     from message m join volunteer v on v.id = m.volunteer_id
     where m.org_id = ${orgId}
     order by m.volunteer_id, m.created_at desc
-  `) as unknown as Omit<ThreadSummary, 'status' | 'hours'>[];
+  `) as unknown as Omit<ThreadSummary, 'status' | 'hours' | 'last_seen'>[];
   const vols = new Map((ins ?? (await loadOrgInsights(orgId))).volunteers.filter((v) => v.volunteer_id).map((v) => [v.volunteer_id!, v]));
   return rows
-    .map((r) => ({ ...r, status: vols.get(r.volunteer_id)?.status ?? null, hours: vols.get(r.volunteer_id)?.hours ?? 0 }))
+    .map((r) => ({ ...r, status: vols.get(r.volunteer_id)?.status ?? null, hours: vols.get(r.volunteer_id)?.hours ?? 0, last_seen: vols.get(r.volunteer_id)?.last_seen ?? null }))
     .sort((a, b) => +b.last_at - +a.last_at);
 }
 
@@ -159,7 +160,7 @@ export async function sendDirect(org: Org, volunteerId: string, body: string) {
 
 // ---------- broadcasts ----------
 
-export type Audience = 'all' | 'regulars' | 'new' | 'slipping' | `event:${string}`;
+export type Audience = 'all' | 'regulars' | 'new' | 'away' | `event:${string}`;
 
 export function audienceOptions(ins: OrgInsights) {
   const withAccount = ins.volunteers.filter((v) => v.volunteer_id);
@@ -167,7 +168,7 @@ export function audienceOptions(ins: OrgInsights) {
     { key: 'all', label: 'Everyone with verified hours', count: withAccount.length },
     { key: 'regulars', label: 'Regulars (2+ events)', count: withAccount.filter((v) => v.status === 'active').length },
     { key: 'new', label: 'First-timers', count: withAccount.filter((v) => v.status === 'new').length },
-    { key: 'slipping', label: 'Slipping away', count: withAccount.filter((v) => v.status === 'slipping').length },
+    { key: 'away', label: 'Haven’t come in 30+ days', count: withAccount.filter((v) => v.status === 'away').length },
   ];
   return base;
 }
@@ -181,7 +182,7 @@ export async function resolveAudience(orgId: string, audience: string, ins: OrgI
   if (audience === 'all') return pick(() => true, 'Everyone with verified hours');
   if (audience === 'regulars') return pick((v) => v.status === 'active', 'Regulars (2+ events)');
   if (audience === 'new') return pick((v) => v.status === 'new', 'First-timers');
-  if (audience === 'slipping') return pick((v) => v.status === 'slipping', 'Slipping away');
+  if (audience === 'away') return pick((v) => v.status === 'away', 'Haven’t come in 30+ days');
   const m = /^event:([0-9a-f-]{36})$/.exec(audience);
   if (m) {
     const ev = ins.events.find((e) => e.id === m[1]);
@@ -367,7 +368,7 @@ async function dueFor(org: Org, key: AutomationKey, ins: OrgInsights, now = new 
     const next = upcoming(ins, now)[0];
     if (next) {
       const month = now.toISOString().slice(0, 7);
-      for (const v of ins.slipping.filter((v) => v.volunteer_id))
+      for (const v of ins.away.filter((v) => v.volunteer_id))
         out.push({ volunteer_id: v.volunteer_id!, dedupe: `invite_back:${v.volunteer_id}:${month}`, ctx: { first_name: first(v.name), org: org.name, next_event: nextLine(next) } });
     }
   }

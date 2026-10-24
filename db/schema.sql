@@ -191,7 +191,7 @@ create table broadcast (
   org_id uuid not null references org(id),
   title text not null,               -- the coordinator's name for it, e.g. "Saturday reminder"
   body text not null,                -- the template, before {first_name} etc. are filled in
-  audience text not null,            -- 'all' | 'regulars' | 'new' | 'slipping' | 'event:<uuid>'
+  audience text not null,            -- 'all' | 'regulars' | 'new' | 'away' | 'event:<uuid>'
   audience_label text not null,
   event_id uuid references event(id),   -- the event it invites people to; "showed up" counts check-ins there
   recipients integer not null,

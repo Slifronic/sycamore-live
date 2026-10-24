@@ -11,7 +11,7 @@ import { CountUp } from '@/components/motion/CountUp';
 import { Sparkline } from '@/components/motion/Sparkline';
 import { HoursChart } from '@/components/motion/HoursChart';
 import s from './home.module.css';
-import { requestNow } from '@/lib/format';
+import { lastCame, requestNow } from '@/lib/format';
 import { sql } from '@/lib/db';
 import { milestoneThanks } from '@/lib/mailto';
 
@@ -38,7 +38,7 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
   const hour = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', hour12: false });
   const greet = Number(hour) < 12 ? 'Good morning' : Number(hour) < 18 ? 'Good afternoon' : 'Good evening';
   const today = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'long', day: 'numeric' });
-  const needs = ins.awaiting.length + (ins.badgeReady.length ? 1 : 0) + (ins.slipping.length ? 1 : 0);
+  const needs = ins.awaiting.length + (ins.badgeReady.length ? 1 : 0) + (ins.away.length ? 1 : 0);
 
   // Running totals per verified event, for the band's sparklines.
   const running = (xs: number[]) => xs.reduce<number[]>((acc, x) => [...acc, (acc.at(-1) ?? 0) + x], []);
@@ -201,20 +201,20 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
       <div className={s.two}>
         <section className="card">
           <div className="card-head">
-            <h2>Slipping away</h2>
-            <span className="chip chip-amber">{ins.slipping.length}</span>
+            <h2>Haven’t come in 30+ days</h2>
+            <span className="chip chip-ink">{ins.away.length}</span>
           </div>
-          {ins.slipping.length === 0 ? (
+          {ins.away.length === 0 ? (
             <p className="card-pad muted">Nobody who came twice has been gone more than a month. Nice.</p>
           ) : (
             <ul className={s.list}>
-              {ins.slipping.slice(0, 5).map((p) => (
+              {ins.away.slice(0, 5).map((p) => (
                 <li key={p.key}>
                   <span>
                     <strong>{p.name}</strong>
-                    <span className="muted small"> · {p.events} events · last came {ago(p.last_seen)}</span>
+                    <span className="muted small"> · {p.events} events · {lastCame(p.last_seen)}</span>
                   </span>
-                  <Link className="btn btn-sm" href={`/org/volunteers?tab=slipping&invite=${encodeURIComponent(p.key)}`}>
+                  <Link className="btn btn-sm" href={`/org/volunteers?tab=away&invite=${encodeURIComponent(p.key)}`}>
                     Invite back
                   </Link>
                 </li>
@@ -222,7 +222,7 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
             </ul>
           )}
           <p className="small muted card-pad" style={{ paddingTop: 8 }}>
-            Came at least twice, gone 30+ days. A personal invite is the best way to keep them.
+            Came at least twice, but not in the last 30 days. A personal invite is a good way to reconnect.
           </p>
         </section>
 
