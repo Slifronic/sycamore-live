@@ -5,6 +5,7 @@
 import postgres from 'postgres';
 import { readFileSync } from 'node:fs';
 import { seedIntake } from './seed-intake.mjs';
+import { seedDiscover } from './seed-discover.mjs';
 
 const url = process.env.DATABASE_URL ?? 'postgres://localhost:5432/sycamore_live';
 const sql = postgres(url, { max: 1, onnotice: () => {} });
@@ -263,9 +264,11 @@ async function main() {
   }
 
   await seedIntake(sql, org.id);
+  const discoverEvents = await seedDiscover(sql);
 
   const [t] = await sql`select count(*)::int as n, coalesce(sum(coalesce(hours_adjusted, hours_captured)),0)::float as h from attendance where status = 'attested'`;
   console.log(`Seeded Riverside Restoration Crew (PIN 246810): ${vols.length} volunteers, ${t.n} attested attendances, ${t.h} hours.`);
+  console.log(`Seeded 3 more organizations for Discover (PINs 135790, 864202, 975318): ${discoverEvents} upcoming public events.`);
   await sql.end();
 }
 

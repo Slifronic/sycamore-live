@@ -305,3 +305,20 @@ create table event_tag (
 );
 create index on event_tag (tag_id);
 create index on event (org_id, source_uid);
+
+-- volunteer addition: a public verification link for a signed badge, made by
+-- the volunteer (never for a minor), the same pattern as record.code. The
+-- award itself stays the coordinator's: the volunteer can only add the link.
+alter table badge_award
+  add column code text unique,
+  add column shared_at timestamptz;
+
+-- volunteer addition: "Save for later" on Discover. Only the event id is kept;
+-- nothing about why it was saved (no resume text, no preferences).
+drop table if exists saved_event cascade;
+create table saved_event (
+  volunteer_id uuid not null references volunteer(id) on delete cascade,
+  event_id uuid not null references event(id) on delete cascade,
+  saved_at timestamptz not null default now(),
+  primary key (volunteer_id, event_id)
+);
