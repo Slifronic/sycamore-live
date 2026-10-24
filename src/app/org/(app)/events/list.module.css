@@ -8,3 +8,13 @@
   .inlineAction { display: block; margin-top: 8px; }
   .status :global(.chip) { white-space: normal; height: auto; min-height: 24px; padding: 3px 10px; }
 }
+
+/* Each event row leads with its cover photo. */
+.eventCell { display: flex; gap: 12px; align-items: flex-start; }
+.eventText { min-width: 0; }
+.thumbLink { flex: none; display: block; border-radius: 10px; }
+.thumb { width: 48px !important; height: 48px !important; border-radius: 10px !important; }
+tr:hover .thumb img { transform: scale(1.08); }
+@media (max-width: 600px) {
+  .thumbLink { display: none; }
+}

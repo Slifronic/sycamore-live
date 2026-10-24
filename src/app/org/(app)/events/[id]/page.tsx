@@ -17,6 +17,8 @@ import { walkinPanel } from '@/lib/walkin-panel';
 import { tagsForEvents } from '@/lib/event-intake';
 import { announcement, eventLinks } from '@/lib/event-public';
 import { SharePanel } from '@/components/events/SharePanel';
+import { Cover } from '@/components/media/Cover';
+import { coverFor } from '@/lib/covers';
 
 export default async function EventPage({ params, searchParams }: PageProps<'/org/events/[id]'>) {
   const org = await requireOrg();
@@ -45,6 +47,7 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
 
   return (
     <div className="page" style={{ gap: 20 }}>
+      {!event.is_practice && <Cover cover={coverFor({ title: event.title, activity: event.activity, tags })} variant="band" priority className={`${s.band} no-print`} />}
       <PageHeader
         eyebrow={
           <span className="row" style={{ gap: 8 }}>

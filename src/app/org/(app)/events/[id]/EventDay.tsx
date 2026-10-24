@@ -8,6 +8,8 @@ import { SheetImport } from './SheetImport';
 import { SiteSetup } from './SiteSetup';
 import { WalkinCard } from './WalkinCard';
 import type { WalkinPanel } from '@/lib/walkin-panel';
+import { LiveNumber } from '@/components/motion/LiveNumber';
+import { EmptyState } from '@/components/media/EmptyState';
 import s from './event.module.css';
 
 type Row = Omit<AttendanceRow, 'checked_in_at' | 'checked_out_at' | 'left_area_at'> & { checked_in_at: string | null; checked_out_at: string | null; left_area_at: string | null };
@@ -62,7 +64,8 @@ export function EventDay(props: {
       const data = (await res.json()) as { attendance: Row[] };
       const added = data.attendance.filter((r) => !known.current.has(r.id));
       added.forEach((r) => known.current.add(r.id));
-      // New rows keep a still marker until the next poll; nothing moves on the check-in path.
+      // New rows slide in once and keep a marker until the next poll. Only the
+      // coordinator's roster moves; the volunteer's check-in path never waits on it.
       setFresh(new Set(added.map((r) => r.id)));
       if (added.length) setArrived(`${added.map((r) => r.display_name).join(', ')} checked in.`);
       setRows(data.attendance);
@@ -140,7 +143,9 @@ export function EventDay(props: {
             <div>
               <p className="eyebrow">Roster{!props.verified && ' · updates live'}</p>
               <p className={s.headcount} aria-live="polite" aria-atomic="true">
-                <span className="figure" style={{ fontSize: 44 }}>{props.verified ? rows.length : here}</span>
+                <span className="figure" style={{ fontSize: 44 }}>
+                  <LiveNumber value={props.verified ? rows.length : here} />
+                </span>
                 <span className="figure-unit">{props.verified ? 'on the record' : 'here now'}</span>
                 <span className="small muted" style={{ marginLeft: 10 }}>
                   {left} checked out
@@ -184,12 +189,10 @@ export function EventDay(props: {
             </p>
           )}
           {rows.length === 0 ? (
-            <div className="card-pad stack" style={{ justifyItems: 'start' }}>
-              <p className="muted">
-                Nobody yet. When volunteers scan the QR code, their names appear here within a few seconds.
-              </p>
-              {props.practice && <p className="small">This is a practice event. Tap “Add a practice volunteer” to see how it fills in.</p>}
-            </div>
+            <EmptyState compact illo="ledger" title="Nobody yet.">
+              When volunteers scan the QR code, their names appear here within a few seconds.
+              {props.practice && ' This is a practice event: tap “Add a practice volunteer” to see how it fills in.'}
+            </EmptyState>
           ) : (
             <div style={{ overflowX: 'auto', position: 'relative' }}>
               <table className="t tight">
@@ -262,7 +265,9 @@ export function EventDay(props: {
             <div className={s.fullPair}>
               <div className={s.fullHalf}>
                 <p className={s.fullTitle}>Check in here</p>
-                <div className={s.fullQrHalf} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
+                <div className={s.pulse}>
+                  <div className={s.fullQrHalf} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
+                </div>
                 <p className={s.fullCode}>{props.code}</p>
                 <p className={s.fullHint}>Already signed up? Scan in, and again when you leave.</p>
               </div>
@@ -277,13 +282,15 @@ export function EventDay(props: {
           ) : (
             <>
               <p className={s.fullTitle}>Check in here</p>
-              <div className={s.fullQr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
+              <div className={s.pulse}>
+                <div className={s.fullQr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
+              </div>
               <p className={s.fullCode}>{props.code}</p>
               <p className={s.fullHint}>Scan with your phone camera. Scan again when you leave.</p>
             </>
           )}
           <p className={s.fullCount} aria-live="polite" aria-atomic="true">
-            {here} checked in
+            <LiveNumber value={here} /> checked in
           </p>
         </dialog>
       )}

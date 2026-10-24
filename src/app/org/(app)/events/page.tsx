@@ -7,6 +7,9 @@ import { requestNow } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { Segmented } from '@/components/Segmented';
 import { listTags, tagsForEvents } from '@/lib/event-intake';
+import { Cover } from '@/components/media/Cover';
+import { EmptyState } from '@/components/media/EmptyState';
+import { coverFor } from '@/lib/covers';
 import l from './list.module.css';
 
 type Row = EventRow & { people: number; hours: number };
@@ -52,108 +55,166 @@ export default async function EventsPage({ searchParams }: PageProps<'/org/event
           label="Filter events by tag"
           items={[
             { href: '/org/events', label: 'All', on: !tag },
-            ...tags.filter((t) => t.uses > 0 || t.name.toLowerCase() === tag?.toLowerCase()).map((t) => ({
-              href: `/org/events${q(t.name)}`,
-              label: (
-                <>
-                  <span className={`tag tag-${t.color}`} style={{ background: 'transparent', padding: 0, height: 'auto' }}>
-                    {t.name}
-                  </span>
-                  <span className="muted small num">{t.uses}</span>
-                </>
-              ),
-              on: t.name.toLowerCase() === tag?.toLowerCase(),
-            })),
+            ...tags
+              .filter((t) => t.uses > 0 || t.name.toLowerCase() === tag?.toLowerCase())
+              .map((t) => ({
+                href: `/org/events${q(t.name)}`,
+                label: (
+                  <>
+                    <span
+                      className={`tag tag-${t.color}`}
+                      style={{
+                        background: 'transparent',
+                        padding: 0,
+                        height: 'auto',
+                      }}
+                    >
+                      {t.name}
+                    </span>
+                    <span className="muted small num">{t.uses}</span>
+                  </>
+                ),
+                on: t.name.toLowerCase() === tag?.toLowerCase(),
+              })),
           ]}
         />
       )}
-      {tag && events.length === 0 && <p className="notice notice-amber">No events tagged “{tag}” yet.</p>}
-      <div className="card" style={{ overflowX: 'auto', position: 'relative' }}>
-        <table className="t">
-          <thead>
-            <tr>
-              <th scope="col">Event</th>
-              <th scope="col">When</th>
-              <th scope="col" className={l.narrowHide}>People</th>
-              <th scope="col" className={l.narrowHide}>Hours</th>
-              <th scope="col">Status</th>
-              <th scope="col" className={l.narrowHide}>
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((e) => {
-              const ended = new Date(e.ends_at).getTime() < now;
-              const live = !ended && new Date(e.starts_at).getTime() <= now;
-              const status = e.attested_at ? (
-                <span className="chip chip-green">✓ Verified</span>
-              ) : ended ? (
-                <span className="chip chip-amber">Needs verification</span>
-              ) : live ? (
-                <span className="chip chip-green">● Live now</span>
-              ) : (
-                <span className="chip chip-ink">Upcoming</span>
-              );
-              const action =
-                !e.attested_at && (ended || e.is_practice) ? (
-                  <Link className="btn btn-primary btn-sm" href={`/org/events/${e.id}/verify`}>
-                    Verify
-                  </Link>
+      {events.length === 0 ? (
+        <div className="card">
+          {tag ? (
+            <EmptyState
+              illo="compass"
+              title={`No events tagged “${tag}” yet.`}
+              action={
+                <Link className="btn" href="/org/events">
+                  Show all events
+                </Link>
+              }
+            >
+              Add the tag when you create or edit an event, and it shows up here and in its calendar feed.
+            </EmptyState>
+          ) : (
+            <EmptyState
+              illo="sapling"
+              title="No events yet."
+              action={
+                <Link className="btn btn-primary" href="/org/events/new">
+                  + New event
+                </Link>
+              }
+            >
+              Every verified hour starts with an event. Make one in under a minute, or paste an invite or flyer and let the form fill itself.
+            </EmptyState>
+          )}
+        </div>
+      ) : (
+        <div className="card" style={{ overflowX: 'auto', position: 'relative' }}>
+          <table className="t">
+            <thead>
+              <tr>
+                <th scope="col">Event</th>
+                <th scope="col">When</th>
+                <th scope="col" className={l.narrowHide}>
+                  People
+                </th>
+                <th scope="col" className={l.narrowHide}>
+                  Hours
+                </th>
+                <th scope="col">Status</th>
+                <th scope="col" className={l.narrowHide}>
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((e) => {
+                const ended = new Date(e.ends_at).getTime() < now;
+                const live = !ended && new Date(e.starts_at).getTime() <= now;
+                const status = e.attested_at ? (
+                  <span className="chip chip-green">✓ Verified</span>
+                ) : ended ? (
+                  <span className="chip chip-amber">Needs verification</span>
+                ) : live ? (
+                  <span className="chip chip-green">● Live now</span>
                 ) : (
-                  <Link className="btn btn-sm" href={`/org/events/${e.id}`}>
-                    {live ? 'Open check-in' : 'Open'}
-                  </Link>
+                  <span className="chip chip-ink">Upcoming</span>
                 );
-              return (
-                <tr key={e.id}>
-                  <td>
-                    <Link href={`/org/events/${e.id}`} style={{ fontWeight: 700, textDecoration: 'none' }}>
-                      {e.title}
+                const action =
+                  !e.attested_at && (ended || e.is_practice) ? (
+                    <Link className="btn btn-primary btn-sm" href={`/org/events/${e.id}/verify`}>
+                      Verify
                     </Link>
-                    <p className="small muted">
-                      {e.is_practice ? 'Practice · only you can see it' : ACTIVITY_LABEL[e.activity]}
-                      {e.location ? ` · ${e.location}` : ''}
-                    </p>
-                    {(tagMap.get(e.id) ?? []).length > 0 && (
-                      <span className="row wrap" style={{ gap: 4, marginTop: 4 }}>
-                        {(tagMap.get(e.id) ?? []).map((t) => (
-                          <span key={t.id} className={`tag tag-${t.color}`}>
-                            {t.name}
-                          </span>
-                        ))}
+                  ) : (
+                    <Link className="btn btn-sm" href={`/org/events/${e.id}`}>
+                      {live ? 'Open check-in' : 'Open'}
+                    </Link>
+                  );
+                return (
+                  <tr key={e.id}>
+                    <td>
+                      <div className={l.eventCell}>
+                        <Link href={`/org/events/${e.id}`} className={l.thumbLink} tabIndex={-1} aria-hidden>
+                          <Cover
+                            cover={coverFor({
+                              title: e.title,
+                              activity: e.activity,
+                              tags: tagMap.get(e.id),
+                            })}
+                            variant="thumb"
+                            className={l.thumb}
+                            sizes="48px"
+                          />
+                        </Link>
+                        <div className={l.eventText}>
+                          <Link href={`/org/events/${e.id}`} style={{ fontWeight: 700, textDecoration: 'none' }}>
+                            {e.title}
+                          </Link>
+                          <p className="small muted">
+                            {e.is_practice ? 'Practice · only you can see it' : ACTIVITY_LABEL[e.activity]}
+                            {e.location ? ` · ${e.location}` : ''}
+                          </p>
+                          {(tagMap.get(e.id) ?? []).length > 0 && (
+                            <span className="row wrap" style={{ gap: 4, marginTop: 4 }}>
+                              {(tagMap.get(e.id) ?? []).map((t) => (
+                                <span key={t.id} className={`tag tag-${t.color}`}>
+                                  {t.name}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className={`small ${l.when}`}>
+                      <span className={l.full}>
+                        {fmtDay(e.starts_at)}
+                        <br />
+                        <span className="muted">
+                          {fmtTime(e.starts_at)} to {fmtTime(e.ends_at)}
+                        </span>
                       </span>
-                    )}
-                  </td>
-                  <td className={`small ${l.when}`}>
-                    <span className={l.full}>
-                      {fmtDay(e.starts_at)}
-                      <br />
-                      <span className="muted">
-                        {fmtTime(e.starts_at)} to {fmtTime(e.ends_at)}
+                      <span className={l.short}>
+                        {fmtDate(e.starts_at)}
+                        <br />
+                        <span className="muted">{fmtTime(e.starts_at)}</span>
                       </span>
-                    </span>
-                    <span className={l.short}>
-                      {fmtDate(e.starts_at)}
-                      <br />
-                      <span className="muted">{fmtTime(e.starts_at)}</span>
-                    </span>
-                  </td>
-                  <td className={`num ${l.narrowHide}`}>{e.people}</td>
-                  <td className={`num ${l.narrowHide}`}>{e.hours.toLocaleString()}</td>
-                  <td className={l.status}>
-                    {status}
-                    <span className={l.inlineAction}>{action}</span>
-                  </td>
-                  <td className={l.narrowHide} style={{ textAlign: 'right' }}>
-                    {action}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                    </td>
+                    <td className={`num ${l.narrowHide}`}>{e.people}</td>
+                    <td className={`num ${l.narrowHide}`}>{e.hours.toLocaleString()}</td>
+                    <td className={l.status}>
+                      {status}
+                      <span className={l.inlineAction}>{action}</span>
+                    </td>
+                    <td className={l.narrowHide} style={{ textAlign: 'right' }}>
+                      {action}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

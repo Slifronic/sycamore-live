@@ -48,3 +48,22 @@
 .left { display: block; color: var(--amber); font-weight: 600; }
 .segBtn { border: 0; background: none; cursor: pointer; font-family: inherit; }
 .segOn { background: var(--paper); box-shadow: var(--shadow); color: var(--ink); }
+
+/* Full-screen QR: a soft ring breathes outward behind the code, so it reads
+   as live from across a table. The code itself never moves. */
+.pulse { position: relative; display: grid; place-items: center; border-radius: 14px; }
+.pulse::before, .pulse::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 2px rgba(44, 138, 87, 0.45); animation: qr-ring 2.8s var(--out) infinite; pointer-events: none; }
+.pulse::after { animation-delay: 1.4s; }
+@keyframes qr-ring { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(1.12); opacity: 0; } }
+
+/* Roster: a new arrival slides in once, with a light sap tint. */
+.grid :global(tr.fresh) td { animation: row-in 0.5s var(--out) both; background: rgba(44, 138, 87, 0.06); }
+@keyframes row-in { from { opacity: 0; transform: translateY(-8px); } }
+
+/* The event's cover photo as a slim band over the header; slimmer on phones so
+   the QR stays on the first screen. */
+.band { height: 120px !important; margin-bottom: -4px; }
+.band img { object-position: 50% 55%; }
+@media (max-width: 860px) {
+  .band { height: 72px !important; border-radius: 12px !important; }
+}
