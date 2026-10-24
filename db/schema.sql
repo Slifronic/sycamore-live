@@ -4,6 +4,9 @@
 
 create extension if not exists pgcrypto;
 
+drop table if exists campaign cascade;
+drop table if exists story_clip cascade;
+drop table if exists story_note cascade;
 drop table if exists badge_award cascade;
 drop table if exists record cascade;
 drop table if exists attendance cascade;
@@ -100,6 +103,53 @@ create table badge_award (
   signed_at timestamptz not null default now(),
   unique (org_id, volunteer_id, badge)
 );
+
+-- org addition: event story. The coordinator talks through what happened
+-- (voice notes) and adds phone videos; Claude packages them into a campaign
+-- the coordinator reviews and publishes. Media files live on disk (MEDIA_DIR).
+create table story_note (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references org(id),
+  event_id uuid not null references event(id),
+  transcript text not null,          -- what the coordinator said, as they edited it
+  source text not null default 'voice' check (source in ('voice','typed')),
+  audio_path text,                   -- file name under MEDIA_DIR, null for typed notes
+  audio_mime text,
+  duration_s numeric(7,1),
+  created_at timestamptz not null default now()
+);
+
+create table story_clip (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references org(id),
+  event_id uuid not null references event(id),
+  video_path text not null,
+  video_mime text not null,
+  poster_path text,
+  original_name text,
+  size_bytes bigint not null,
+  duration_s numeric(7,1),
+  description jsonb,                 -- Claude's read of the frames (lib/story.ts ClipDescription)
+  caption text,                      -- coordinator's caption; starts as Claude's suggestion
+  consent boolean not null default false,  -- everyone recognizable agreed to be shared
+  created_at timestamptz not null default now()
+);
+
+create table campaign (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references org(id),
+  event_id uuid not null unique references event(id),
+  slug text unique,                  -- set on first publish; public page /c/<slug>
+  draft jsonb not null,              -- headline, story, posts, storyboard (lib/story.ts CampaignDraft)
+  facts jsonb not null,              -- the verified facts the draft was written from
+  flags jsonb not null default '[]'::jsonb,   -- numbers not found in the facts or the debrief
+  status text not null default 'draft' check (status in ('draft','published')),
+  published_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+create index on story_note (event_id, created_at);
+create index on story_clip (event_id, created_at);
 
 -- After attestation nothing is edited in place.
 create or replace function lock_attested() returns trigger language plpgsql as $$

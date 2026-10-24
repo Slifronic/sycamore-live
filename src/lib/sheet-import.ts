@@ -1,5 +1,5 @@
 import 'server-only';
-import Anthropic from '@anthropic-ai/sdk';
+import { Anthropic, claude, claudeEnabled } from './claude';
 import { z } from 'zod';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import type { SheetDraft } from './types';
@@ -31,14 +31,7 @@ const HHMM = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
 export class SheetImportError extends Error {}
 
-// The app's own credentials only. An ANTHROPIC_BASE_URL inherited from a
-// developer tool would silently reroute requests, so the host is pinned
-// unless SYCAMORE_ANTHROPIC_BASE_URL is set on purpose.
-export const sheetImportEnabled = () => !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
-
-function client() {
-  return new Anthropic({ baseURL: process.env.SYCAMORE_ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com' });
-}
+export const sheetImportEnabled = claudeEnabled;
 
 export async function draftFromSheet(
   image: { base64: string; mediaType: 'image/jpeg' | 'image/png' | 'image/webp' },
@@ -49,7 +42,7 @@ export async function draftFromSheet(
 
   let response;
   try {
-    response = await client().messages.parse({
+    response = await claude().messages.parse({
       model: 'claude-opus-5-5',
       max_tokens: 16000,
       output_config: { effort: 'medium', format: zodOutputFormat(Sheet) },

@@ -1,0 +1,22 @@
+.reel { margin: 0; display: grid; gap: 10px; }
+.frame { position: relative; border-radius: var(--radius); overflow: hidden; background: #0b1a12; aspect-ratio: 16 / 9; }
+.video { width: 100%; height: 100%; object-fit: contain; display: block; background: #0b1a12; cursor: pointer; }
+.caption {
+  position: absolute; left: 16px; right: 16px; bottom: 16px;
+  padding: 8px 12px; border-radius: 10px;
+  background: rgba(15, 38, 27, 0.78); color: #fff;
+  font-weight: 600; font-size: 15px; line-height: 1.35;
+  animation: rise 0.4s var(--out);
+}
+.play {
+  position: absolute; inset: 0; margin: auto; width: 64px; height: 64px; border-radius: 50%;
+  border: 0; background: rgba(255, 255, 255, 0.92); color: var(--ink); font-size: 22px; cursor: pointer;
+  box-shadow: var(--shadow-hi);
+}
+.play:focus-visible, .dot:focus-visible { outline: 3px solid var(--sap); outline-offset: 2px; }
+.controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dots { display: flex; gap: 6px; list-style: none; margin: 0 4px; padding: 0; flex: 1; }
+.dot { width: 10px; height: 10px; border-radius: 50%; border: 0; padding: 0; background: var(--line-2); cursor: pointer; }
+.dotOn { background: var(--primary); width: 22px; border-radius: 999px; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .caption { animation: none; } }

@@ -17,6 +17,16 @@ This repo holds the **organization side** (Bryant, built with Claude). The volun
 - **Hour letter:** a printable letter per volunteer with the fields schools ask for (org and coordinator contact, each event's date, role and hours, adjustment reasons, verification dates, signature line). Replaces hand-signed hour letters.
 - **Badges:** the system finds who meets a rule; a coordinator signs each one (with an evidence note where the badge asks for one).
 - **Funder report:** hours, unique volunteers, events, value of volunteer time (Independent Sector 2025, preliminary: $36.14 national, $41.75 California), leadership, Index; print to PDF or download CSV.
+- **Event story (Claude):** after an event, the coordinator records a voice debrief and adds phone videos.
+  - **Voice:** a live transcript from the browser's speech service; the audio is kept privately.
+  - **Videos:** the browser cuts a few still frames from each clip, and Claude describes them: what's happening, usable moments, a caption, and a flag when people or possibly minors are recognizable.
+  - **Campaign:** Claude drafts it from the debrief, the clips and the event's verified facts: headline, story, pull quote, grant-report paragraph, thank-you, Instagram, LinkedIn and X posts, and a highlight-reel storyboard.
+  - **Guard rails,** checked on the server for every draft and every edit:
+    - Every number must appear in the attested record or in the coordinator's own words. Anything else is flagged and blocks publishing.
+    - The pull quote must be verbatim from the debrief.
+    - Only clips the coordinator marked as consented can be in the reel or served publicly.
+    - Publishing needs a verified event.
+  - **Publishing:** the campaign goes to `/c/<slug>`; voice notes stay private. Media is stored on local disk in `.media/` (gitignored; set `MEDIA_DIR` to change it).
 
 ## Run it
 
@@ -34,7 +44,7 @@ npm run dev -- -p 3311
 ```
 DATABASE_URL=postgres://localhost:5432/sycamore_live
 NEXT_PUBLIC_APP_URL=http://localhost:3311
-ANTHROPIC_API_KEY=...        # only for "Import paper sheet"
+ANTHROPIC_API_KEY=...        # for "Import paper sheet" and "Event story"
 ```
 
 Demo coordinator PIN: **246810** (Riverside Restoration Crew, made-up names). The seed mirrors the shape of the team's real pilot: four planting events with 45/48/52/58 attendances at 3 hours each. Phase 2 is left unverified on purpose: verifying it on stage moves the Index from Silver to Gold and makes new badges ready.

@@ -50,11 +50,21 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
         }
         action={
           event.attested_at ? (
-            <span className="chip chip-green" style={{ height: 32 }}>✓ Verified · records issued</span>
+            <span className="row wrap" style={{ gap: 8 }}>
+              <span className="chip chip-green" style={{ height: 32 }}>✓ Verified · records issued</span>
+              <Link className="btn btn-big btn-primary" href={`/org/events/${id}/story`}>
+                🎙 Tell the story
+              </Link>
+            </span>
           ) : ended || event.is_practice ? (
-            <Link className="btn btn-big btn-primary" href={`/org/events/${id}/verify`}>
-              Close & verify
-            </Link>
+            <span className="row wrap" style={{ gap: 8 }}>
+              <Link className="btn btn-big" href={`/org/events/${id}/story`}>
+                🎙 Record a debrief
+              </Link>
+              <Link className="btn btn-big btn-primary" href={`/org/events/${id}/verify`}>
+                Close & verify
+              </Link>
+            </span>
           ) : (
             // While the event runs, closing it is a quiet option; the QR is the job.
             <Link className="btn btn-sm" href={`/org/events/${id}/verify`}>
