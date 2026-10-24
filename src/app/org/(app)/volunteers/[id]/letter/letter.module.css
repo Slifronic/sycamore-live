@@ -1,0 +1,8 @@
+.letter { padding: 40px 44px; display: grid; gap: 18px; font-size: 15px; }
+.head { display: flex; justify-content: space-between; gap: 16px; align-items: start; border-bottom: 2px solid var(--canopy); padding-bottom: 14px; }
+.org { font-family: var(--font-display), Georgia, serif; font-size: 24px; font-weight: 600; color: var(--canopy); }
+.sign { margin-top: 24px; display: grid; gap: 2px; }
+.line { width: 260px; border-bottom: 1px solid var(--ink); height: 36px; margin-bottom: 6px; }
+@media print {
+  .letter { padding: 0; border: 0; }
+}

@@ -11,11 +11,12 @@ This repo holds the **organization side** (Bryant, built with Claude). The volun
 - **Start in a minute:** four boxes, then a practice event and a 7-minute course that teaches by doing. Each lesson opens the real screen and completes itself when the coordinator does the action.
 - **Events:** create one in under a minute; on the day, a full-screen QR code and a live roster (polls every 3 s). "Add by name" for people without phones.
 - **Import paper sheet (Claude):** photograph a sign-in sheet; `claude-opus-5-5` drafts rows with structured outputs; low-confidence rows are amber; nothing is saved until the coordinator confirms each row. Sheet text is treated as data, not instructions, and the model never invents a check-out time.
-- **Verify in two minutes:** hours pre-filled from scans, role dropdowns, standout stars, one tap to fill in people who didn't scan out (with a printed reason), and a 30-second post-event check. Any changed hour requires a reason; a database trigger makes attested rows read-only.
+- **Verify in two minutes:** hours pre-filled from scans, role dropdowns, standout stars, one tap to fill in people who didn't scan out (with a printed reason), flags for shifts over 8 hours and duplicate names, and a 30-second post-event check. Any changed hour requires a reason; a database trigger makes attested rows read-only.
 - **SycaMore Index:** retention × 0.35 + coordinator efficiency × 0.30 + event completion × 0.35, all computed from app data, with the formula shown and the one thing that would raise each part. Tiers: Platinum 90, Gold 75, Silver 60, Bronze 45.
 - **Volunteers:** first-timers, regulars, and "slipping away" (came twice, gone 30+ days) with a ready-to-send invite email.
+- **Hour letter:** a printable letter per volunteer with the fields schools ask for (org and coordinator contact, each event's date, role and hours, adjustment reasons, verification dates, signature line). Replaces hand-signed hour letters.
 - **Badges:** the system finds who meets a rule; a coordinator signs each one (with an evidence note where the badge asks for one).
-- **Funder report:** hours, volunteers, events, value of volunteer time, leadership, Index; print to PDF or download CSV.
+- **Funder report:** hours, unique volunteers, events, value of volunteer time (Independent Sector 2025, preliminary: $36.14 national, $41.75 California), leadership, Index; print to PDF or download CSV.
 
 ## Run it
 

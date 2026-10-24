@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { requireOrg } from '@/lib/session';
 import { loadOrgInsights } from '@/lib/insights';
-import { courseProgress } from '@/lib/course';
+import { LESSONS, courseProgress } from '@/lib/course';
 import { badgeByKey } from '@/lib/badges';
-import { VOLUNTEER_HOUR_VALUE, rate, usd } from '@/lib/value';
+import { HOUR_RATES, money, rateKeyFor, usd } from '@/lib/value';
 import { ago, fmtDay, fmtHoursSafe, plural } from './util';
 import { IndexCard } from '@/components/IndexCard';
 import s from './home.module.css';
@@ -17,10 +17,11 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
   const now = requestNow();
   const live = ins.events.filter((e) => !e.attested_at && new Date(e.starts_at).getTime() <= now && new Date(e.ends_at).getTime() >= now);
   const upcoming = ins.events.filter((e) => new Date(e.starts_at).getTime() > now && !e.is_practice).slice(-3).reverse();
-  const value = ins.totals.verifiedHours * VOLUNTEER_HOUR_VALUE.usd;
+  const hourRate = HOUR_RATES[rateKeyFor(org.city)];
+  const value = ins.totals.verifiedHours * hourRate.usd;
   const hour = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', hour12: false });
   const greet = Number(hour) < 12 ? 'Good morning' : Number(hour) < 18 ? 'Good afternoon' : 'Good evening';
-  const needs = ins.awaiting.length + ins.badgeReady.length + (ins.slipping.length ? 1 : 0);
+  const needs = ins.awaiting.length + (ins.badgeReady.length ? 1 : 0) + (ins.slipping.length ? 1 : 0);
 
   return (
     <div className={s.page}>
@@ -47,7 +48,7 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
         <section className={`card ${s.lesson}`}>
           <div>
             <p className={s.eyebrow}>
-              Lesson {course.done + 1} of {course.total} · {course.next.minutes} min
+              Lesson {LESSONS.indexOf(course.next) + 1} of {course.total} · {course.next.minutes} min
             </p>
             <h2>{course.next.title}</h2>
             <p className="muted">{course.next.why}</p>
@@ -118,7 +119,7 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
         <Stat label="Verified hours" value={fmtHoursSafe(ins.totals.verifiedHours)} />
         <Stat label="Volunteers" value={ins.totals.uniqueVolunteers.toLocaleString()} sub={`${ins.totals.attendances.toLocaleString()} attendances`} />
         <Stat label="Events verified" value={String(ins.totals.verifiedEvents)} sub={ins.awaiting.length ? `${ins.awaiting.length} waiting` : 'all caught up'} />
-        <Stat label="Value of volunteer time" value={usd(value)} sub={`at ${rate()}/hr`} />
+        <Stat label="Value of volunteer time" value={usd(value)} sub={`at ${money(hourRate.usd)}/hr (${hourRate.label})`} />
       </section>
 
       <div className={s.two}>

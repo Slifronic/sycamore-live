@@ -77,6 +77,13 @@ export function VerifyConsole({ eventId, endsAt, initial }: { eventId: string; e
     return out;
   }, [rows, goal]);
 
+  // Flags worth a second look (not blockers): very long shifts and duplicate names.
+  const dupNames = useMemo(() => {
+    const seen = new Map<string, number>();
+    for (const r of rows) seen.set(r.display_name.trim().toLowerCase(), (seen.get(r.display_name.trim().toLowerCase()) ?? 0) + 1);
+    return new Set([...seen].filter(([, n]) => n > 1).map(([k]) => k));
+  }, [rows]);
+
   const present = rows.filter((r) => !r.no_show);
   const totalHours = present.reduce((s, r) => s + (r.hours === '' ? 0 : Number(r.hours) || 0), 0);
   const shown = filter ? rows.filter((r) => r.display_name.toLowerCase().includes(filter.toLowerCase())) : rows;
@@ -159,6 +166,8 @@ export function VerifyConsole({ eventId, endsAt, initial }: { eventId: string; e
                           <strong>{r.display_name}</strong>
                           {r.method === 'paper_import' && <span className="small muted"> · from paper sheet</span>}
                           {needsHours && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>No check-out recorded</span>}
+                          {!r.no_show && Number(r.hours) > 8 && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>Over 8 hours: double-check</span>}
+                          {dupNames.has(r.display_name.trim().toLowerCase()) && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>Same name appears twice</span>}
                         </span>
                       </span>
                     </td>

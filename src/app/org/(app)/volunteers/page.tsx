@@ -128,8 +128,13 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                       </Link>
                     )}
                   </td>
-                  <td style={{ textAlign: 'right' }}>
-                    {email && v.status !== 'new' && v.status === 'slipping' ? (
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    {v.volunteer_id && (
+                      <Link className="btn btn-sm btn-quiet" href={`/org/volunteers/${v.volunteer_id}/letter`}>
+                        Hour letter
+                      </Link>
+                    )}{' '}
+                    {email && v.status === 'slipping' ? (
                       <a className="btn btn-sm btn-primary" href={mailto(v.name, email)}>
                         Invite back
                       </a>
