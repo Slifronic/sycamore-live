@@ -1,4 +1,4 @@
-// Fictional fixtures from the Discover prototype (sycamore-volunteer-preview/dist/discover/opportunities.js,
+// Fictional fixtures from the Discover prototype (sycamore-volunteer-preview/dist/discover/opportunities.js at c169374,
 // enriched by taxonomy.js), kept so the ported engine runs against the same data its 22 tests were written for.
 // VITA is a real program type; the provider, opening and logistics below are fictional. Never shown in the app.
 import type { Opportunity } from '../../src/lib/discover/types.ts';

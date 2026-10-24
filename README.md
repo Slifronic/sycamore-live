@@ -55,15 +55,20 @@ This repo holds the **organization side** (Bryant, built with Claude). The volun
 Same app, same theme: the volunteer pages live in `src/app/(vol)/` with a shell that mirrors the coordinator's (sidebar on desktop, bottom tabs on phones).
 
 - **`/join`:** name, email, birth date. Under 13 is refused and nothing is stored; 13 to 17 can join, but sharing needs a guardian's OK. An existing email signs back in only with its birth date. `?next=` brings them back (a QR scan lands on `/join?next=/checkin?code=…`).
-- **`/checkin`:** the event QR (`/checkin?code=<checkin_code>`) or the 6 typed characters; check-in opens 2 hours before the start and closes 2 hours after the end, and practice events never match. Checked in, it's the live session card (shared with the walk-in page) with Check out.
+- **`/checkin`:** the event QR (`/checkin?code=<checkin_code>`) or the 6 typed characters; check-in opens 2 hours before the start and closes 2 hours after the end, and practice events never match. Checked in, it's the live session card (shared with the walk-in page) with Check out. If the coordinator set a site, an off-by-default toggle, "Help {org} see if I leave early", sends `POST /api/vol/presence` pings while the page is open (no coordinates stored) and offers Check out if they've left.
 - **`/me`:** attested hours, events and organizations; a private personal goal (`volunteer.hours_goal`, filled only by attested hours); pending events as "Waiting for {org} to confirm" with no number; one card per record.
 - **`/me/records/[id]`:** the contract's record wording with captured vs adjusted and the reason, a share link (`SYC-XXXX-XXXX`, `crypto.randomInt`) with copy and QR, and print / save as PDF. Minors get "Sharing needs a guardian's OK", and the API returns 403.
+- **Use this record (AI wording):** a resume line or a scholarship sentence from the record's org, event, date, role and hours only. OpenAI when `OPENAI_API_KEY` is set (`OPENAI_MODEL`, default `gpt-4o-mini`), else Claude through `src/lib/claude.ts`, else a template; structured JSON either way. `src/lib/blurb.ts` rejects any number, in digits or words, that isn't the hours, part of the date, or in the org or event name; it retries once, then uses the template. Editable, with Copy and "Hours from {org}'s attested record. The wording is AI-drafted; edit it before you use it." Minors can use it; nothing is shared.
+- **`/me/badges`:** signed / in progress / not started. Signed means the organization signed a `badge_award` row; progress and "ready for sign-off" are computed per organization from attested attendance with the rule targets in `src/lib/badges.ts` (the org dashboard uses the same stats helpers). Pending check-ins and practice events never count.
+- **`/me/badges/[key]`:** the certificate: signer, date, the coordinator's evidence note, attested events and hours with the issuer, the rule; print / save as PDF. Adults can create a public verification link (`/v/b/BDG-XXXX-XXXX`, `POST /api/vol/badges/:id/share`; minors get a 403, like records). With the link, **Add to LinkedIn**: an editable post with the link, Copy, LinkedIn's share URL, and the Licenses & certifications fields to copy. Nothing is posted for them, and there's no LinkedIn partnership.
+- **`/me/journey`:** every attested event (practice excluded) with the role, hours, a running total, firsts, and the badges signed along the way.
+- **`/discover`:** upcoming public events from every organization, ranked in the browser by Khanh's matching engine (ported unchanged to `src/lib/discover/`): use my experience / learn something new / follow my interests, a cause, skills to use and develop. Org tags supply the cause and skills; journey time, cost and support are unknown, so each score is the supported fit points with the range. Fit is rule-based, not a probability. Pasted resume or role text (`/discover/profile`) stays in page memory, never sent or stored. Save for later is per volunteer on the server (`saved_event`, `/api/vol/saved`). Each event links to its public page `/e/<slug>` and walk-up check-in; there's no sign-up. Details in `docs/volunteer/DISCOVER.md`.
 - **`/v/<code>`:** public, no cookie, not indexed: VERIFIED or REVOKED, the wording, and who to call. Unknown codes are a 404.
 - **`/me/messages`:** coordinator threads and event group chats, over the existing `/api/vol/messages` and `/api/vol/event-chats`.
-- **API:** `POST /api/vol/join`, `GET`/`PATCH /api/vol/me`, `POST /api/vol/checkin`, `GET /api/vol/records`, `POST /api/vol/records/:id/share`, `GET /api/v/:code` (logic in `src/lib/vol-data.ts`). The browser never sends hours.
-- **Next up (nav slots are in place, marked Soon):** badges, journey, LinkedIn, Discover/matching and the AI blurb. The prototype they come from is in `sycamore-volunteer-preview/`.
+- **API:** `POST /api/vol/join`, `GET`/`PATCH /api/vol/me`, `POST /api/vol/checkin`, `GET /api/vol/records`, `POST /api/vol/records/:id/share`, `POST /api/vol/records/:id/blurb`, `POST /api/vol/badges/:id/share`, `GET`/`POST /api/vol/saved`, `GET /api/v/:code` (logic in `src/lib/vol-data.ts`, `vol-badges.ts`, `vol-discover.ts`, `blurb.ts`). The browser never sends hours.
+- **Where it came from:** Khanh's static prototype (`sycamore-volunteer-preview/`) is fully ported and removed from the branch; it stays in git history at `c169374`. Its notes, updated for the integrated version, are in `docs/volunteer/`.
 
-Demo volunteers: `ana@example.test` / 2007-04-12 (adult, three attested records, one pending, one already shared at `/v/SYC-RVR7-PLNT`) and `jay@example.test` / 2010-02-03 (16, can't share).
+Demo volunteers: `ana@example.test` / 2007-04-12 (adult, three attested records, one pending, one already shared at `/v/SYC-RVR7-PLNT`, Event Coordination signed and Team Leadership ready for sign-off) and `jay@example.test` / 2010-02-03 (16, can't share). Three more made-up organizations (PINs 135790, 864202, 975318) have 8 upcoming events for Discover.
 
 ## Run it
 
@@ -81,7 +86,8 @@ npm run dev -- -p 3311
 ```
 DATABASE_URL=postgres://localhost:5432/sycamore_live
 NEXT_PUBLIC_APP_URL=http://localhost:3311
-ANTHROPIC_API_KEY=...        # for "Import paper sheet" and "Event story"
+ANTHROPIC_API_KEY=...        # for "Import paper sheet", "Event story" and the volunteer blurb
+OPENAI_API_KEY=...           # optional: the blurb uses OpenAI instead of Claude when set
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=...apps.googleusercontent.com   # optional: "Continue with Google" for walk-ins
 ```
 
@@ -96,6 +102,7 @@ Demo coordinator PIN: **246810** (Riverside Restoration Crew, made-up names). Th
 
 ```bash
 npm run check   # tsc + eslint
+npm test        # Discover engine (22 ported tests + 4) and the blurb number check; Node 22.18+ runs the TypeScript directly
 ```
 
 ## Paper-sheet import accuracy

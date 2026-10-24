@@ -1,4 +1,4 @@
-// Ported from sycamore-volunteer-preview/tests/discover.test.cjs (11 tests).
+// Ported from sycamore-volunteer-preview/tests/discover.test.cjs at c169374 (11 tests).
 // The original topic-based evaluator, against the fixtures it was written for.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

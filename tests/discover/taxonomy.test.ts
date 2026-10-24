@@ -1,4 +1,4 @@
-// Ported from sycamore-volunteer-preview/tests/taxonomy.test.cjs (11 tests).
+// Ported from sycamore-volunteer-preview/tests/taxonomy.test.cjs at c169374 (11 tests).
 // The taxonomy evaluator (match-v2.js → match.ts) the app uses.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
