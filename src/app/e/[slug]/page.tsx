@@ -5,6 +5,8 @@ import { eventLinks, publicEvent } from '@/lib/event-public';
 import { mapEmbed, osmLink } from '@/lib/place-links';
 import { fmtTime, requestNow } from '@/lib/format';
 import { ShareButton } from '@/components/events/ShareButton';
+import { Cover } from '@/components/media/Cover';
+import { coverFor } from '@/lib/covers';
 import s from './event-page.module.css';
 
 // Public event page: the one link a coordinator drops in a group chat.
@@ -37,13 +39,17 @@ export default async function PublicEventPage({ params }: PageProps<'/e/[slug]'>
   return (
     <main className={s.page}>
       <header className={s.head}>
-        <p className={s.org}>{e.org_name}</p>
-        <h1 className={s.title}>{e.title}</h1>
-        <p className={s.when}>
-          {longDay(e.starts_at)} · {fmtTime(e.starts_at)} to {fmtTime(e.ends_at)}
-        </p>
+        <Cover cover={coverFor(e)} variant="hero" priority className={`settle ${s.hero}`}>
+          <p className={`${s.org} rise`}>{e.org_name}</p>
+          <h1 className={`${s.title} rise`} style={{ ['--d' as string]: '0.08s' }}>
+            {e.title}
+          </h1>
+          <p className={`${s.when} rise`} style={{ ['--d' as string]: '0.16s' }}>
+            {longDay(e.starts_at)} · {fmtTime(e.starts_at)} to {fmtTime(e.ends_at)}
+          </p>
+        </Cover>
         {e.tags.length > 0 && (
-          <div className="row wrap" style={{ gap: 6 }}>
+          <div className="row wrap rise" style={{ gap: 6, ['--d' as string]: '0.24s' }}>
             {e.tags.map((t) => (
               <span key={t.id} className={`tag tag-${t.color}`}>
                 {t.name}

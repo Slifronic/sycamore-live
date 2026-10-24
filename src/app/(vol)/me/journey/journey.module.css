@@ -8,11 +8,12 @@
 .value { font-family: var(--font-display), serif; font-size: 20px; font-weight: 600; color: #fff; overflow-wrap: anywhere; }
 
 .timeline { list-style: none; margin: 0; padding: 0 0 0 26px; display: grid; gap: 14px; position: relative; }
-.timeline::before { content: ''; position: absolute; left: 8px; top: 10px; bottom: 10px; width: 2px; background: var(--line-2); border-radius: 2px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(var(--sap), var(--line-2) 40%); border-radius: 2px; transform-origin: top; animation: grow-y 1.4s var(--out) both; }
 .item { position: relative; min-width: 0; }
 .dot { position: absolute; left: -24px; top: 22px; width: 14px; height: 14px; border-radius: 50%; background: var(--paper); box-shadow: 0 0 0 3px var(--sap); }
 .dotBadge { background: var(--sap); }
 .card { display: grid; gap: 6px; padding: 16px 18px; text-decoration: none; color: inherit; min-width: 0; }
+.item:first-child .dot { box-shadow: 0 0 0 3px var(--sap), 0 0 0 7px rgba(44, 138, 87, 0.15); }
 .badgeCard { grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; background: var(--primary-soft); box-shadow: none; }
 .title { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
 .empty { padding: 26px 22px; display: grid; gap: 10px; justify-items: start; }

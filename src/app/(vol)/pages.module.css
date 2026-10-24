@@ -29,7 +29,12 @@
 @keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 80%, 100% { transform: scale(3); opacity: 0; } }
 
 /* Record cards */
-.record { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 16px 18px; text-decoration: none; color: inherit; }
+.thumbWrap { position: relative; display: block; width: 64px; height: 64px; }
+.thumb { width: 64px; height: 64px; border-radius: 14px; }
+.dateTag { position: absolute; left: 4px; right: 4px; bottom: 4px; z-index: 3; display: flex; justify-content: center; align-items: baseline; gap: 3px; padding: 2px 0; border-radius: 8px; background: rgba(247, 246, 241, 0.92); color: var(--canopy); font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; }
+.dateTag b { font-family: var(--font-display), Georgia, serif; font-size: 14px; letter-spacing: 0; }
+.record:hover .thumb img { transform: scale(1.06); }
+.record { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 16px 18px; text-decoration: none; color: inherit; }
 .datebox { display: grid; justify-items: center; padding: 8px 0; border-radius: 12px; background: var(--primary-soft); color: var(--canopy); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
 .datebox b { font-family: var(--font-display), Georgia, serif; font-size: 22px; letter-spacing: 0; line-height: 1.1; }
 .recordBody { display: grid; gap: 4px; min-width: 0; }
@@ -69,7 +74,7 @@
   .kpi { grid-template-columns: 1fr auto; align-items: baseline; padding: 12px 16px; }
   .kpi .kpiSub { grid-column: 1 / -1; }
   .kpiNum { font-size: 30px; grid-row: 1; grid-column: 2; }
-  .record { grid-template-columns: 48px minmax(0, 1fr); }
+  .record { grid-template-columns: 64px minmax(0, 1fr); }
   .recordHours { grid-column: 2; justify-items: start; text-align: left; }
   .cert { padding: 20px; }
   .split { grid-template-columns: minmax(0, 1fr); }

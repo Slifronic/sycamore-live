@@ -7,7 +7,12 @@ import { ROLE_LABEL, type Role } from '@/lib/types';
 import { PageHeader } from '@/components/PageHeader';
 import { BadgeEmblem } from '@/components/vol/BadgeEmblem';
 import type { BadgeKey } from '@/lib/badges';
+import { EmptyState } from '@/components/media/EmptyState';
+import { CountUp } from '@/components/motion/CountUp';
 import s from './journey.module.css';
+
+// The first screenful arrives in a quick stagger; later items rise as they scroll in.
+const enter = (i: number) => (i < 5 ? { className: 'rise', style: { ['--d' as string]: `${0.12 + i * 0.07}s` } } : { className: 'reveal', style: {} });
 
 // My journey: every attested event, oldest at the bottom, with the role the
 // coordinator confirmed, the hours, and the badges organizations signed along
@@ -61,7 +66,7 @@ export default async function JourneyPage() {
           <div>
             <span className={s.label}>Attested</span>
             <span className={s.value}>
-              {plural(active.length, 'event')} · {fmtHours(running)} h
+              {plural(active.length, 'event')} · <CountUp value={running} decimals={Number.isInteger(running) ? 0 : 1} /> h
             </span>
           </div>
           <div>
@@ -78,18 +83,24 @@ export default async function JourneyPage() {
       )}
 
       {items.length === 0 ? (
-        <div className={`card ${s.empty}`}>
-          <h3>Your journey starts at your next event.</h3>
-          <p className="small muted">Once an organization confirms an event you checked in to, it shows here with your role and hours.</p>
-          <Link href="/discover" className="btn btn-primary">
-            Find an event
-          </Link>
+        <div className="card">
+          <EmptyState
+            illo="compass"
+            title="Your journey starts at your next event."
+            action={
+              <Link href="/discover" className="btn btn-primary">
+                Find an event
+              </Link>
+            }
+          >
+            Once an organization confirms an event you checked in to, it shows here with your role and hours.
+          </EmptyState>
         </div>
       ) : (
         <ol className={s.timeline}>
-          {items.map((it) =>
+          {items.map((it, i) =>
             it.kind === 'event' ? (
-              <li key={`e-${it.r.id}`} className={s.item}>
+              <li key={`e-${it.r.id}`} className={`${s.item} ${enter(i).className}`} style={enter(i).style}>
                 <span className={s.dot} aria-hidden />
                 <Link href={`/me/records/${it.r.id}`} className={`card ${s.card}`}>
                   <span className="eyebrow">{longDay(it.r.starts_at)}</span>
@@ -111,7 +122,7 @@ export default async function JourneyPage() {
                 </Link>
               </li>
             ) : (
-              <li key={`b-${it.badge}-${it.at}`} className={s.item}>
+              <li key={`b-${it.badge}-${it.at}`} className={`${s.item} ${enter(i).className}`} style={enter(i).style}>
                 <span className={`${s.dot} ${s.dotBadge}`} aria-hidden />
                 <Link href={`/me/badges/${it.badge}`} className={`card ${s.card} ${s.badgeCard}`}>
                   <BadgeEmblem badge={it.badge} state="signed" size="sm" />

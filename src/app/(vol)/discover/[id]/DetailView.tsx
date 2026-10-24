@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { evaluate } from '@/lib/discover/match';
 import { useDiscover } from '../DiscoverState';
-import { FitBreakdown, FitDonut, SaveButton, briefReasons, dateLine, statusLabel } from '../parts';
+import { FitBreakdown, FitDonut, SaveButton, briefReasons, dateLine, listingCover, statusLabel } from '../parts';
+import { Cover } from '@/components/media/Cover';
+import { EmptyState } from '@/components/media/EmptyState';
 import s from '../discover.module.css';
 
 // One upcoming event, organization first, then what you'd do, then your fit.
@@ -18,9 +20,18 @@ export function DetailView({ eventId }: { eventId: string }) {
         <Link href="/discover" className={s.textlink}>
           ← All events
         </Link>
-        <div className={`card ${s.empty}`}>
-          <h3>This event isn’t in the list anymore.</h3>
-          <p className="small muted">It may have just started or been verified. Reload to see the latest events.</p>
+        <div className="card">
+          <EmptyState
+            illo="compass"
+            title="This event isn’t in the list anymore."
+            action={
+              <Link className="btn" href="/discover">
+                See upcoming events
+              </Link>
+            }
+          >
+            It may have just started or been verified. Reload to see the latest events.
+          </EmptyState>
         </div>
       </div>
     );
@@ -50,9 +61,16 @@ export function DetailView({ eventId }: { eventId: string }) {
       </section>
 
       <section className="stack" style={{ gap: 10 }}>
-        <span className="eyebrow">Upcoming event · {l.kind}</span>
-        <h1>{l.title}</h1>
-        <p className="page-lede">{dateLine(l)}{l.place ? ` · ${l.place}` : ''}</p>
+        <Cover cover={listingCover(l)} variant="hero" priority className="settle">
+          <span className={`${s.heroEyebrow} rise`}>Upcoming event · {l.kind}</span>
+          <h1 className={`${s.heroTitle} rise`} style={{ ['--d' as string]: '0.08s' }}>
+            {l.title}
+          </h1>
+          <p className={`${s.heroSub} rise`} style={{ ['--d' as string]: '0.16s' }}>
+            {dateLine(l)}
+            {l.place ? ` · ${l.place}` : ''}
+          </p>
+        </Cover>
         <div className="row wrap" style={{ gap: 6 }}>
           {l.cause && <span className={s.cause}>{l.cause}</span>}
           <span className="chip chip-ink">In person</span>

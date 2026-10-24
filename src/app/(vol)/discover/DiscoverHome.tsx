@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { criteria, evaluate, modes, rank, weights } from '@/lib/discover/match';
 import { causes, groups } from '@/lib/discover/taxonomy';
 import type { Mode } from '@/lib/discover/types';
 import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/media/EmptyState';
 import { useDiscover, type Prefs } from './DiscoverState';
 import { OpportunityCard, SkillPicker } from './parts';
 import s from './discover.module.css';
@@ -28,6 +30,9 @@ export function DiscoverHome() {
   const d = useDiscover();
   const { prefs, setPrefs, profile, listings, tab, setTab, hidden, saved, reviewed, roles } = d;
   const [showPrefs, setShowPrefs] = useState(false);
+  const reduce = useReducedMotion();
+  const spring = reduce ? { duration: 0 } : ({ type: 'spring', stiffness: 380, damping: 34 } as const);
+  const presetOn = (p: Partial<Prefs>) => p.mode === prefs.mode && p.cause === prefs.cause;
 
   const all = useMemo(() => listings.map((o) => evaluate(o, profile)), [listings, profile]);
   const ranked = useMemo(() => rank(listings, profile).filter((r) => !hidden.has(r.opportunity.id)), [listings, profile, hidden]);
@@ -45,6 +50,7 @@ export function DiscoverHome() {
       <div className={s.modes} role="group" aria-label="How to rank">
         {(Object.keys(modes) as Mode[]).map((m) => (
           <button key={m} type="button" className={s.mode} aria-pressed={prefs.mode === m} onClick={() => setPrefs({ mode: m })}>
+            {prefs.mode === m && <motion.span layoutId="discover-mode" className={s.modePill} transition={spring} aria-hidden />}
             <strong>{modes[m]}</strong>
             <span>{MODE_HINT[m]}</span>
           </button>
@@ -54,7 +60,10 @@ export function DiscoverHome() {
       <div className="row wrap" style={{ gap: 8 }}>
         <span className="small muted">Try a direction:</span>
         {PRESETS.map((p) => (
-          <button key={p.label} type="button" className={s.skillBtn} onClick={() => setPrefs({ roleArea: 'any', day: 'any', format: 'any', ...p.prefs })}>
+          <button key={p.label} type="button" className={`${s.skillBtn} ${s.preset}`} aria-pressed={presetOn(p.prefs)} onClick={() => setPrefs({ roleArea: 'any', day: 'any', format: 'any', ...p.prefs })}>
+            <span className={s.presetTick} aria-hidden>
+              ✓
+            </span>
             {p.label}
           </button>
         ))}
@@ -172,6 +181,7 @@ export function DiscoverHome() {
               ] as const
             ).map(([k, label]) => (
               <button key={k} type="button" role="tab" aria-selected={tab === k} className={`seg-item ${s.segBtn}`} onClick={() => setTab(k)}>
+                {tab === k && <motion.span layoutId="discover-tab" className="seg-pill" transition={spring} aria-hidden />}
                 <span className="seg-text">{label}</span>
               </button>
             ))}
@@ -188,17 +198,36 @@ export function DiscoverHome() {
           )}
           {items.length ? (
             <div className={s.grid}>
-              {items.map((r) => (
-                <OpportunityCard key={r.opportunity.id} r={r} />
-              ))}
+              {/* Re-ranking slides cards to their new places instead of jumping. */}
+              <AnimatePresence initial={false} mode="popLayout">
+                {items.map((r) => (
+                  <motion.div
+                    key={r.opportunity.id}
+                    layout={reduce ? false : 'position'}
+                    initial={reduce ? false : { opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={reduce ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
+                    transition={spring}
+                    className={s.cell}
+                  >
+                    <OpportunityCard r={r} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           ) : (
-            <div className={`card ${s.empty}`}>
-              <h3>{tab === 'saved' ? 'Nothing saved yet.' : 'No events in this view.'}</h3>
-              <p className="small muted">{tab === 'saved' ? 'Tap Save for later on any event. Your list is kept with your account.' : 'Change your day or format, or browse every upcoming event.'}</p>
-              <button type="button" className="btn" onClick={() => setTab('all')}>
-                Browse all events
-              </button>
+            <div className="card">
+              <EmptyState
+                illo={tab === 'saved' ? 'seed-pod' : 'compass'}
+                title={tab === 'saved' ? 'Nothing saved yet.' : 'No events in this view.'}
+                action={
+                  <button type="button" className="btn" onClick={() => setTab('all')}>
+                    Browse all events
+                  </button>
+                }
+              >
+                {tab === 'saved' ? 'Tap Save for later on any event. Your list is kept with your account.' : 'Change your day or format, or browse every upcoming event.'}
+              </EmptyState>
             </div>
           )}
 

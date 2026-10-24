@@ -6,12 +6,20 @@ summary.textlink { display: list-item; }
 .left { justify-self: start; }
 
 .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.mode { display: grid; gap: 4px; text-align: left; padding: 16px 18px; border-radius: var(--radius); border: 0; background: var(--paper); box-shadow: var(--shadow); color: var(--ink); font: inherit; cursor: pointer; transition: transform 0.16s var(--ease), box-shadow 0.16s var(--ease); }
+.mode { position: relative; isolation: isolate; display: grid; gap: 4px; text-align: left; padding: 16px 18px; border-radius: var(--radius); border: 0; background: var(--paper); box-shadow: var(--shadow); color: var(--ink); font: inherit; cursor: pointer; transition: transform 0.16s var(--ease), box-shadow 0.16s var(--ease); }
 .mode strong { font-size: 15px; }
 .mode span { font-size: 13px; color: var(--ink-3); }
 .mode:hover { transform: translateY(-1px); }
-.mode[aria-pressed='true'] { background: var(--ink); color: #fff; box-shadow: var(--shadow-hi); }
-.mode[aria-pressed='true'] span { color: #b8d4c2; }
+.mode strong, .mode > span:not(.modePill) { position: relative; z-index: 1; transition: color 0.2s var(--ease); }
+.modePill { position: absolute; inset: 0; z-index: 0; border-radius: inherit; background: var(--ink); box-shadow: var(--shadow-hi); }
+.mode[aria-pressed='true'] { color: #fff; }
+.mode[aria-pressed='true'] > span:not(.modePill) { color: #b8d4c2; }
+.preset { gap: 0; color: var(--ink-2); transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.16s var(--ease); }
+.preset:active { transform: scale(0.96); }
+.presetTick { display: inline-block; width: 1em; margin-right: 4px; margin-left: -2px; opacity: 0.35; transform: scale(0.7); transition: opacity 0.18s var(--ease), transform 0.3s var(--out); }
+.preset[aria-pressed='true'] { background: var(--primary-soft); border-color: var(--sap); color: var(--canopy); }
+.preset[aria-pressed='true'] .presetTick { opacity: 1; transform: none; }
+.cell { min-width: 0; display: grid; }
 
 .skillBtn { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--paper); color: var(--ink-2); font: 600 13px var(--font-sans), system-ui, sans-serif; cursor: pointer; }
 .skillBtn:hover { border-color: var(--primary); color: var(--canopy); }
@@ -23,9 +31,11 @@ summary.textlink { display: list-item; }
 .results { display: grid; gap: 14px; min-width: 0; }
 .prefsToggle { display: none; }
 .segBtn { border: 0; background: transparent; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; }
-.segBtn[aria-selected='true'] { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+.segBtn[aria-selected='true'] { color: var(--ink); }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.card { display: grid; gap: 8px; align-content: start; padding: 18px; min-width: 0; }
+.card { display: grid; gap: 8px; align-content: start; padding: 18px; min-width: 0; overflow: hidden; }
+.cardCover { display: block; margin: -18px -18px 6px; }
+.card:hover .cardCover img { transform: scale(1.035); }
 .cardTitle { font-family: var(--font-display), serif; font-size: 19px; font-weight: 600; color: var(--canopy); overflow-wrap: anywhere; }
 .skillLine { display: grid; gap: 6px; }
 .fitLine { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
@@ -34,6 +44,9 @@ summary.textlink { display: list-item; }
 .how { display: grid; }
 
 /* Detail */
+.heroEyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: #cfe6d6; }
+.heroTitle { margin-top: 6px; color: #fbfaf5; font-size: clamp(28px, 4.4vw, 42px); line-height: 1.05; letter-spacing: -0.025em; text-wrap: balance; }
+.heroSub { margin-top: 8px; color: #eef2ec; font-weight: 600; }
 .orgBanner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 20px 22px; border-radius: 18px; background: var(--band); color: #eef5ef; }
 .orgBanner p { color: #dcebe1; }
 .bannerLabel { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); }

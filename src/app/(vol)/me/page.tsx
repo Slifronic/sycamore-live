@@ -8,6 +8,10 @@ import { fmtDay, fmtTime, plural } from '@/lib/format';
 import { ROLE_LABEL } from '@/lib/types';
 import { PageHeader } from '@/components/PageHeader';
 import { GoalCard } from './GoalCard';
+import { CountUp } from '@/components/motion/CountUp';
+import { Cover } from '@/components/media/Cover';
+import { EmptyState } from '@/components/media/EmptyState';
+import { coverFor } from '@/lib/covers';
 import { volSignOut } from '../actions';
 import s from '../pages.module.css';
 
@@ -67,17 +71,23 @@ export default async function MyHours() {
       <section className={s.band} aria-label="Attested so far">
         <div className={s.kpi}>
           <span className={s.kpiLabel}>Attested hours</span>
-          <span className={s.kpiNum}>{fmtHours(hours)}</span>
+          <span className={s.kpiNum}>
+            <CountUp value={hours} decimals={Number.isInteger(hours) ? 0 : Number.isInteger(hours * 10) ? 1 : 2} duration={1.1} />
+          </span>
           <span className={s.kpiSub}>Confirmed by the organization</span>
         </div>
         <div className={s.kpi}>
           <span className={s.kpiLabel}>Events</span>
-          <span className={s.kpiNum}>{records.length}</span>
+          <span className={s.kpiNum}>
+            <CountUp value={records.length} delay={0.1} />
+          </span>
           <span className={s.kpiSub}>{pending.length ? `${pending.length} more waiting to be confirmed` : 'With an attested record'}</span>
         </div>
         <div className={s.kpi}>
           <span className={s.kpiLabel}>Organizations</span>
-          <span className={s.kpiNum}>{orgs}</span>
+          <span className={s.kpiNum}>
+            <CountUp value={orgs} delay={0.2} />
+          </span>
           <span className={s.kpiSub}>That vouch for your time</span>
         </div>
       </section>
@@ -111,19 +121,32 @@ export default async function MyHours() {
             <span className="small muted">{plural(records.length, 'record')}</span>
           </div>
           {records.length === 0 ? (
-            <div className={`card ${s.empty}`}>
-              <h3>Your record starts at your next event.</h3>
-              <p className="muted">Check in when you arrive and check out when you leave. Once the organization confirms the event, your record shows up here, ready to share.</p>
-              <Link href="/checkin" className="btn btn-primary">
-                Check in to an event
-              </Link>
+            <div className="card">
+              <EmptyState
+                illo="sapling"
+                title="Your record starts at your next event."
+                action={
+                  <>
+                    <Link href="/checkin" className="btn btn-primary">
+                      Check in to an event
+                    </Link>
+                    <Link href="/discover" className="btn">
+                      Find an event
+                    </Link>
+                  </>
+                }
+              >
+                Check in when you arrive and check out when you leave. Once the organization confirms the event, your record shows up here, ready to share.
+              </EmptyState>
             </div>
           ) : (
-            records.map((r) => (
-              <Link key={r.id} href={`/me/records/${r.id}`} className={`card ${s.record}`}>
-                <span className={s.datebox} aria-hidden>
-                  {month(r.starts_at)}
-                  <b>{day(r.starts_at)}</b>
+            records.map((r, i) => (
+              <Link key={r.id} href={`/me/records/${r.id}`} className={`card fade-in ${s.record}`} style={{ ['--d' as string]: `${Math.min(i, 6) * 0.05}s` }}>
+                <span className={s.thumbWrap} aria-hidden>
+                  <Cover cover={coverFor({ title: r.event.title })} variant="thumb" className={s.thumb} sizes="64px" />
+                  <span className={s.dateTag}>
+                    {month(r.starts_at)} <b>{day(r.starts_at)}</b>
+                  </span>
                 </span>
                 <span className={s.recordBody}>
                   <span className={s.recordTitle}>{r.event.title}</span>

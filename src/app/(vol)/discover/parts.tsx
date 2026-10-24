@@ -6,6 +6,8 @@ import { modes } from '@/lib/discover/match';
 import { allSkills, groups } from '@/lib/discover/taxonomy';
 import type { Evaluation } from '@/lib/discover/types';
 import type { Listing } from '@/lib/discover/listings';
+import { Cover } from '@/components/media/Cover';
+import { coverFor } from '@/lib/covers';
 import { useDiscover, type Prefs } from './DiscoverState';
 import s from './discover.module.css';
 
@@ -15,6 +17,9 @@ import s from './discover.module.css';
 // are rule-based, not a probability, and unknown details widen the range.
 
 export const listingOf = (r: Evaluation) => r.opportunity as Listing;
+
+/** The listing's cover photo, from its title, tags, cause and kind. */
+export const listingCover = (l: Listing) => coverFor({ title: l.title, tags: [...(l.tags ?? []), l.cause ?? '', l.kind ?? ''] });
 
 export const dateLine = (l: Listing) =>
   `${new Date(l.startsAt).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', month: 'short', day: 'numeric' })} · ${l.time}`;
@@ -141,7 +146,10 @@ export function OpportunityCard({ r }: { r: Evaluation }) {
   const { prefs, tab, hide } = useDiscover();
   const l = listingOf(r);
   return (
-    <article className={`card ${s.card}`}>
+    <article className={`card lift ${s.card}`}>
+      <Link href={`/discover/${l.slug}`} className={s.cardCover} tabIndex={-1} aria-hidden>
+        <Cover cover={listingCover(l)} variant="card" />
+      </Link>
       <div className="row between wrap" style={{ gap: 8 }}>
         <span className="eyebrow">{l.area ? groups[l.area].name : l.kind}</span>
         <span className={`chip ${r.status === 'ready' ? 'chip-green' : 'chip-ink'}`}>{statusLabel(r)}</span>
