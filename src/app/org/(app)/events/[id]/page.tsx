@@ -88,6 +88,7 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
         initial={JSON.parse(JSON.stringify(roster))}
         aiEnabled={sheetImportEnabled()}
         eventDate={new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(event.starts_at)}
+        site={{ lat: event.site_lat, lng: event.site_lng, radius_m: event.site_radius_m }}
       />
     </div>
   );

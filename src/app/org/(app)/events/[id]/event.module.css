@@ -27,3 +27,10 @@
   .code { font-size: 28px; }
 }
 .liveDot { width: 8px; height: 8px; border-radius: 50%; background: #3ddc84; box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.2); }
+
+/* Leave-the-area check */
+.site { margin-top: 20px; }
+.siteTitle { margin: 2px 0 0; font-size: 17px; font-weight: 700; color: var(--ink); }
+.left { display: block; color: var(--amber); font-weight: 600; }
+.segBtn { border: 0; background: none; cursor: pointer; font-family: inherit; }
+.segOn { background: var(--paper); box-shadow: var(--shadow); color: var(--ink); }

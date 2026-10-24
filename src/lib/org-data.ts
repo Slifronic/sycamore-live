@@ -134,7 +134,7 @@ export async function attestEvent(
     for (const a of roster) {
       const r = byId.get(a.id)!;
       if (r.no_show) {
-        await tx`update attendance set status = 'no_show' where id = ${a.id}`;
+        await tx`update attendance set status = 'no_show', location_opt_in = false, last_ping_at = null, outside_since = null, left_area_at = null, left_area_m = null where id = ${a.id}`;
         continue;
       }
       const adjusted = r.hours_adjusted != null && Number(r.hours_adjusted) !== Number(a.hours_captured);
@@ -145,7 +145,9 @@ export async function attestEvent(
           hours_adjusted = ${adjusted ? Number(r.hours_adjusted) : null},
           adjustment_reason = ${adjusted ? r.adjustment_reason!.trim() : null},
           status = 'attested',
-          attested_at = ${now}
+          attested_at = ${now},
+          -- the leave-the-area suggestion has done its job; keep no trace of it
+          location_opt_in = false, last_ping_at = null, outside_since = null, left_area_at = null, left_area_m = null
         where id = ${a.id}
       `;
       await tx`

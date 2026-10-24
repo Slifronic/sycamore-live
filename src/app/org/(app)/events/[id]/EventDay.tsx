@@ -5,9 +5,10 @@ import type { AttendanceRow } from '@/lib/types';
 import { addByName, addPracticeVolunteer, checkOutEveryone, checkOutNow } from '../../../actions';
 import Link from 'next/link';
 import { SheetImport } from './SheetImport';
+import { SiteSetup } from './SiteSetup';
 import s from './event.module.css';
 
-type Row = Omit<AttendanceRow, 'checked_in_at' | 'checked_out_at'> & { checked_in_at: string | null; checked_out_at: string | null };
+type Row = Omit<AttendanceRow, 'checked_in_at' | 'checked_out_at' | 'left_area_at'> & { checked_in_at: string | null; checked_out_at: string | null; left_area_at: string | null };
 
 const METHOD: Record<string, string> = { qr: 'QR scan', code: 'Typed code', coordinator: 'Added by you', paper_import: 'Paper sheet' };
 const t = (d: string | null) => (d ? new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '—');
@@ -22,6 +23,7 @@ export function EventDay(props: {
   initial: Row[];
   aiEnabled: boolean;
   eventDate: string;
+  site: { lat: number | null; lng: number | null; radius_m: number };
 }) {
   const [rows, setRows] = useState<Row[]>(props.initial);
   const [fresh, setFresh] = useState<Set<string>>(new Set());
@@ -160,7 +162,13 @@ export function EventDay(props: {
                         <span className="small muted" style={{ display: 'block' }}>
                           {METHOD[r.method]}
                           {r.ai_confidence != null && ` · ${Math.round(Number(r.ai_confidence) * 100)}% sure`}
+                          {r.status === 'checked_in' && r.location_opt_in && ' · 📍 location on'}
                         </span>
+                        {r.status === 'checked_in' && r.left_area_at && (
+                          <span className={`small ${s.left}`}>
+                            Left the area around {t(r.left_area_at)}{r.left_area_m ? ` (${r.left_area_m >= 1000 ? `${(r.left_area_m / 1000).toFixed(1)} km` : `${r.left_area_m} m`} away)` : ''}?
+                          </span>
+                        )}
                       </td>
                       <td className="num small" style={{ whiteSpace: 'nowrap' }}>
                         {t(r.checked_in_at)} → {t(r.checked_out_at)}
@@ -204,6 +212,7 @@ export function EventDay(props: {
           )}
         </section>
       </div>
+      {!props.verified && <SiteSetup eventId={props.eventId} initial={props.site} />}
 
       {full && (
         <dialog ref={dialog} className={s.full} aria-label="Check-in QR code" onClose={() => setFull(false)}>

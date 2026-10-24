@@ -47,7 +47,11 @@ create table event (
   cohort_rating smallint check (cohort_rating between 1 and 5),
   attested_at timestamptz,
   goal_text text,                  -- what the event set out to do, e.g. "Plant 40 trees"
-  outcome_text text                -- what got done, written at verify, e.g. "Planted 46 trees"
+  outcome_text text,               -- what got done, written at verify, e.g. "Planted 46 trees"
+  -- leave-the-area check: the site's centre and radius, set by the coordinator on the day
+  site_lat double precision,
+  site_lng double precision,
+  site_radius_m integer not null default 200 check (site_radius_m between 50 and 2000)
 );
 
 create table volunteer (
@@ -78,6 +82,14 @@ create table attendance (
   unique (event_id, volunteer_id),
   -- org additions
   standout boolean not null default false,
+  -- leave-the-area check (opt-in). No coordinates are stored: only when the
+  -- volunteer was first seen outside the radius and how far, as a suggestion
+  -- the coordinator confirms at verify. Cleared when the event is verified.
+  location_opt_in boolean not null default false,
+  last_ping_at timestamptz,
+  outside_since timestamptz,
+  left_area_at timestamptz,
+  left_area_m integer,
   constraint adjustment_needs_reason check (hours_adjusted is null or length(trim(adjustment_reason)) > 0)
 );
 

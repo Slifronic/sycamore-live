@@ -10,6 +10,7 @@ type Row = Pick<AttendanceRow, 'id' | 'display_name' | 'method'> & {
   hours_captured: number;
   checked_in_at: string | null;
   checked_out_at: string | null;
+  left_area_at: string | null; // suggested check-out from the opt-in leave-the-area check
   role: Role;
   hours: string; // what the coordinator sees in the box
   reason: string;
@@ -21,7 +22,7 @@ type Row = Pick<AttendanceRow, 'id' | 'display_name' | 'method'> & {
 const ROLES = Object.keys(ROLE_LABEL) as Role[];
 const initials = (n: string) => n.split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
 
-export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initial }: { eventId: string; before: number | null; endsAt: string; goalText: string | null; signer: string; initial: (AttendanceRow & { checked_in_at: string | null; checked_out_at: string | null })[] }) {
+export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initial }: { eventId: string; before: number | null; endsAt: string; goalText: string | null; signer: string; initial: (Omit<AttendanceRow, 'left_area_at'> & { checked_in_at: string | null; checked_out_at: string | null; left_area_at: string | null })[] }) {
   const [rows, setRows] = useState<Row[]>(() =>
     initial.map((a) => ({
       id: a.id,
@@ -30,6 +31,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
       hours_captured: Number(a.hours_captured),
       checked_in_at: a.checked_in_at,
       checked_out_at: a.checked_out_at,
+      left_area_at: a.left_area_at,
       role: a.role,
       hours: a.checked_out_at ? String(Number(a.hours_captured)) : '',
       reason: '',
@@ -49,17 +51,22 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
 
   // People who never scanned out: fill hours from their check-in to the event's end
   // (or now, if it hasn't ended), with a reason the coordinator can read and edit.
+  // Someone the opt-in leave-the-area check saw leave earlier is counted until then instead.
   const missing = rows.filter((r) => !r.no_show && !r.checked_out_at && r.hours === '' && r.checked_in_at);
+  const clock = (ms: number) => new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  function filled(r: Row): Partial<Row> {
+    const close = Math.min(Date.now(), new Date(endsAt).getTime());
+    const left = r.left_area_at ? new Date(r.left_area_at).getTime() : null;
+    const end = left != null && left < close ? left : close;
+    const h = Math.max(0, Math.round((end - new Date(r.checked_in_at!).getTime()) / 900_000) * 0.25);
+    const reason =
+      end === left
+        ? `Didn't scan out; their phone showed them leaving the event area around ${clock(end)}, counted until then`
+        : `Didn't scan out; counted until ${clock(end)} when the event closed`;
+    return { hours: String(h), reason };
+  }
   function fillMissing() {
-    const end = Math.min(Date.now(), new Date(endsAt).getTime());
-    const label = new Date(end).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    setRows((rs) =>
-      rs.map((r) => {
-        if (r.no_show || r.checked_out_at || r.hours !== '' || !r.checked_in_at) return r;
-        const h = Math.max(0, Math.round((end - new Date(r.checked_in_at).getTime()) / 900_000) * 0.25);
-        return { ...r, hours: String(h), reason: `Didn't scan out; counted until ${label} when the event closed` };
-      }),
-    );
+    setRows((rs) => rs.map((r) => (r.no_show || r.checked_out_at || r.hours !== '' || !r.checked_in_at ? r : { ...r, ...filled(r) })));
   }
 
   const set = (id: string, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -223,6 +230,16 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
                           <strong className={r.no_show ? s.struck : ''}>{r.display_name}</strong>
                           {r.method === 'paper_import' && <span className="small muted"> · from paper sheet</span>}
                           {needsHours && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>No check-out recorded</span>}
+                          {needsHours && r.left_area_at && r.checked_in_at && (
+                            <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>
+                              📍 Left the area around {clock(new Date(r.left_area_at).getTime())}{' '}
+                              {r.hours === '' && (
+                                <button type="button" className="btn btn-sm" style={{ height: 24, marginLeft: 4 }} onClick={() => set(r.id, filled(r))}>
+                                  Use as check-out
+                                </button>
+                              )}
+                            </span>
+                          )}
                           {!r.no_show && Number(r.hours) > 8 && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>Over 8 hours: double-check</span>}
                           {dupNames.has(r.display_name.trim().toLowerCase()) && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>Same name appears twice</span>}
                         </span>

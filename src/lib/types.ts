@@ -60,6 +60,9 @@ export type EventRow = {
   attested_at: Date | null;
   goal_text: string | null;
   outcome_text: string | null;
+  site_lat: number | null;
+  site_lng: number | null;
+  site_radius_m: number;
 };
 
 export type AttendanceRow = {
@@ -78,6 +81,11 @@ export type AttendanceRow = {
   attested_at: Date | null;
   ai_confidence: number | null;
   standout: boolean;
+  location_opt_in: boolean;
+  last_ping_at: Date | null;
+  outside_since: Date | null;
+  left_area_at: Date | null;
+  left_area_m: number | null;
 };
 
 export const ROLE_LABEL: Record<Role, string> = {
