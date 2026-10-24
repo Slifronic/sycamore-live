@@ -1,0 +1,21 @@
+.seal { display: inline-block; flex: none; filter: drop-shadow(0 6px 10px rgba(15, 38, 27, 0.22)); animation: stamp 0.75s var(--out) 0.25s both; transform-origin: 50% 55%; }
+.seal svg { display: block; }
+.verified { --seal-hi: #2c7a50; --seal-lo: #12432a; --seal-ink: #e9f3ec; }
+.revoked { --seal-hi: #a8402f; --seal-lo: #6e1f17; --seal-ink: #fbe9e6; }
+.hi { stop-color: var(--seal-hi); }
+.lo { stop-color: var(--seal-lo); }
+.rule { stroke: var(--seal-ink); opacity: 0.45; }
+.ringText { fill: var(--seal-ink); font: 700 8.6px var(--font-sans), system-ui, sans-serif; letter-spacing: 0.08em; }
+.leaf { fill: var(--seal-ink); stroke: var(--seal-ink); }
+.vein { stroke: var(--seal-lo); opacity: 0.6; }
+.cross { stroke: var(--seal-ink); }
+/* Pressed once: lands a little large and tilted, then settles. */
+@keyframes stamp {
+  0% { opacity: 0; transform: scale(1.7) rotate(-24deg); }
+  55% { opacity: 1; transform: scale(0.94) rotate(-4deg); }
+  78% { transform: scale(1.03) rotate(-9deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-7deg); }
+}
+@media print {
+  .seal { animation: none; transform: rotate(-7deg); filter: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

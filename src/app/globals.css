@@ -236,4 +236,3 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 @supports (animation-timeline: view()) {
   .reveal { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
 }
-@keyframes grow-y { from { transform: scaleY(0); } }

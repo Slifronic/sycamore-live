@@ -8,7 +8,8 @@
 .value { font-family: var(--font-display), serif; font-size: 20px; font-weight: 600; color: #fff; overflow-wrap: anywhere; }
 
 .timeline { list-style: none; margin: 0; padding: 0 0 0 26px; display: grid; gap: 14px; position: relative; }
-.timeline::before { content: ''; position: absolute; left: 8px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(var(--sap), var(--line-2) 40%); border-radius: 2px; transform-origin: top; animation: grow-y 1.4s var(--out) both; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(var(--sap), var(--line-2) 40%); border-radius: 2px; transform-origin: top; animation: growY 1.4s var(--out) both; }
+@keyframes growY { from { transform: scaleY(0); } }
 .item { position: relative; min-width: 0; }
 .dot { position: absolute; left: -24px; top: 22px; width: 14px; height: 14px; border-radius: 50%; background: var(--paper); box-shadow: 0 0 0 3px var(--sap); }
 .dotBadge { background: var(--sap); }
