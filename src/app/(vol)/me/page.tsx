@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { activeSession, pendingAttendance, requireVolunteer, volunteerRecords } from '@/lib/vol-data';
 import { volunteerThreads } from '@/lib/messages';
+import { sql } from '@/lib/db';
 import { volunteerChats } from '@/lib/event-chat';
 import { fmtHours } from '@/lib/hours';
 import { fmtDay, fmtTime, plural } from '@/lib/format';
@@ -27,6 +28,7 @@ export default async function MyHours() {
     volunteerThreads(vol.id),
     volunteerChats(vol.id),
   ]);
+  const signedBadges = ((await sql`select count(*)::int as n from badge_award where volunteer_id = ${vol.id}`) as unknown as { n: number }[])[0]?.n ?? 0;
   const hours = records.reduce((n, r) => n + r.hours_total, 0);
   const orgs = new Set(records.map((r) => r.org_id)).size;
   const unread = threads.reduce((n, t) => n + t.unread, 0) + chats.reduce((n, c) => n + c.unread, 0);
@@ -155,6 +157,13 @@ export default async function MyHours() {
               <p className="small muted">You can check in and see every record. Because you’re under 18, share links will open once guardian consent is added.</p>
             </div>
           )}
+          <Link href="/me/badges" className="card card-pad stack lift" style={{ gap: 6, textDecoration: 'none' }}>
+            <span className="row between">
+              <h3>Badges and journey</h3>
+              {signedBadges > 0 && <span className="chip chip-green">{signedBadges} signed</span>}
+            </span>
+            <span className="small muted">Recognition your organizations signed, and the events and roles behind it.</span>
+          </Link>
           <Link href="/me/messages" className="card card-pad stack lift" style={{ gap: 6, textDecoration: 'none' }}>
             <span className="row between">
               <h3>Messages</h3>

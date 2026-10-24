@@ -19,3 +19,10 @@ export function shareCode(): string {
 }
 
 export const SHARE_CODE = /^SYC-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
+
+// Badge verification codes: BDG-XXXX-XXXX, same alphabet and size as share codes.
+export function badgeCode(): string {
+  return shareCode().replace(/^SYC-/, 'BDG-');
+}
+
+export const BADGE_CODE = /^BDG-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;

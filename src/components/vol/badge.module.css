@@ -1,0 +1,13 @@
+/* Badge emblem: a hex tile. Signed = the verified green; everything else is ink on stone. */
+.emblem { display: grid; place-items: center; flex: none; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.emblem svg { width: 46%; height: 46%; }
+.sm { width: 44px; height: 50px; }
+.md { width: 64px; height: 72px; }
+.lg { width: 88px; height: 100px; }
+.signed { background: var(--band); color: #eaf4ee; }
+.ready { background: var(--verified-soft); color: var(--verified); }
+.progress { background: var(--primary-soft); color: var(--canopy); }
+.locked { background: var(--rule-soft); color: var(--field); }
+@media print {
+  .signed { background: var(--verified-soft); color: var(--verified); }
+}

@@ -1,6 +1,6 @@
 import 'server-only';
 import { sql } from './db';
-import { BADGES, type BadgeKey, type VolunteerStats } from './badges';
+import { BADGES, addAttendance, emptyStats, type BadgeKey, type VolunteerStats } from './badges';
 import { hoursTotal } from './hours';
 import type { Activity, AttendanceRow, EventRow, Role } from './types';
 
@@ -43,8 +43,6 @@ export type VolunteerSummary = {
 
 type Att = AttendanceRow & { activity: Activity; starts_at: Date };
 
-const emptyRoles = (): Record<Role, number> => ({ general: 0, team_lead: 0, event_coordinator: 0, program_manager: 0 });
-const emptyActs = (): Record<Activity, number> => ({ general: 0, planting: 0, logistics: 0, outreach: 0, education: 0 });
 const ROLE_RANK: Role[] = ['general', 'team_lead', 'event_coordinator', 'program_manager'];
 
 export function tierFor(score: number | null): Tier {
@@ -85,17 +83,14 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
   for (const w of awards) awardsByVol.set(w.volunteer_id, [...(awardsByVol.get(w.volunteer_id) ?? []), w.badge]);
 
   const volunteers: VolunteerSummary[] = [...byVol.entries()].map(([key, list]) => {
-    const stats: VolunteerStats = { eventsByRole: emptyRoles(), hoursByRole: emptyRoles(), hoursByActivity: emptyActs(), eventsByActivity: emptyActs() };
+    const stats: VolunteerStats = emptyStats();
     let hours = 0;
     let standouts = 0;
     let top: Role = 'general';
     for (const a of list) {
       const h = hoursTotal(a);
       hours += h;
-      stats.eventsByRole[a.role] += 1;
-      stats.hoursByRole[a.role] += h;
-      stats.eventsByActivity[a.activity] += 1;
-      stats.hoursByActivity[a.activity] += h;
+      addAttendance(stats, { role: a.role, activity: a.activity, hours: h });
       if (a.standout) standouts += 1;
       if (ROLE_RANK.indexOf(a.role) > ROLE_RANK.indexOf(top)) top = a.role;
     }

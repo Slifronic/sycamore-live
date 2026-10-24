@@ -1,0 +1,51 @@
+/* Badges: gallery, detail and certificate. Tokens from globals.css. */
+.page { display: grid; gap: 22px; max-width: var(--page-max); }
+.page > * { min-width: 0; }
+
+.feature { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 20px; align-items: center; padding: 22px; text-decoration: none; color: inherit; }
+.featureBody { display: grid; gap: 8px; min-width: 0; }
+.arrow { font-size: 22px; color: var(--primary); }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.tile { display: grid; gap: 10px; align-content: start; padding: 20px; text-decoration: none; color: inherit; }
+.tileTitle { font-family: var(--font-display), serif; font-size: 19px; font-weight: 600; color: var(--canopy); }
+.more { font-size: 14px; font-weight: 700; color: var(--primary); margin-top: 4px; }
+.empty { padding: 26px 22px; display: grid; gap: 10px; justify-items: start; }
+.link { font-size: 14px; font-weight: 700; color: var(--primary); text-decoration: none; padding: 10px 0; justify-self: start; }
+
+/* Detail */
+.detail { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.side { display: grid; gap: 14px; min-width: 0; }
+.cert { padding: 28px; display: grid; gap: 16px; border-top: 4px solid var(--primary); }
+.certHead { display: flex; gap: 18px; align-items: center; }
+.certName { font-family: var(--font-display), serif; font-size: 28px; line-height: 1.15; font-weight: 600; color: var(--canopy); overflow-wrap: anywhere; }
+.statement { font-size: 16px; line-height: 1.65; }
+.statement strong { color: var(--canopy); }
+.evidence { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--primary-soft); font-size: 15px; line-height: 1.55; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.facts dt { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); }
+.facts dd { margin: 4px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.fine { font-size: 13px; color: var(--ink-3); line-height: 1.55; overflow-wrap: anywhere; }
+.targets { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.targets li { display: grid; gap: 6px; }
+.targetTop { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.targetTop b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.qr { width: 150px; height: 150px; justify-self: center; }
+.qr svg { width: 100%; height: 100%; display: block; }
+
+@media (max-width: 1000px) {
+  .detail { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .feature { grid-template-columns: auto minmax(0, 1fr); padding: 18px; gap: 14px; }
+  .arrow { display: none; }
+  .cert { padding: 20px; }
+  .certHead { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .certName { font-size: 24px; }
+  .facts { grid-template-columns: minmax(0, 1fr); }
+}
+@media print {
+  .detail { display: block; }
+  .cert { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+}
