@@ -70,13 +70,11 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
       )}
 
       <div className="card" style={{ overflowX: 'auto' }}>
-        <table className="t">
+        <table className="t tight">
           <thead>
             <tr>
               <th>Volunteer</th>
-              <th>Events</th>
-              <th>Hours</th>
-              <th>Highest role</th>
+              <th>Served</th>
               <th>Last came</th>
               <th>Badges</th>
               <th />
@@ -94,13 +92,17 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                         <strong>{v.name}</strong>
                         {v.standouts > 0 && <span className="small" style={{ color: 'var(--gold)' }}> · ★ {v.standouts}</span>}
                         <br />
-                        <span className="small muted">since {fmtDay(v.first_seen)}</span>
+                        <span className="small muted">
+                          {ROLE_LABEL[v.topRole]} · since {fmtDay(v.first_seen)}
+                        </span>
                       </span>
                     </span>
                   </td>
-                  <td className="num">{v.events}</td>
-                  <td className="num">{v.hours.toLocaleString()}</td>
-                  <td className="small">{ROLE_LABEL[v.topRole]}</td>
+                  <td className="num small" style={{ whiteSpace: 'nowrap' }}>
+                    <strong>{v.hours.toLocaleString()} hrs</strong>
+                    <br />
+                    <span className="muted">{v.events} {v.events === 1 ? 'event' : 'events'}</span>
+                  </td>
                   <td className="small">
                     {ago(v.last_seen)}
                     {v.status === 'slipping' && (
@@ -128,12 +130,13 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                       </Link>
                     )}
                   </td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  <td>
+                    <div style={{ display: 'grid', gap: 6, justifyItems: 'end' }}>
                     {v.volunteer_id && (
-                      <Link className="btn btn-sm btn-quiet" href={`/org/volunteers/${v.volunteer_id}/letter`}>
+                      <Link className="btn btn-sm" href={`/org/volunteers/${v.volunteer_id}/letter`}>
                         Hour letter
                       </Link>
-                    )}{' '}
+                    )}
                     {email && v.status === 'slipping' ? (
                       <a className="btn btn-sm btn-primary" href={mailto(v.name, email)}>
                         Invite back
@@ -143,13 +146,14 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                         Say thanks
                       </a>
                     ) : null}
+                    </div>
                   </td>
                 </tr>
               );
             })}
             {list.length === 0 && (
               <tr>
-                <td colSpan={7} className="muted">
+                <td colSpan={5} className="muted">
                   {ins.volunteers.length === 0 ? 'Volunteers appear here after your first verified event.' : 'Nobody matches.'}
                 </td>
               </tr>

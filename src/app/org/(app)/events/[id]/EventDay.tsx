@@ -58,6 +58,14 @@ export function EventDay(props: {
     if (addState?.ok && nameRef.current) nameRef.current.value = '';
   }, [addState]);
 
+  // Full-screen QR: Esc closes it, like any other dialog.
+  useEffect(() => {
+    if (!full) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setFull(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [full]);
+
   const here = rows.filter((r) => r.status === 'checked_in').length;
   const left = rows.filter((r) => r.status !== 'checked_in' && r.status !== 'no_show').length;
 
@@ -109,13 +117,11 @@ export function EventDay(props: {
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table className="t">
+              <table className="t tight">
                 <thead>
                   <tr>
                     <th>Name</th>
-                    <th>How</th>
-                    <th>In</th>
-                    <th>Out</th>
+                    <th>In → Out</th>
                     <th>Hours</th>
                     <th />
                   </tr>
@@ -123,15 +129,18 @@ export function EventDay(props: {
                 <tbody>
                   {rows.map((r) => (
                     <tr key={r.id} className={fresh.has(r.id) ? 'flash' : ''}>
-                      <td style={{ fontWeight: 600 }}>{r.display_name}</td>
-                      <td className="small muted">
-                        {METHOD[r.method]}
-                        {r.ai_confidence != null && ` · ${Math.round(Number(r.ai_confidence) * 100)}% sure`}
+                      <td>
+                        <strong>{r.display_name}</strong>
+                        <span className="small muted" style={{ display: 'block' }}>
+                          {METHOD[r.method]}
+                          {r.ai_confidence != null && ` · ${Math.round(Number(r.ai_confidence) * 100)}% sure`}
+                        </span>
                       </td>
-                      <td className="num small">{t(r.checked_in_at)}</td>
-                      <td className="num small">{t(r.checked_out_at)}</td>
+                      <td className="num small" style={{ whiteSpace: 'nowrap' }}>
+                        {t(r.checked_in_at)} → {t(r.checked_out_at)}
+                      </td>
                       <td className="num">{r.status === 'checked_in' ? <span className="chip chip-green">here</span> : Number(r.hours_adjusted ?? r.hours_captured)}</td>
-                      <td style={{ textAlign: 'right' }}>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         {r.status === 'checked_in' && !props.verified && (
                           <button className="btn btn-sm btn-quiet" onClick={() => start(() => checkOutNow(props.eventId, r.id))}>
                             Check out
@@ -161,8 +170,8 @@ export function EventDay(props: {
 
       {full && (
         <div className={s.full} role="dialog" aria-label="Check-in QR code">
-          <button className={`btn ${s.close}`} onClick={() => setFull(false)}>
-            Close
+          <button className={`btn ${s.close}`} onClick={() => setFull(false)} autoFocus>
+            Close <span className="muted small">(Esc)</span>
           </button>
           <p className={s.fullTitle}>Check in here</p>
           <div className={s.fullQr} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />

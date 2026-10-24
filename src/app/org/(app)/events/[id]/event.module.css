@@ -15,3 +15,8 @@
   .grid { grid-template-columns: 1fr; }
   .qrCard { position: static; }
 }
+@media (min-width: 861px) and (max-width: 1240px) {
+  .grid { grid-template-columns: 250px minmax(0, 1fr); }
+  .qr { width: 190px; height: 190px; }
+  .code { font-size: 28px; }
+}

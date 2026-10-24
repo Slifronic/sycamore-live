@@ -240,12 +240,23 @@ export function VerifyConsole({ eventId, endsAt, initial }: { eventId: string; e
         </div>
         <div>
           <h3>Rate the crew (optional)</h3>
-          <div className="row" style={{ marginTop: 10, gap: 4 }}>
+          <div className="row" style={{ marginTop: 6, gap: 0 }} role="radiogroup" aria-label="Rate the crew">
             {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} className={`${s.star} ${rating && n <= rating ? s.starLit : ''}`} onClick={() => setRating(n)} aria-label={`${n} star${n > 1 ? 's' : ''}`}>
+              <button
+                key={n}
+                type="button"
+                role="radio"
+                aria-checked={rating === n}
+                className={`${s.star} ${rating && n <= rating ? s.starLit : ''}`}
+                onClick={() => setRating(rating === n ? null : n)}
+                aria-label={`${n} star${n > 1 ? 's' : ''}`}
+              >
                 ★
               </button>
             ))}
+            <span className="small muted" style={{ marginLeft: 8, minWidth: 60 }}>
+              {rating ? `${rating} of 5` : 'Tap a star'}
+            </span>
           </div>
         </div>
       </section>

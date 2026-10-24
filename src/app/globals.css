@@ -117,3 +117,4 @@ table.t tr.flash td { animation: flash 2.2s ease-out; }
 /* Grid and stack children may shrink below their content; tables scroll inside their card. */
 .stack > *, .grid > * { min-width: 0; }
 .card-head { flex-wrap: wrap; }
+.t.tight th, .t.tight td { padding-left: 12px; padding-right: 12px; }
