@@ -96,6 +96,7 @@ async function main() {
       title: p.title, location: p.location, starts, ends, code: codes[i], activity: 'planting',
       status: attested ? 'closed' : 'open', closed: attested, goal: p.goal, rating: p.rating, attested, goalText: p.goalText, outcome: p.outcome,
     });
+    p.id = ev.id;
     for (const [j, v] of attendees[i].entries()) {
       const inAt = addMin(starts, Math.floor(rand() * 8) - 3);
       let outAt = addMin(inAt, 180 + Math.floor(rand() * 11) - 5);
@@ -125,12 +126,14 @@ async function main() {
   }
 
   // A sorting shift at a food pantry partner (logistics hours for that badge).
+  let pantry;
   {
     const starts = at(-20, 13);
     const ends = at(-20, 16);
     const attested = new Date(ends.getTime() + 22 * 3_600_000);
     const ev = await mkEvent({ title: 'Pantry Sort Night', location: 'Westside Community Pantry', starts, ends, code: 'PNTRY5', activity: 'logistics', status: 'closed', closed: attested, goal: 'yes', rating: 5, attested, goalText: 'Sort the weekend food drive', outcome: 'Sorted 1,200 lbs of food into 140 family boxes' });
     const crew = [ana, ...attendees[2].slice(5, 22)];
+    pantry = { id: ev.id, crew, sent: at(-19, 9) };
     for (const v of crew) {
       const inAt = addMin(starts, Math.floor(rand() * 6));
       const outAt = addMin(inAt, 180);
@@ -143,8 +146,10 @@ async function main() {
   }
 
   // Open today, for live testing (code from the contract).
+  let cleanup;
   {
     const ev = await mkEvent({ title: 'Guadalupe River Cleanup', location: 'Guadalupe River Park', starts: at(0, 9), ends: at(0, 21), code: 'PLANT2', activity: 'planting', status: 'open', goalText: 'Clear two miles of riverbank' });
+    cleanup = { id: ev.id, crew: attendees[0].slice(3, 8) };
     for (const v of attendees[0].slice(3, 8)) {
       await sql`insert into attendance (event_id, volunteer_id, display_name, method, checked_in_at, status)
                 values (${ev.id}, ${v.id}, ${v.name}, 'qr', ${addMin(new Date(), -40 - Math.floor(rand() * 30))}, 'checked_in')`;
@@ -156,6 +161,91 @@ async function main() {
   // One badge already signed, so the volunteer side has something to show.
   await sql`insert into badge_award (org_id, volunteer_id, badge, signed_by, signed_at)
             values (${org.id}, ${ana.id}, 'event_coordination', 'Sam Rivera', ${at(-19, 10)})`;
+
+  // Messages: two past broadcasts with real results, and a few conversations
+  // waiting in the inbox. Read, replied and showed-up all come from these rows.
+  {
+    const msg = (v, direction, body, created, extra = {}) => sql`
+      insert into message (org_id, volunteer_id, direction, body, source, broadcast_id, automation_key, dedupe_key, sent_by, created_at, read_at)
+      values (${org.id}, ${v.id}, ${direction}, ${body}, ${extra.source ?? 'direct'}, ${extra.broadcast ?? null}, ${extra.automation ?? null},
+              ${extra.dedupe ?? null}, ${direction === 'out' ? 'Sam Rivera' : null}, ${created}, ${extra.read ?? null})`;
+    const firstName = (v) => v.name.split(' ')[0];
+
+    // 1. The invitation to Phase 2, sent to everyone who came to Phase 1.
+    const phase1 = plantings[2];
+    const phase2 = plantings[3];
+    const sentAt = at(-5, 18, 30);
+    const crew = attendees[2];
+    const [b1] = await sql`
+      insert into broadcast (org_id, title, body, audience, audience_label, event_id, recipients, sent_by, sent_at)
+      values (${org.id}, 'Phase 2 invite', ${'Hi {first_name}, thank you for Phase 1! {event} is {date} at {time}, {location}. We’re finishing the south slope. Scan the QR at the sign-in table when you arrive.'},
+              ${`event:${phase1.id}`}, ${`Everyone at ${phase1.title}`}, ${phase2.id}, ${crew.length}, 'Sam Rivera', ${sentAt})
+      returning id`;
+    const replies = ['I’ll be there!', 'Can I come for just the first hour?', 'Count me in, bringing my roommate', 'Sorry, I have a game that day. Next time!', 'Do we need our own gloves?', 'Yes! What should I wear?'];
+    let r = 0;
+    for (const v of crew) {
+      const read = rand() < 0.78 ? addMin(sentAt, 20 + Math.floor(rand() * 900)) : null;
+      await msg(v, 'out', `Hi ${firstName(v)}, thank you for Phase 1! ${phase2.title} is ${new Date(at(phase2.day, 9)).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', month: 'short', day: 'numeric' })} at 9:00 AM, Santa Teresa County Park. We’re finishing the south slope. Scan the QR at the sign-in table when you arrive.`, sentAt, { source: 'broadcast', broadcast: b1.id, read });
+      if (read && v !== ana && rand() < 0.22) await msg(v, 'in', replies[r++ % replies.length], addMin(read, 3 + Math.floor(rand() * 40)), { read: addMin(read, 300) });
+    }
+
+    // 2. A thank-you after the pantry shift, no event attached.
+    const [b2] = await sql`
+      insert into broadcast (org_id, title, body, audience, audience_label, event_id, recipients, sent_by, sent_at)
+      values (${org.id}, 'Pantry thank-you', ${'Hi {first_name}, thank you for Pantry Sort Night. Your {hours} hours are verified and on your record.'},
+              ${`event:${pantry.id}`}, 'Everyone at Pantry Sort Night', null, ${pantry.crew.length}, 'Sam Rivera', ${pantry.sent})
+      returning id`;
+    for (const v of pantry.crew) {
+      const read = rand() < 0.83 ? addMin(pantry.sent, 30 + Math.floor(rand() * 600)) : null;
+      await msg(v, 'out', `Hi ${firstName(v)}, thank you for Pantry Sort Night. Your 3 hours are verified and on your record.`, pantry.sent, { source: 'broadcast', broadcast: b2.id, read });
+    }
+    const pantryFan = pantry.crew[4];
+    await msg(pantryFan, 'in', 'That was so fun. Sign me up for the next sort night please!', addMin(pantry.sent, 95), { read: addMin(pantry.sent, 400) });
+
+    // 3. Conversations waiting for Sam.
+    await msg(ana, 'out', 'Ana, could you lead the north slope crew again on Saturday? You were great last time.', at(-4, 12, 10), { read: at(-4, 12, 40) });
+    await msg(ana, 'in', 'Yes, happy to! Can I bring my cousin? She’s 15.', at(-4, 12, 42), { read: at(-4, 13) });
+    await msg(ana, 'out', 'Of course. She can check in with her own phone; anyone 13 or older can join.', at(-4, 13, 5), { read: at(-4, 13, 20) });
+    await msg(ana, 'in', 'Great, see you Saturday! Also, is there parking near the south trailhead?', at(-1, 20, 14));
+
+    const forgot = attendees[3][10];
+    await msg(forgot, 'in', 'Hi! I forgot to tap Check out on Saturday. I left around 12:15 if that helps.', at(-1, 9, 32));
+    await msg(forgot, 'in', 'Sorry about that!', at(-1, 9, 33));
+
+    const slipping = attendees[1].slice(0, 14).find((v) => attendees[0].includes(v) && !attendees[2].includes(v)) ?? attendees[1][0];
+    await msg(slipping, 'out', `Hi ${firstName(slipping)}, we miss you at Riverside Restoration Crew! Our next event is Earth Day Outreach Table at the Downtown Farmers Market. Want to come?`, at(-3, 10), { source: 'automation', automation: 'invite_back', dedupe: `invite_back:${slipping.id}:${new Date().toISOString().slice(0, 7)}`, read: at(-2, 19) });
+    await msg(slipping, 'in', 'Sorry, finals week! Is there anything on a Sunday this month?', at(0, 8, 5));
+
+    await msg(jay, 'in', 'Do I need a parent to sign anything to get my hours?', at(-6, 16, 2), { read: at(-6, 17) });
+    await msg(jay, 'out', 'No signature needed. Your hours are verified by us when we close the event, and they show in My hours. To share your record with your school, a parent confirms by email first.', at(-6, 17, 4), { read: at(-6, 18, 30) });
+
+    // 4. Event group chats: today's cleanup is happening now; Phase 2 wrapped up two days ago.
+    const post = (eventId, v, body, created) => sql`
+      insert into event_chat (org_id, event_id, volunteer_id, author_name, body, created_at)
+      values (${org.id}, ${eventId}, ${v?.id ?? null}, ${v?.name ?? 'Sam Rivera'}, ${body}, ${created})`;
+    const minsAgo = (m) => new Date(Date.now() - m * 60_000);
+    const [c1, c2, c3] = cleanup.crew;
+    await post(cleanup.id, null, 'Morning all! We’re at the Woz Way entrance by the blue tent. Gloves and grabbers are at the sign-in table.', minsAgo(95));
+    await post(cleanup.id, c1, 'Is there parking close by?', minsAgo(88));
+    await post(cleanup.id, null, 'The garage on Park Ave is free on weekends. Two-minute walk.', minsAgo(86));
+    await post(cleanup.id, c2, 'Found a shopping cart in the river near the bridge. Can someone help pull it out?', minsAgo(31));
+    await post(cleanup.id, c3, 'On my way, 5 min', minsAgo(29));
+    await sql`insert into event_chat_read (event_id, reader, last_read_at) values (${cleanup.id}, 'org', ${minsAgo(85)})`;
+
+    const p2 = phase2.id;
+    const p2crew = attendees[3];
+    await post(p2, null, 'Phase 2 tomorrow! Meet at the south trailhead at 9. Rain is out of the forecast.', at(-3, 19));
+    await post(p2, p2crew[2], 'Do we need to bring shovels or are there enough?', at(-3, 19, 40));
+    await post(p2, null, 'Enough for everyone. Bring water and closed-toe shoes.', at(-3, 20, 5));
+    await post(p2, ana, 'Team leads, let’s meet 10 minutes early by the van.', at(-2, 8, 30));
+    await post(p2, null, 'Thank you all! 30 trees on the south slope. I’ll verify everyone’s hours this week.', at(-2, 12, 40));
+    await post(p2, p2crew[11], 'That was awesome, thanks Sam!', at(-2, 13, 2));
+    await sql`insert into event_chat_read (event_id, reader, last_read_at) values (${p2}, 'org', ${at(-2, 13, 30)})`;
+
+    await sql`insert into automation_rule (org_id, key, enabled, body) values
+      (${org.id}, 'missing_checkout', true, ${'Hi {first_name}, {event} ended at {time}. You’re still checked in: open SycaMore and tap Check out so your hours count. If you left earlier, reply with the time and {org} will fix it.'}),
+      (${org.id}, 'invite_back', true, ${'Hi {first_name}, we miss you at {org}! Our next event is {next_event}. Want to come?'})`;
+  }
 
   const [t] = await sql`select count(*)::int as n, coalesce(sum(coalesce(hours_adjusted, hours_captured)),0)::float as h from attendance where status = 'attested'`;
   console.log(`Seeded Riverside Restoration Crew (PIN 246810): ${vols.length} volunteers, ${t.n} attested attendances, ${t.h} hours.`);

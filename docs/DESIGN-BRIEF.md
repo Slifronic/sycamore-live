@@ -77,3 +77,13 @@ The reel itself has no in-UI motion; these are layout ideas only, translated int
 - Verify: the goal question sits above the table; every blocker in the sticky bar is a button that jumps to the control that fixes it.
 - Count-ups keep the true value for screen readers and print; the gauge and bars fill only once on screen; bars animate `scaleX`, not width.
 - Text tokens pass WCAG AA: `--field` is #6f6d63, focus rings are 2px `--primary`, and controls are at least 44px on touch screens.
+
+## Messages (from the @_code_and_chill_ "customer messaging dashboard" reel)
+
+Translated from a shop's customer inbox to a coordinator and their volunteers, in SycaMore's palette.
+
+- **Inbox as list beside conversation:** initials avatar, name, one-line preview, a channel line, a red unread count. The open thread gets a moss wash and a sap edge. Incoming bubbles are white paper; outgoing are ink, canopy for broadcasts and a deep violet for automations, with a small uppercase label saying which.
+- **"N new" rule** in blush above the first unread reply, and "Delivered / Read 7:40 PM" receipts under outgoing messages.
+- **Campaign funnel:** fat rounded bars (Sent, Read, Replied, then Showed up in gold, the one SycaMore-specific step) with the count and percent right-aligned in tabular figures, beside a phone mock showing a real delivered copy.
+- **Automation flows** as a vertical chain of white step cards joined by a 2px rule: Trigger (blush ring), Wait, Send, Then, ending in an "End of flow" pill. The settings sit in the left half of the same card.
+- Not taken: channel mixing (WhatsApp/SMS/email). Everything stays in the app, so there's no phone number to collect.

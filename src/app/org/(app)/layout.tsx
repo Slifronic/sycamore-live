@@ -3,6 +3,8 @@ import { Suspense } from 'react';
 import { requireOrg } from '@/lib/session';
 import { loadOrgInsights } from '@/lib/insights';
 import { courseProgress } from '@/lib/course';
+import { unreadCount } from '@/lib/messages';
+import { orgChatUnread } from '@/lib/event-chat';
 import { signOut } from '../actions';
 import { NavLinks } from '@/components/NavLinks';
 import { CoachBar } from '@/components/CoachBar';
@@ -17,6 +19,8 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
   const org = await requireOrg();
   const ins = await loadOrgInsights(org.id);
   const course = courseProgress(org.course);
+  // Unread one-to-one replies plus unread posts in event chats.
+  const unread = (await unreadCount(org.id)) + (await orgChatUnread(org.id));
 
   return (
     <div className={s.shell}>
@@ -39,7 +43,7 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
             <TierChip tier={ins.index.tier} provisional={ins.index.provisional} score={ins.index.score} />
           </div>
         </div>
-        <NavLinks awaiting={ins.totals.awaiting} badgeReady={ins.badgeReady.length} />
+        <NavLinks awaiting={ins.totals.awaiting} badgeReady={ins.badgeReady.length} unread={unread} />
         {!course.complete && (
           <Link href="/org/learn" className={s.course}>
             <span className="small" style={{ fontWeight: 700 }}>Getting started</span>

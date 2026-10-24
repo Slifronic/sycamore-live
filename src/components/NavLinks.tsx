@@ -18,6 +18,7 @@ const GROUPS = [
     label: 'People',
     items: [
       { href: '/org/volunteers', label: 'Volunteers' },
+      { href: '/org/messages', label: 'Messages' },
       { href: '/org/badges', label: 'Badges' },
     ],
   },
@@ -34,7 +35,13 @@ const GROUPS = [
   },
 ];
 
-export function NavLinks({ awaiting, badgeReady }: { awaiting: number; badgeReady: number }) {
+const COUNT_LABEL: Record<string, [string, string]> = {
+  '/org/events': ['Events waiting for you to verify', 'waiting to verify'],
+  '/org/badges': ['Badges ready for your sign-off', 'ready to sign'],
+  '/org/messages': ['Unread replies from volunteers', 'unread'],
+};
+
+export function NavLinks({ awaiting, badgeReady, unread = 0 }: { awaiting: number; badgeReady: number; unread?: number }) {
   const path = usePathname();
   const reduce = useReducedMotion();
   return (
@@ -44,7 +51,7 @@ export function NavLinks({ awaiting, badgeReady }: { awaiting: number; badgeRead
           <p className={s.groupLabel}>{g.label}</p>
           {g.items.map((it) => {
             const active = it.exact ? path === it.href : path.startsWith(it.href);
-            const count = it.href === '/org/events' ? awaiting : it.href === '/org/badges' ? badgeReady : 0;
+            const count = it.href === '/org/events' ? awaiting : it.href === '/org/badges' ? badgeReady : it.href === '/org/messages' ? unread : 0;
             return (
               <Link key={it.href} href={it.href} className={`${s.link} ${active ? s.active : ''}`} aria-current={active ? 'page' : undefined}>
                 {active && (
@@ -57,9 +64,9 @@ export function NavLinks({ awaiting, badgeReady }: { awaiting: number; badgeRead
                 )}
                 <span className={s.text}>{it.label}</span>
                 {count > 0 && (
-                  <span className={s.count} title={it.href === '/org/events' ? 'Events waiting for you to verify' : 'Badges ready for your sign-off'}>
+                  <span className={s.count} title={COUNT_LABEL[it.href]?.[0]}>
                     {count}
-                    <span className="sr-only"> {it.href === '/org/events' ? 'waiting to verify' : 'ready to sign'}</span>
+                    <span className="sr-only"> {COUNT_LABEL[it.href]?.[1]}</span>
                   </span>
                 )}
               </Link>

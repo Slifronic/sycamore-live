@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/PageHeader';
 import s from './event.module.css';
 import { sheetImportEnabled } from '@/lib/sheet-import';
 import { requestNow } from '@/lib/format';
+import { orgChats } from '@/lib/event-chat';
 
 export default async function EventPage({ params, searchParams }: PageProps<'/org/events/[id]'>) {
   const org = await requireOrg();
@@ -23,6 +24,7 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
   const now = requestNow();
   const ended = new Date(event.ends_at).getTime() < now;
   const live = !event.attested_at && !ended && new Date(event.starts_at).getTime() <= now;
+  const chat = (await orgChats(org.id)).find((c) => c.event_id === id) ?? { messages: 0, unread: 0 };
 
   return (
     <div className="page" style={{ gap: 20 }}>
@@ -73,6 +75,18 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
           )
         }
       />
+      {!event.is_practice && (
+        <nav className="row wrap" style={{ gap: 8 }} aria-label="Message this event’s volunteers">
+          <Link className="btn btn-sm" href={`/org/messages/broadcasts?new=1&event=${id}`}>
+            📣 Send announcement
+          </Link>
+          <Link className="btn btn-sm" href={`/org/messages/events/${id}`}>
+            💬 Group chat
+            {chat.messages > 0 && <span className="muted"> · {chat.messages}</span>}
+            {chat.unread > 0 && <span className="chip chip-red" style={{ height: 20, fontSize: 11 }}>{chat.unread} new</span>}
+          </Link>
+        </nav>
+      )}
       {created && (
         <p className="notice notice-green">
           <strong>Event created.</strong> On the day, tap “Show QR full screen” and set your phone or laptop on the sign-in table. That’s it.

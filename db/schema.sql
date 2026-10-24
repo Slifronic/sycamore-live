@@ -4,6 +4,11 @@
 
 create extension if not exists pgcrypto;
 
+drop table if exists event_chat_read cascade;
+drop table if exists event_chat cascade;
+drop table if exists automation_rule cascade;
+drop table if exists message cascade;
+drop table if exists broadcast cascade;
 drop table if exists campaign cascade;
 drop table if exists story_clip cascade;
 drop table if exists story_note cascade;
@@ -160,6 +165,73 @@ create table campaign (
   updated_at timestamptz not null default now()
 );
 
+-- org addition: messages between the coordinator and volunteers, in the app.
+-- No phone numbers are collected and nothing leaves SycaMore: the volunteer
+-- reads and replies on their "Messages" screen. A broadcast sends one message
+-- to an audience; an automation sends one when its trigger fires, at most once
+-- per dedupe_key.
+create table broadcast (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references org(id),
+  title text not null,               -- the coordinator's name for it, e.g. "Saturday reminder"
+  body text not null,                -- the template, before {first_name} etc. are filled in
+  audience text not null,            -- 'all' | 'regulars' | 'new' | 'slipping' | 'event:<uuid>'
+  audience_label text not null,
+  event_id uuid references event(id),   -- the event it invites people to; "showed up" counts check-ins there
+  recipients integer not null,
+  sent_by text not null,
+  sent_at timestamptz not null default now()
+);
+
+create table message (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references org(id),
+  volunteer_id uuid not null references volunteer(id),
+  direction text not null check (direction in ('out','in')),   -- out: org to volunteer
+  body text not null check (length(trim(body)) between 1 and 1000),
+  source text not null default 'direct' check (source in ('direct','broadcast','automation')),
+  broadcast_id uuid references broadcast(id),
+  automation_key text,
+  dedupe_key text,                   -- automations: one message per trigger, ever
+  sent_by text,                      -- coordinator name on outgoing messages
+  created_at timestamptz not null default now(),
+  read_at timestamptz,               -- out: the volunteer opened it; in: the coordinator did
+  unique (org_id, dedupe_key)
+);
+
+create table automation_rule (
+  org_id uuid not null references org(id),
+  key text not null,                 -- key from src/lib/messages.ts AUTOMATIONS
+  enabled boolean not null default false,
+  body text not null,
+  last_run_at timestamptz,
+  primary key (org_id, key)
+);
+
+-- org addition: one group chat per event. Members are the coordinator and
+-- everyone with an account who checked in (or was added) at that event.
+-- Volunteers see each other as first name + last initial; nobody sees an
+-- email or phone number.
+create table event_chat (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references org(id),
+  event_id uuid not null references event(id),
+  volunteer_id uuid references volunteer(id),   -- null: posted by the coordinator
+  author_name text not null,                    -- snapshot at posting time
+  body text not null check (length(trim(body)) between 1 and 1000),
+  created_at timestamptz not null default now()
+);
+
+create table event_chat_read (
+  event_id uuid not null references event(id),
+  reader text not null,              -- 'org' or the volunteer's id
+  last_read_at timestamptz not null default now(),
+  primary key (event_id, reader)
+);
+
+create index on message (org_id, volunteer_id, created_at);
+create index on message (broadcast_id);
+create index on event_chat (event_id, created_at);
 create index on story_note (event_id, created_at);
 create index on story_clip (event_id, created_at);
 
