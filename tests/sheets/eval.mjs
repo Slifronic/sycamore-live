@@ -23,6 +23,20 @@ function close(a, b) {
 }
 const hhmm = (iso) => (iso ? new Date(iso).toLocaleTimeString('en-GB', { timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit' }) : null);
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(new Date());
+// "2026-11-14" + "09:30" Pacific -> ISO, with that date's daylight-saving offset (same as src/lib/tz.ts).
+function pacificIso(ymd, hhmm) {
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const offset = (t) => {
+    const p = Object.fromEntries(fmt.formatToParts(new Date(t)).map((x) => [x.type, x.value]));
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - t;
+  };
+  const [y, mo, d] = ymd.split('-').map(Number);
+  const [h, mi] = hhmm.split(':').map(Number);
+  const guess = Date.UTC(y, mo - 1, d, h, mi);
+  let t = guess - offset(guess);
+  t = guess - offset(t);
+  return new Date(t).toISOString();
+}
 
 async function main() {
   await sql`insert into org (name, contact_phone, contact_email, coordinator_name, coordinator_pin)
@@ -36,7 +50,7 @@ async function main() {
     const ev = await fetch(`${BASE}/api/org/events`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', cookie },
-      body: JSON.stringify({ title: `Eval ${file}`, starts_at: `${today}T${sheet.event.start}:00-07:00`, ends_at: `${today}T${sheet.event.end}:00-07:00` }),
+      body: JSON.stringify({ title: `Eval ${file}`, starts_at: pacificIso(today, sheet.event.start), ends_at: pacificIso(today, sheet.event.end) }),
     }).then((r) => r.json());
     const form = new FormData();
     form.append('image', new Blob([readFileSync(new URL(file, HERE))], { type: 'image/jpeg' }), file);

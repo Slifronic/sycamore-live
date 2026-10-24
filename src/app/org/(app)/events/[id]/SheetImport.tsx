@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import type { SheetDraft } from '@/lib/types';
+import { pacificToUtc } from '@/lib/tz';
 import s from './sheet.module.css';
 
 type Draft = SheetDraft & { key: number; confirmed: boolean; inT: string; outT: string };
@@ -63,8 +64,8 @@ export function SheetImport({ eventId, enabled, eventDate, rosterNames }: { even
       .filter((d) => d.confirmed)
       .map((d) => ({
         display_name: d.display_name,
-        checked_in_at: d.inT ? new Date(`${eventDate}T${d.inT}:00-07:00`).toISOString() : null,
-        checked_out_at: d.outT ? new Date(`${eventDate}T${d.outT}:00-07:00`).toISOString() : null,
+        checked_in_at: d.inT ? pacificToUtc(eventDate, d.inT).toISOString() : null,
+        checked_out_at: d.outT ? pacificToUtc(eventDate, d.outT).toISOString() : null,
         confidence: d.confidence,
       }));
     setBusy(true);

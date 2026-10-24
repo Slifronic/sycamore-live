@@ -21,7 +21,7 @@ function liveWalkinState(w: WalkinPanel, now: number): WalkinPanel['state'] {
   if (now > Date.parse(w.closes)) return 'expired';
   return 'open';
 }
-const t = (d: string | null) => (d ? new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '—');
+const t = (d: string | null) => (d ? new Date(d).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' }) : '—');
 
 export function EventDay(props: {
   eventId: string;

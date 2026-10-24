@@ -14,7 +14,9 @@ export async function POST(req: Request) {
   const attendanceId = String(body?.attendance_id ?? '');
   if (!/^[0-9a-f-]{36}$/.test(attendanceId)) return NextResponse.json({ error: 'Missing attendance_id.' }, { status: 400 });
 
-  const tapped = body?.client_time ? new Date(String(body.client_time)) : null;
+  // An unreadable client_time is ignored (the tap counts as now), never a server error.
+  const parsed = body?.client_time ? new Date(String(body.client_time)) : null;
+  const tapped = parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
   const [row] = (await sql`
     update attendance a set
       checked_out_at = case

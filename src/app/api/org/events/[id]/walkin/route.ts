@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { currentOrg } from '@/lib/session';
+import { isUuid } from '@/lib/ids';
 import { updateWalkin } from '@/lib/walkin';
 import { walkinPanel } from '@/lib/walkin-panel';
 
@@ -10,6 +11,7 @@ export async function PATCH(req: Request, { params }: RouteContext<'/api/org/eve
   const org = await currentOrg();
   if (!org) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   const { id } = await params;
+  if (!isUuid(id)) return NextResponse.json({ error: 'Event not found.' }, { status: 404 });
   const body = await req.json().catch(() => null);
   const open = typeof body?.open === 'boolean' ? body.open : undefined;
   const rotate = body?.rotate === true;

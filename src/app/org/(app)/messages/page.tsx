@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { requireOrg } from '@/lib/session';
 import { sql } from '@/lib/db';
 import { loadOrgInsights } from '@/lib/insights';
-import { automationByKey, getThread, listThreads, type AutomationKey } from '@/lib/messages';
+import { automationByKey, canMessage, getThread, listThreads, type AutomationKey } from '@/lib/messages';
+import { isUuid } from '@/lib/ids';
 import { ago, fmtDay, fmtTime, initials, plural, requestNow } from '@/lib/format';
 import { ROLE_LABEL } from '@/lib/types';
 import { PageHeader } from '@/components/PageHeader';
@@ -35,7 +36,8 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
   const sp = await searchParams;
   const f = (FILTERS.some((x) => x.key === sp.f) ? sp.f : 'all') as Filter;
   const q = typeof sp.q === 'string' ? sp.q.trim().toLowerCase() : '';
-  const openId = typeof sp.v === 'string' && /^[0-9a-f-]{36}$/.test(sp.v) ? sp.v : null;
+  // Only someone this org may write to opens; any other id behaves as not found.
+  const openId = isUuid(sp.v) && (await canMessage(org.id, sp.v)) ? sp.v : null;
 
   const now = requestNow();
   const ins = await loadOrgInsights(org.id);

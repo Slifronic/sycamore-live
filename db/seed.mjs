@@ -218,7 +218,7 @@ async function main() {
     await msg(slipping, 'in', 'Sorry, finals week! Is there anything on a Sunday this month?', at(0, 8, 5));
 
     await msg(jay, 'in', 'Do I need a parent to sign anything to get my hours?', at(-6, 16, 2), { read: at(-6, 17) });
-    await msg(jay, 'out', 'No signature needed. Your hours are verified by us when we close the event, and they show in My hours. To share your record with your school, a parent confirms by email first.', at(-6, 17, 4), { read: at(-6, 18, 30) });
+    await msg(jay, 'out', 'No signature needed. Your hours are verified by us when we close the event, and they show in My hours. Sharing your record with your school will need a parent or guardian’s OK, and that part isn’t available yet.', at(-6, 17, 4), { read: at(-6, 18, 30) });
 
     // 4. Event group chats: today's cleanup is happening now; Phase 2 wrapped up two days ago.
     const post = (eventId, v, body, created) => sql`

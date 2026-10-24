@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import QRCode from 'qrcode';
 import { requireOrg } from '@/lib/session';
 import { getEvent, getRoster } from '@/lib/org-data';
+import { isUuid } from '@/lib/ids';
 import { ACTIVITY_LABEL } from '@/lib/types';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { EventDay } from './EventDay';
@@ -20,6 +21,7 @@ import { SharePanel } from '@/components/events/SharePanel';
 export default async function EventPage({ params, searchParams }: PageProps<'/org/events/[id]'>) {
   const org = await requireOrg();
   const { id } = await params;
+  if (!isUuid(id)) notFound();
   const created = (await searchParams).created === '1';
   const event = await getEvent(org.id, id);
   if (!event) notFound();

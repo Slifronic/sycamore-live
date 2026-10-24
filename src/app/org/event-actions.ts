@@ -23,8 +23,12 @@ function readForm(form: FormData) {
   if (!YMD.test(date) || !HHMM.test(start) || !HHMM.test(end)) return { error: 'Pick a date, a start time and an end time.' } as const;
   const starts_at = pacificToUtc(date, start);
   let ends_at = pacificToUtc(date, end);
-  // An end time before the start means the shift runs past midnight.
-  if (ends_at <= starts_at) ends_at = new Date(ends_at.getTime() + 86_400_000);
+  // An end time before the start means the shift runs past midnight: the end is on the
+  // next calendar date (built as a date, not +24h, so a daylight-saving night stays right).
+  if (ends_at <= starts_at) {
+    const [y, m, d] = date.split('-').map(Number);
+    ends_at = pacificToUtc(new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10), end);
+  }
   if (ends_at.getTime() - starts_at.getTime() > 16 * 3_600_000) return { error: 'That’s over 16 hours. Split it into shifts, one event each.' } as const;
   const activityRaw = String(form.get('activity') ?? 'general');
   const source = String(form.get('source') ?? 'manual') as IntakeSource | 'manual';

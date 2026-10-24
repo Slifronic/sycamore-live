@@ -5,7 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { sql } from '@/lib/db';
 import { pin } from '@/lib/codes';
 import { clearOrgCookie, requireOrg, setOrgCookie } from '@/lib/session';
-import { addManual, attestEvent, checkOutAll, checkOutAttendance, createEvent, markLesson, RuleError, type AttestRow } from '@/lib/org-data';
+import { addManual, attestEvent, checkOutAll, checkOutAttendance, createEvent, getEvent, markLesson, RuleError, type AttestRow } from '@/lib/org-data';
+import { loadOrgInsights } from '@/lib/insights';
 import { badgeByKey, type BadgeKey } from '@/lib/badges';
 import type { Activity } from '@/lib/types';
 import type { LessonKey } from '@/lib/course';
@@ -65,7 +66,8 @@ export async function signOut() {
 export async function addByName(eventId: string, _: FormState, form: FormData): Promise<FormState> {
   const org = await requireOrg();
   try {
-    await addManual(org.id, eventId, { display_name: String(form.get('name') ?? ''), checked_in_at: new Date() });
+    // Stamped now, on the day, so the "within a day of the event" check doesn't apply.
+    await addManual(org.id, eventId, { display_name: String(form.get('name') ?? ''), checked_in_at: new Date() }, { checkWindow: false });
   } catch (e) {
     if (e instanceof RuleError) return { error: e.message };
     throw e;
@@ -76,12 +78,20 @@ export async function addByName(eventId: string, _: FormState, form: FormData): 
 
 export async function addPracticeVolunteer(eventId: string) {
   const org = await requireOrg();
+  // Pretend people only ever go on this org's own practice event.
+  const event = await getEvent(org.id, eventId);
+  if (!event?.is_practice || event.attested_at) return;
   const [{ n }] = await sql`select count(*)::int as n from attendance where event_id = ${eventId}`;
   const minutesAgo = 20 + Math.floor(Math.random() * 40);
-  await addManual(org.id, eventId, {
-    display_name: PRACTICE_NAMES[n % PRACTICE_NAMES.length] + (n >= PRACTICE_NAMES.length ? ` ${Math.floor(n / PRACTICE_NAMES.length) + 1}` : ''),
-    checked_in_at: new Date(Date.now() - minutesAgo * 60_000),
-  });
+  await addManual(
+    org.id,
+    eventId,
+    {
+      display_name: PRACTICE_NAMES[n % PRACTICE_NAMES.length] + (n >= PRACTICE_NAMES.length ? ` ${Math.floor(n / PRACTICE_NAMES.length) + 1}` : ''),
+      checked_in_at: new Date(Date.now() - minutesAgo * 60_000),
+    },
+    { checkWindow: false },
+  );
   revalidatePath(`/org/events/${eventId}`);
 }
 
@@ -123,6 +133,11 @@ export async function signBadge(_: FormState, form: FormData): Promise<FormState
   const def = badgeByKey[badge];
   if (!def) return { error: 'Unknown badge.' };
   if (def.needsNote && note.length < 10) return { error: `Add a short note: ${def.needsNote.toLowerCase()}.` };
+  // Only someone who served with this org and meets the badge's rule (from verified hours) can be signed.
+  const ins = await loadOrgInsights(org.id);
+  if (!ins.badgeReady.some((r) => r.v.volunteer_id === volunteerId && r.badge === badge)) {
+    return { error: 'This volunteer doesn’t meet that badge’s rule with your organization yet.' };
+  }
   await sql`
     insert into badge_award (org_id, volunteer_id, badge, evidence_note, signed_by)
     values (${org.id}, ${volunteerId}, ${badge}, ${note || null}, ${org.coordinator_name})

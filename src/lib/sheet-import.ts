@@ -3,6 +3,7 @@ import { Anthropic, claude, claudeEnabled } from './claude';
 import { z } from 'zod';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import type { SheetDraft } from './types';
+import { pacificToUtc, utcToPacific } from './tz';
 
 // Paper sign-in sheet → draft roster. Claude only transcribes; the server
 // builds timestamps, and the coordinator confirms every row before it counts.
@@ -66,12 +67,13 @@ export async function draftFromSheet(
   const parsed = response.parsed_output;
   if (!parsed) throw new SheetImportError('Couldn’t read a roster from that photo. Try a straighter, brighter photo.');
 
-  // The server, not the model, turns "HH:MM" into timestamps on the event's date.
-  const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(event.starts_at);
+  // The server, not the model, turns "HH:MM" into timestamps on the event's date,
+  // in Pacific time with the right daylight-saving offset for that date.
+  const { ymd } = utcToPacific(new Date(event.starts_at));
   const stamp = (t: string | null) => {
     if (!t || !HHMM.test(t.trim())) return null;
     const [h, m] = t.trim().split(':');
-    return new Date(`${ymd}T${h.padStart(2, '0')}:${m}:00-07:00`).toISOString();
+    return pacificToUtc(ymd, `${h.padStart(2, '0')}:${m}`).toISOString();
   };
 
   return parsed.rows

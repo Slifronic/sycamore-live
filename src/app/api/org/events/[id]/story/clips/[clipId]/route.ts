@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { sql } from '@/lib/db';
 import { currentOrg } from '@/lib/session';
 import { removeMedia } from '@/lib/media';
+import { isUuid } from '@/lib/ids';
 import type { StoryClip } from '@/lib/story';
 
 const Patch = z.object({ caption: z.string().max(140).optional(), consent: z.boolean().optional() });
@@ -12,6 +13,7 @@ export async function PATCH(req: Request, { params }: RouteContext<'/api/org/eve
   const org = await currentOrg();
   if (!org) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   const { id, clipId } = await params;
+  if (!isUuid(id) || !isUuid(clipId)) return NextResponse.json({ error: 'Clip not found.' }, { status: 404 });
   const body = Patch.safeParse(await req.json().catch(() => null));
   if (!body.success) return NextResponse.json({ error: 'Send a caption or a consent value.' }, { status: 400 });
   const { caption, consent } = body.data;
@@ -30,6 +32,7 @@ export async function DELETE(_req: Request, { params }: RouteContext<'/api/org/e
   const org = await currentOrg();
   if (!org) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   const { id, clipId } = await params;
+  if (!isUuid(id) || !isUuid(clipId)) return NextResponse.json({ error: 'Clip not found.' }, { status: 404 });
   const [gone] = await sql`delete from story_clip where id = ${clipId} and event_id = ${id} and org_id = ${org.id} returning video_path, poster_path`;
   if (!gone) return NextResponse.json({ error: 'Clip not found.' }, { status: 404 });
   await removeMedia(gone.video_path);

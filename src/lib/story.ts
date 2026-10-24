@@ -112,7 +112,10 @@ export async function getCampaign(eventId: string) {
 }
 
 export async function getPublishedCampaign(slug: string) {
-  const [c] = (await sql`select * from campaign where slug = ${slug} and status = 'published'`) as unknown as Campaign[];
+  // A flagged campaign never shows, even if it was published before the flag appeared.
+  const [c] = (await sql`
+    select * from campaign where slug = ${slug} and status = 'published' and jsonb_array_length(flags) = 0
+  `) as unknown as Campaign[];
   return c ?? null;
 }
 
@@ -302,10 +305,46 @@ export function cleanDraft(d: CampaignDraft, notes: StoryNote[], clips: StoryCli
 const NUM = /\d[\d,]*(?:\.\d+)?/g;
 const canon = (n: string) => String(Number(n.replace(/,/g, '')));
 
-// Every number in the campaign text must trace to the facts or the coordinator's debrief.
+// Spelled-out numbers ("forty-seven", "two hundred") count as numbers too.
+const UNITS: Record<string, number> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19,
+};
+const TENS: Record<string, number> = { twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+const NUM_WORD = `(?:${[...Object.keys(UNITS), ...Object.keys(TENS), 'hundred', 'thousand'].join('|')})`;
+// "and" joins only after hundred/thousand ("one hundred and five"), so "ten and twenty" stays two numbers.
+const WORDS = new RegExp(`\\b${NUM_WORD}(?:(?:\\s*-\\s*|\\s+)${NUM_WORD}|(?<=hundred|thousand)\\s+and\\s+${NUM_WORD})*\\b`, 'gi');
+
+function wordsValue(phrase: string): number {
+  let total = 0;
+  let cur = 0;
+  for (const w of phrase.toLowerCase().split(/[\s-]+/)) {
+    if (w in UNITS) cur += UNITS[w];
+    else if (w in TENS) cur += TENS[w];
+    else if (w === 'hundred') cur = (cur || 1) * 100;
+    else if (w === 'thousand') {
+      total += (cur || 1) * 1000;
+      cur = 0;
+    }
+  }
+  return total + cur;
+}
+
+/** Every number in a piece of text, as written and as a canonical value. */
+function numbersIn(text: string): { raw: string; value: string }[] {
+  const out = (text.match(NUM) ?? []).map((n) => ({ raw: n, value: canon(n) }));
+  for (const m of text.match(WORDS) ?? []) {
+    // A lone "one" is nearly always a pronoun ("no one", "one of the crew"), not a count.
+    if (m.toLowerCase() === 'one') continue;
+    out.push({ raw: m, value: String(wordsValue(m)) });
+  }
+  return out;
+}
+
+// Every number in the campaign text, hashtags included, must trace to the facts or the coordinator's debrief.
 export function checkNumbers(d: CampaignDraft, facts: StoryFacts, notes: StoryNote[]): NumberFlag[] {
   const allowed = new Set<string>();
-  const add = (text: string) => (text.match(NUM) ?? []).forEach((n) => allowed.add(canon(n)));
+  const add = (text: string) => numbersIn(text).forEach((n) => allowed.add(n.value));
   add(JSON.stringify(facts));
   notes.forEach((n) => add(n.transcript));
   const fields: [string, string][] = [
@@ -318,13 +357,13 @@ export function checkNumbers(d: CampaignDraft, facts: StoryFacts, notes: StoryNo
     ['Instagram', d.social.instagram],
     ['LinkedIn', d.social.linkedin],
     ['X', d.social.x],
+    ['Hashtags', d.hashtags.join(' ')],
     ...d.storyboard.map((s, i) => [`Shot ${i + 1} caption`, s.caption] as [string, string]),
   ];
   const flags: NumberFlag[] = [];
   for (const [field, text] of fields) {
-    const withoutTags = text.replace(/#\w+/g, ' ');
-    for (const n of withoutTags.match(NUM) ?? []) {
-      if (!allowed.has(canon(n)) && !flags.some((f) => f.field === field && f.value === n)) flags.push({ field, value: n });
+    for (const n of numbersIn(text)) {
+      if (!allowed.has(n.value) && !flags.some((f) => f.field === field && f.value === n.raw)) flags.push({ field, value: n.raw });
     }
   }
   return flags;
@@ -332,12 +371,14 @@ export function checkNumbers(d: CampaignDraft, facts: StoryFacts, notes: StoryNo
 
 // ---------- writes ----------
 
+// A save that brings in a flagged number takes a published campaign back to draft.
 export async function saveCampaign(orgId: string, eventId: string, draft: CampaignDraft, facts: StoryFacts, flags: NumberFlag[]) {
   const [c] = (await sql`
     insert into campaign (org_id, event_id, draft, facts, flags)
     values (${orgId}, ${eventId}, ${sql.json(draft as never)}, ${sql.json(facts as never)}, ${sql.json(flags as never)})
     on conflict (event_id) do update
-      set draft = excluded.draft, facts = excluded.facts, flags = excluded.flags, updated_at = now()
+      set draft = excluded.draft, facts = excluded.facts, flags = excluded.flags, updated_at = now(),
+          status = case when jsonb_array_length(excluded.flags) > 0 then 'draft' else campaign.status end
     returning *
   `) as unknown as Campaign[];
   return c;

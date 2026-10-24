@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { currentOrg } from '@/lib/session';
+import { isUuid } from '@/lib/ids';
 import { RADIUS_CHOICES, setEventSite, validLatLng } from '@/lib/presence';
 
 // Org addition: the event's site for the leave-the-area check.
@@ -8,6 +9,7 @@ export async function PUT(req: Request, { params }: RouteContext<'/api/org/event
   const org = await currentOrg();
   if (!org) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   const { id } = await params;
+  if (!isUuid(id)) return NextResponse.json({ error: 'Event not found.' }, { status: 404 });
   const body = await req.json().catch(() => null);
   const lat = Number(body?.lat);
   const lng = Number(body?.lng);
@@ -23,6 +25,7 @@ export async function DELETE(_req: Request, { params }: RouteContext<'/api/org/e
   const org = await currentOrg();
   if (!org) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   const { id } = await params;
+  if (!isUuid(id)) return NextResponse.json({ error: 'Event not found.' }, { status: 404 });
   const site = await setEventSite(org.id, id, null);
   if (!site) return NextResponse.json({ error: 'Event not found, or already verified.' }, { status: 404 });
   return NextResponse.json({ site });

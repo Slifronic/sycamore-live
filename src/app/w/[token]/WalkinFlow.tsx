@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-const clock = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+const clock = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
 const first = (name: string) => name.split(/\s+/)[0] ?? name;
 
 // The ID token's payload, decoded only to greet the person by name while they

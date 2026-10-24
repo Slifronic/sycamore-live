@@ -53,7 +53,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
   // (or now, if it hasn't ended), with a reason the coordinator can read and edit.
   // Someone the opt-in leave-the-area check saw leave earlier is counted until then instead.
   const missing = rows.filter((r) => !r.no_show && !r.checked_out_at && r.hours === '' && r.checked_in_at);
-  const clock = (ms: number) => new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const clock = (ms: number) => new Date(ms).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
   function filled(r: Row): Partial<Row> {
     const close = Math.min(Date.now(), new Date(endsAt).getTime());
     const left = r.left_area_at ? new Date(r.left_area_at).getTime() : null;
@@ -82,6 +82,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
       if (!r.checked_out_at && r.hours === '') out.push({ text: `${r.display_name} never checked out: enter hours with a reason, or mark no-show`, target: `hours-${r.id}` });
       else if (changed(r) && !r.reason.trim()) out.push({ text: `Add a reason for changing ${r.display_name}'s hours`, target: `reason-${r.id}` });
       else if (r.hours !== '' && (isNaN(Number(r.hours)) || Number(r.hours) < 0 || Number(r.hours) > 24)) out.push({ text: `${r.display_name}'s hours must be between 0 and 24`, target: `hours-${r.id}` });
+      else if (r.hours !== '' && !Number.isInteger(Number(r.hours) * 4)) out.push({ text: `${r.display_name}'s hours go in quarter hours (like 2.25 or 2.5)`, target: `hours-${r.id}` });
     }
     return out;
   }, [rows, goal]);

@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import type { WalkinPanel } from '@/lib/walkin-panel';
 import s from './event.module.css';
 
-const time = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+const time = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
 
 // The second QR code on event day: for people who have never signed up. It
 // works only while the event is on, and the coordinator can switch it off or
