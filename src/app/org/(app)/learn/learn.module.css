@@ -1,0 +1,15 @@
+.head { display: flex; justify-content: space-between; gap: 24px; align-items: end; flex-wrap: wrap; }
+.head > div:first-child { display: grid; gap: 6px; max-width: 600px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--primary); }
+.progress { display: grid; justify-items: end; }
+.big { font-family: var(--font-display), Georgia, serif; font-size: 44px; font-weight: 600; color: var(--canopy); line-height: 1; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.lesson { display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding: 18px 20px; }
+.next { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.done { opacity: 0.75; }
+.num { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: #edf0ec; color: var(--ink-2); }
+.done .num { background: var(--verified-soft); color: var(--verified); }
+.next .num { background: var(--ink); color: #fff; }
+.body { display: grid; gap: 10px; }
+.title { font-size: 18px; }
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 4px; }

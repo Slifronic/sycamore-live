@@ -54,7 +54,7 @@ export const LESSONS: Lesson[] = [
     why: 'One score from 0 to 100 that shows funders your program runs well, built from data you already have.',
     steps: ['Open the Index.', 'See the three parts: retention, coordinator efficiency, event completion.', 'Each part tells you the one thing that would raise it.'],
     tip: 'You never type anything into the Index. It updates every time you verify an event.',
-    href: '/org/index?learn=index_viewed',
+    href: '/org/score?learn=index_viewed',
     coach: 'Look at the three bars. The lowest one is where to focus next.',
   },
   {
@@ -81,8 +81,11 @@ export const LESSONS: Lesson[] = [
 
 export const lessonByKey = Object.fromEntries(LESSONS.map((l) => [l.key, l])) as Record<LessonKey, Lesson>;
 
+export const COURSE_MINUTES = LESSONS.reduce((n, l) => n + l.minutes, 0);
+
 export function courseProgress(flags: Record<string, string>) {
   const done = LESSONS.filter((l) => flags[l.key]);
   const next = LESSONS.find((l) => !flags[l.key]) ?? null;
-  return { done: done.length, total: LESSONS.length, next, complete: !next };
+  const minutesLeft = COURSE_MINUTES - done.reduce((n, l) => n + l.minutes, 0);
+  return { done: done.length, total: LESSONS.length, next, complete: !next, minutesLeft };
 }

@@ -1,0 +1,21 @@
+.page { display: grid; gap: 28px; max-width: 1120px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--primary); margin-bottom: 4px; }
+.lesson { display: flex; gap: 20px; align-items: center; justify-content: space-between; padding: 20px 24px; border-left: 4px solid var(--primary); flex-wrap: wrap; }
+.lesson > div:first-child { display: grid; gap: 4px; max-width: 620px; }
+.live { display: flex; align-items: center; gap: 14px; padding: 16px 20px; text-decoration: none; }
+.live:hover { border-color: var(--primary); }
+.pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--verified); box-shadow: 0 0 0 0 rgba(35, 122, 75, 0.5); animation: pulse 1.8s infinite; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(35, 122, 75, 0); } 100% { box-shadow: 0 0 0 0 rgba(35, 122, 75, 0); } }
+.needs { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.need { padding: 18px; display: grid; gap: 8px; justify-items: start; border-color: #ecd9b4; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.stat { padding: 16px 18px; display: grid; gap: 2px; }
+.statNum { font-family: var(--font-display), Georgia, serif; font-size: 30px; font-weight: 600; color: var(--canopy); line-height: 1.1; }
+.two { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+.list li:last-child { border-bottom: 0; }
+@media (max-width: 960px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .two { grid-template-columns: 1fr; }
+}

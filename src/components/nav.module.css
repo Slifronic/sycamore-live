@@ -1,0 +1,8 @@
+.nav { display: grid; gap: 2px; }
+.link { display: flex; align-items: center; justify-content: space-between; height: 38px; padding: 0 10px; border-radius: 9px; text-decoration: none; color: var(--ink-2); font-weight: 600; font-size: 14px; }
+.link:hover { background: rgba(16, 40, 29, 0.05); color: var(--ink); }
+.active { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+.count { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--amber-soft); color: var(--amber); font-size: 12px; font-weight: 800; display: inline-grid; place-items: center; }
+@media (max-width: 860px) {
+  .nav { display: flex; flex-wrap: wrap; gap: 4px; }
+}

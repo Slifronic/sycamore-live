@@ -1,0 +1,16 @@
+.overlay { position: fixed; inset: 0; z-index: 40; background: rgba(16, 40, 29, 0.45); display: grid; place-items: center; padding: 20px; }
+.panel { background: var(--paper); border-radius: 16px; width: min(1100px, 100%); max-height: 92vh; display: grid; grid-template-columns: 1fr 1.2fr; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); }
+.photo { background: #1f2a24; display: grid; place-items: center; overflow: auto; }
+.photo img { max-width: 100%; height: auto; display: block; }
+.review { padding: 20px; display: grid; gap: 14px; overflow: auto; align-content: start; }
+.rows { display: grid; gap: 10px; }
+.row { border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 8px; }
+.amber { border-color: #e8c98c; background: var(--amber-soft); }
+.ok { border-color: #9ccfb0; background: var(--verified-soft); }
+.fields { display: grid; grid-template-columns: 1fr 120px 120px; gap: 8px; }
+@media (max-width: 860px) {
+  .panel { grid-template-columns: 1fr; }
+  .photo { max-height: 30vh; }
+  .fields { grid-template-columns: 1fr 1fr; }
+  .fields input:first-child { grid-column: 1 / -1; }
+}
