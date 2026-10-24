@@ -1,6 +1,5 @@
-.nav { display: grid; gap: 14px; }
-.group { display: grid; gap: 2px; }
-.groupLabel { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--field); padding: 0 10px 4px; }
+.nav { display: grid; gap: 2px; }
+.primary { display: grid; gap: 2px; }
 .link { position: relative; display: flex; align-items: center; justify-content: space-between; height: 38px; padding: 0 10px; border-radius: 10px; text-decoration: none; color: var(--ink-2); font-weight: 600; font-size: 14px; transition: color 0.16s var(--ease); }
 .link:hover { color: var(--ink); }
 .link:hover:not(.active) { background: rgba(15, 38, 27, 0.04); }
@@ -9,13 +8,25 @@
 .active .pill::before { content: ''; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 3px; background: var(--sap); }
 .text, .count { position: relative; z-index: 1; }
 .count { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--amber-soft); color: var(--amber); font-size: 12px; font-weight: 800; display: inline-grid; place-items: center; }
+
+/* "More": a quiet toggle under the four primary items. */
+.more { position: relative; display: grid; gap: 2px; }
+.moreBtn { width: 100%; border: 0; background: none; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; text-align: left; }
+.moreBtnOn { color: var(--ink); }
+.moreRight { display: inline-flex; align-items: center; gap: 6px; }
+.chev { font-size: 11px; color: var(--field); transition: transform 0.16s var(--ease); }
+.chevOpen { transform: rotate(180deg); }
+.menu { display: grid; gap: 2px; padding-left: 10px; }
+.menu[hidden] { display: none; }
+
 @media (max-width: 860px) {
-  .nav { display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
-  .nav::-webkit-scrollbar { display: none; }
-  .group { display: contents; }
-  .groupLabel { display: none; }
+  .nav { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; margin: 0 -16px; padding: 0 16px; }
+  /* The four tabs scroll sideways; More stays put so its menu isn't clipped. */
+  .primary { display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; mask-image: linear-gradient(90deg, #000 85%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); }
+  .primary::-webkit-scrollbar { display: none; }
   .link { flex: none; height: 44px; gap: 6px; }
-  /* Fade the right edge so it reads as "more this way". */
-  .nav { mask-image: linear-gradient(90deg, #000 85%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); }
   .active .pill::before { display: none; }
+  .more { flex: none; }
+  .moreBtn { width: auto; }
+  .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 180px; padding: 6px; background: var(--paper); border-radius: 12px; box-shadow: var(--shadow), 0 0 0 1px var(--line); }
 }
