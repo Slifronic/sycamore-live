@@ -6,6 +6,7 @@ import { ago, fmtTime, plural, requestNow } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { MessagesTabs } from '../MessagesTabs';
 import s from '../messages.module.css';
+import { EmptyState } from '@/components/media/EmptyState';
 
 const TZ = 'America/Los_Angeles';
 
@@ -58,7 +59,22 @@ export default async function EventChatsPage() {
             </Link>
           );
         })}
-        {active.length === 0 && <p className="card card-pad muted">Event chats open as soon as people check in to an event.</p>}
+        {active.length === 0 && (
+          <div className="card">
+            <EmptyState
+              compact
+              illo="envelope"
+              title="No event chats yet."
+              action={
+                <Link className="btn btn-sm" href="/org/events">
+                  Go to events
+                </Link>
+              }
+            >
+              Event chats open as soon as people check in to an event.
+            </EmptyState>
+          </div>
+        )}
       </div>
     </div>
   );

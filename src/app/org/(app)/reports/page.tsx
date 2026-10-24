@@ -67,7 +67,7 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
       />
 
       <div className={s.layout}>
-      <article className={`card ${s.report}`}>
+      <article className={`paper-sheet ${s.report}`}>
         <header className={s.head}>
           <div>
             <p className="eyebrow eyebrow-sap">Volunteer impact report</p>

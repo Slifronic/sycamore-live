@@ -14,6 +14,7 @@ import s from './home.module.css';
 import { lastCame, requestNow } from '@/lib/format';
 import { sql } from '@/lib/db';
 import { milestoneThanks } from '@/lib/mailto';
+import { EmptyState } from '@/components/media/EmptyState';
 
 export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
   const org = await requireOrg();
@@ -117,7 +118,11 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
         <section className="stack">
           <h2>Needs you</h2>
           {ins.awaiting.length === 0 && ins.badgeReady.length === 0 ? (
-            <p className="card card-pad muted">All caught up. Verified events and signed badges land here when they need you.</p>
+            <div className="card">
+              <EmptyState compact illo="seed-pod" title="All caught up.">
+                Events waiting to be verified and badges ready to sign land here when they need you.
+              </EmptyState>
+            </div>
           ) : (
             <div className={s.needs}>
               {ins.awaiting.map((e) => (
@@ -205,7 +210,9 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
             <span className="chip chip-ink">{ins.away.length}</span>
           </div>
           {ins.away.length === 0 ? (
-            <p className="card-pad muted">Nobody who came twice has been gone more than a month. Nice.</p>
+            <EmptyState compact illo="compass" title="Everyone’s been back.">
+              Nobody who came twice has been gone more than a month.
+            </EmptyState>
           ) : (
             <ul className={s.list}>
               {ins.away.slice(0, 5).map((p) => (
@@ -232,7 +239,9 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
             <span className="chip chip-gold">{ins.milestones.length}</span>
           </div>
           {ins.milestones.length === 0 ? (
-            <p className="card-pad muted">When someone passes 10, 25, 50 or 100 verified hours, they show up here so you can thank them.</p>
+            <EmptyState compact illo="leaf-badge" title="No milestones yet.">
+              When someone passes 10, 25, 50 or 100 verified hours, they show up here so you can thank them.
+            </EmptyState>
           ) : (
             <ul className={s.list}>
               {ins.milestones.slice(0, 5).map((p) => {

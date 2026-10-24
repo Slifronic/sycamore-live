@@ -8,6 +8,7 @@ import { VolSideNav, VolTabBar } from '@/components/vol/VolNav';
 import { volSignOut } from './actions';
 import { DemoRibbon } from '@/components/DemoRibbon';
 import { Leaf } from '@/components/media/Leaf';
+import { RouteTransition } from '@/components/motion/RouteTransition';
 import s from './vol.module.css';
 
 // The volunteer side's shell. Same look as the coordinator's (parchment,
@@ -71,7 +72,7 @@ export default async function VolShell({ children }: LayoutProps<'/'>) {
           </form>
         </aside>
         <main className={s.main} id="main" tabIndex={-1}>
-          {children}
+          <RouteTransition groups={['/discover']}>{children}</RouteTransition>
         </main>
         <VolTabBar unread={unread} />
       </div>

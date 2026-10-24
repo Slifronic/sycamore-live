@@ -22,7 +22,7 @@
 .star:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 1px; }
 .star:hover { background: rgba(160, 124, 31, 0.08); }
 .starLit { color: var(--gold); }
-.bar { position: sticky; bottom: 12px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-radius: 14px; background: var(--paper); box-shadow: var(--shadow-hi); }
+.bar { overflow: hidden; position: sticky; bottom: 12px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-radius: 14px; background: var(--paper); box-shadow: var(--shadow-hi); }
 .done { padding: 40px 24px; display: grid; gap: 12px; justify-items: center; text-align: center; }
 .check { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--verified-soft); color: var(--verified); font-size: 32px; font-weight: 800; }
 .celebrate { display: flex; align-items: center; gap: 24px; padding: 18px 22px; border-radius: 18px; background: var(--primary-soft); text-align: left; margin: 6px 0; }
@@ -37,3 +37,14 @@
 }
 /* Fingers: Yes / Partly / No at least 44px tall. */
 @media (pointer: coarse) { .segBtn { min-height: 44px; } }
+
+/* Progress feel: a hairline meter along the top of the sticky bar fills as
+   blockers clear, and turns verified green when the sheet is ready. */
+.meter { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--rule-soft); }
+.meter > span { display: block; height: 100%; background: var(--amber); transform-origin: left; transition: transform 0.45s var(--out), background 0.3s var(--ease); }
+.barReady .meter > span { background: var(--sap); }
+.readyLine { color: var(--verified); font-weight: 700; display: inline-block; animation: readyIn 0.4s var(--out) both; }
+@keyframes readyIn { from { opacity: 0; transform: translateY(4px); } }
+/* Done: the check lands with a small stamp. */
+.check { animation: checkIn 0.6s var(--out) 0.1s both; }
+@keyframes checkIn { 0% { opacity: 0; transform: scale(0.4) rotate(-20deg); } 60% { opacity: 1; transform: scale(1.08) rotate(4deg); } 100% { transform: none; } }

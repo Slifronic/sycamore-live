@@ -10,6 +10,7 @@ import { inviteBack, sayThanks } from '@/lib/mailto';
 import { lastCame, requestNow } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { Segmented } from '@/components/Segmented';
+import { EmptyState } from '@/components/media/EmptyState';
 
 const TABS = [
   { key: 'all', label: 'Everyone' },
@@ -158,8 +159,33 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
             })}
             {list.length === 0 && (
               <tr>
-                <td colSpan={4} className="muted">
-                  {ins.volunteers.length === 0 ? 'Volunteers appear here after your first verified event.' : 'Nobody matches.'}
+                <td colSpan={4} style={{ padding: 0 }}>
+                  {ins.volunteers.length === 0 ? (
+                    <EmptyState
+                      illo="sapling"
+                      title="No volunteers yet."
+                      action={
+                        <Link className="btn btn-primary btn-sm" href="/org/events">
+                          Go to events
+                        </Link>
+                      }
+                    >
+                      Volunteers appear here after your first verified event, with their hours, events and an hour letter each.
+                    </EmptyState>
+                  ) : (
+                    <EmptyState
+                      compact
+                      illo="compass"
+                      title={q ? `Nobody matches “${q}”.` : 'Nobody in this list.'}
+                      action={
+                        <Link className="btn btn-sm" href="/org/volunteers">
+                          Show everyone
+                        </Link>
+                      }
+                    >
+                      {q ? 'Check the spelling, or search by first name only.' : 'Try another tab.'}
+                    </EmptyState>
+                  )}
                 </td>
               </tr>
             )}

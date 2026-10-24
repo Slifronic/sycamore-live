@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { initials } from '@/lib/format';
 import { notFound } from 'next/navigation';
 import { requireOrg } from '@/lib/session';
 import { sql } from '@/lib/db';
@@ -51,14 +52,19 @@ export default async function HourLetter({ params }: PageProps<'/org/volunteers/
         </p>
         <PrintButton label="Print or save letter" />
       </div>
-      <article className={`card ${s.letter}`}>
+      <article className={`paper-sheet ${s.letter}`}>
         <header className={s.head}>
-          <div>
+          <div className={s.lhead}>
+            <span className={s.mono} aria-hidden>
+              {initials(org.name)}
+            </span>
+            <div>
             <p className={s.org}>{org.name}</p>
             <p className="small muted">
               {org.city ? `${org.city} · ` : ''}
               {org.contact_phone} · {org.contact_email}
             </p>
+            </div>
           </div>
           <p className="small muted">{today}</p>
         </header>

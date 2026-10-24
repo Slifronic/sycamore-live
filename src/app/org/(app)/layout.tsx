@@ -13,6 +13,7 @@ import { initials } from '@/lib/format';
 import { PinReveal } from '@/components/PinReveal';
 import { DemoRibbon } from '@/components/DemoRibbon';
 import { Leaf } from '@/components/media/Leaf';
+import { RouteTransition } from '@/components/motion/RouteTransition';
 
 // Every org screen reads the coordinator's cookie, so it renders per request.
 export const instant = false;
@@ -70,7 +71,7 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
           <Suspense>
             <CoachBar />
           </Suspense>
-          {children}
+          <RouteTransition>{children}</RouteTransition>
         </main>
       </div>
     </>

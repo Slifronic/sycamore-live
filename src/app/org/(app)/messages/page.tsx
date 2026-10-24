@@ -13,6 +13,7 @@ import { MessagesTabs } from './MessagesTabs';
 import { Composer } from './Composer';
 import { LiveInbox } from './LiveInbox';
 import s from './messages.module.css';
+import { EmptyState } from '@/components/media/EmptyState';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -196,10 +197,9 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
               <div className={s.stream} id="stream" aria-live="polite">
                 {messages.length === 0 && (
                   <div className={s.empty}>
-                    <span className={s.emptyIcon} aria-hidden>
-                      ✉
-                    </span>
-                    <p>{openIsMinor ? `No announcements to ${named.name.split(' ')[0]} yet.` : `No messages with ${named.name.split(' ')[0]} yet. Say hello below.`}</p>
+                    <EmptyState compact illo="envelope" title={openIsMinor ? `No announcements to ${named.name.split(' ')[0]} yet.` : `No messages with ${named.name.split(' ')[0]} yet.`}>
+                      {openIsMinor ? 'Broadcasts and automatic notices reach them here.' : 'Say hello below.'}
+                    </EmptyState>
                   </div>
                 )}
                 {messages.map((m, i) => {
@@ -239,13 +239,9 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
             </>
           ) : (
             <div className={s.empty} style={{ gridRow: '1 / -1' }}>
-              <span className={s.emptyIcon} aria-hidden>
-                ✉
-              </span>
-              <p>
-                <strong>Pick a conversation</strong>
-              </p>
-              <p className="small">Replies from volunteers land here. Threads that need an answer are under “Needs reply”.</p>
+              <EmptyState compact illo="envelope" title="Pick a conversation">
+                Replies from volunteers land here. Threads that need an answer are under “Needs reply”.
+              </EmptyState>
             </div>
           )}
         </section>

@@ -11,6 +11,7 @@ import { MessagesTabs } from '../../MessagesTabs';
 import { LiveInbox } from '../../LiveInbox';
 import { ChatComposer } from '../ChatComposer';
 import s from '../../messages.module.css';
+import { EmptyState } from '@/components/media/EmptyState';
 
 function dayLabel(d: Date, now: number) {
   const day = fmtDay(d);
@@ -79,10 +80,9 @@ export default async function EventChatPage({ params }: PageProps<'/org/messages
           <div className={s.stream} id="chat-stream" aria-live="polite">
             {messages.length === 0 && (
               <div className={s.empty}>
-                <span className={s.emptyIcon} aria-hidden>
-                  ✉
-                </span>
-                <p>No posts yet. Say hi, share where to park, or post a thank-you after.</p>
+                <EmptyState compact illo="envelope" title="No posts yet.">
+                  Say hi, share where to park, or post a thank-you after.
+                </EmptyState>
               </div>
             )}
             {messages.map((m, i) => {

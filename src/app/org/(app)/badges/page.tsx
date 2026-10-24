@@ -3,6 +3,7 @@ import { loadOrgInsights } from '@/lib/insights';
 import { BADGES, badgeByKey } from '@/lib/badges';
 import { SignBadgeForm } from './SignBadgeForm';
 import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/media/EmptyState';
 
 export default async function BadgesPage() {
   const org = await requireOrg();
@@ -20,7 +21,11 @@ export default async function BadgesPage() {
       <section className="stack">
         <h2>Ready for your sign-off {ins.badgeReady.length > 0 && <span className="chip chip-amber">{ins.badgeReady.length}</span>}</h2>
         {ins.badgeReady.length === 0 ? (
-          <p className="card card-pad muted">Nobody is waiting. When someone meets a badge’s rule, they show up here.</p>
+          <div className="card">
+            <EmptyState compact illo="leaf-badge" title="Nobody is waiting.">
+              When someone meets a badge’s rule in your verified events, they show up here for your signature.
+            </EmptyState>
+          </div>
         ) : (
           <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
             {ins.badgeReady.map(({ v, badge }) => {

@@ -107,6 +107,9 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
   const totalHours = present.reduce((s, r) => s + (r.hours === '' ? 0 : Number(r.hours) || 0), 0);
   const shown = filter ? rows.filter((r) => r.display_name.toLowerCase().includes(filter.toLowerCase())) : rows;
   const selected = rows.filter((r) => r.selected).length;
+  // How close the sheet is to verifiable: the goal question plus one check per person.
+  const steps = present.length + 1;
+  const readyShare = Math.max(0, Math.min(1, (steps - blockers.length) / steps));
 
   function submit() {
     setError(null);
@@ -317,7 +320,10 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
         </div>
       </section>
 
-      <div className={s.bar}>
+      <div className={`${s.bar} ${blockers.length ? '' : s.barReady}`}>
+        <span className={s.meter} aria-hidden>
+          <span style={{ transform: `scaleX(${readyShare})` }} />
+        </span>
         <div>
           <p className={s.totals}>
             <span className="figure" style={{ fontSize: 28 }}>{present.length}</span>
@@ -332,7 +338,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
                 {blockers.length > 1 ? ` (+${blockers.length - 1} more)` : ''} →
               </button>
             ) : (
-              <span style={{ color: 'var(--verified)', fontWeight: 700 }}>Ready. Records are issued the moment you verify.</span>
+              <span className={s.readyLine}>Ready. Records are issued the moment you verify.</span>
             )}
           </p>
           {error && (
