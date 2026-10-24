@@ -1,0 +1,179 @@
+/* Shared layout for the marketing site. Tokens come from globals.css. */
+
+.shell { min-height: 100dvh; display: flex; flex-direction: column; overflow-x: clip; }
+.main { flex: 1; display: block; }
+.main:focus { outline: none; }
+
+.wrap { width: min(100% - 32px, 1240px); margin-inline: auto; }
+.narrow { width: min(100% - 32px, 880px); margin-inline: auto; }
+
+.section { padding-block: clamp(72px, 10vw, 136px); }
+.sectionTight { padding-block: clamp(48px, 7vw, 88px); }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.eyebrow::before { content: ''; width: 18px; height: 1.5px; background: currentColor; opacity: 0.6; }
+
+.h2 {
+  font-size: clamp(32px, 4.4vw, 58px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+.h3 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(21px, 2vw, 26px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  color: var(--canopy);
+}
+.lede { font-size: clamp(17px, 1.5vw, 19px); line-height: 1.6; color: var(--ink-2); max-width: 58ch; text-wrap: pretty; }
+.body { font-size: 16px; line-height: 1.65; color: var(--ink-2); text-wrap: pretty; }
+
+.head { display: grid; gap: 18px; margin-bottom: clamp(36px, 5vw, 64px); }
+.headSplit { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px 64px; align-items: end; }
+
+.ctas { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(100% - 10px) / 0% 1.5px;
+  transition: background-size 0.35s var(--out);
+}
+.textLink:hover { background-size: 100% 1.5px; }
+.textLink span { transition: transform 0.25s var(--out); }
+.textLink:hover span { transform: translateX(3px); }
+
+/* Buttons on a dark band: white, never the decorative colour. */
+.btnLight { background: #fff; border-color: #fff; color: var(--ink); }
+.btnLight:hover { background: #f1f4ef; }
+.btnGhostLight { background: transparent; border-color: rgba(255, 255, 255, 0.32); color: #fff; }
+.btnGhostLight:hover { background: rgba(255, 255, 255, 0.08); }
+
+/* ── Sub-page hero ───────────────────────────────────────── */
+.pageHero { padding: clamp(56px, 8vw, 112px) 0 clamp(40px, 6vw, 80px); position: relative; }
+.pageHeroGrid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 40px 72px; align-items: center; }
+.pageHeroText { display: grid; gap: 22px; align-content: start; }
+.pageTitle {
+  font-size: clamp(42px, 6vw, 84px);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  text-wrap: balance;
+}
+.pageTitle em { font-style: normal; color: var(--primary); }
+.pageHeroArt { position: relative; }
+
+/* Masked line rise (hero-entrance.md), shared by every page title. */
+.ln { display: block; overflow: hidden; padding: 0 0.12em 0.1em 0; margin-bottom: -0.1em; }
+.ln > span { display: inline-block; animation: rise 1s cubic-bezier(0.2, 0.75, 0.15, 1) both; animation-delay: calc(var(--i, 0) * 0.12s); }
+.fade { animation: fadeUp 0.8s var(--d, 0s) cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes rise { from { transform: translateY(108%) rotate(2deg); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } }
+
+/* ── CTA band (call-to-action/one, on the canopy band) ───── */
+.cta { padding: clamp(24px, 4vw, 48px) 0 clamp(72px, 9vw, 120px); }
+.ctaCard {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 32px;
+  background: var(--band);
+  color: #fff;
+  padding: clamp(44px, 7vw, 96px) clamp(24px, 6vw, 88px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 32px 56px;
+  align-items: end;
+}
+.ctaCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60% 90% at 100% 0%, rgba(111, 191, 144, 0.28), transparent 60%),
+    radial-gradient(40% 60% at 0% 100%, rgba(217, 169, 60, 0.12), transparent 70%);
+}
+.ctaCard::after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  bottom: -90px;
+  width: 340px;
+  aspect-ratio: 1;
+  z-index: -1;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 40px rgba(255, 255, 255, 0.02), 0 0 0 80px rgba(255, 255, 255, 0.015);
+}
+.ctaTitle { color: #fff; font-size: clamp(34px, 4.6vw, 60px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 500; text-wrap: balance; }
+.ctaText { color: rgba(255, 255, 255, 0.78); font-size: 17px; line-height: 1.6; margin-top: 18px; max-width: 46ch; }
+.ctaActions { display: grid; gap: 12px; justify-items: start; }
+.ctaActions .ctas { justify-content: flex-start; }
+.ctaNote { font-size: 13px; color: rgba(255, 255, 255, 0.62); }
+
+/* ── Cards ───────────────────────────────────────────────── */
+.paper {
+  position: relative;
+  background: var(--paper);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+.spot { isolation: isolate; overflow: hidden; }
+.spot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(360px 260px at var(--mx, -999px) var(--my, -999px), rgba(44, 138, 87, 0.09), transparent 70%);
+}
+.lifted { transition: transform 0.35s var(--out), box-shadow 0.35s var(--out); }
+.lifted:hover { transform: translateY(-4px); box-shadow: var(--shadow-hi); }
+
+.illo { position: relative; width: 112px; aspect-ratio: 1; border-radius: 26px; overflow: hidden; background: #efeee6; flex: none; }
+.illo img { object-fit: contain; }
+
+.check {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: var(--verified-soft);
+  color: var(--verified);
+  font-size: 13px;
+  font-weight: 800;
+}
+.dash { background: #ecebe5; color: var(--ink-2); }
+
+.numberList { list-style: none; margin: 0; padding: 0; counter-reset: n; display: grid; }
+
+@media (max-width: 960px) {
+  .headSplit, .pageHeroGrid, .ctaCard { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .ctas > a { flex: 1 1 auto; }
+  .ctaCard { border-radius: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ln > span, .fade { animation: none; }
+}
