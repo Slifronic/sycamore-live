@@ -384,3 +384,16 @@ export async function shareRecord(volunteerId: string, recordId: string): Promis
   if (!code) throw new VolError('Couldn’t make a link just now. Try again.', 503);
   return { code, url: `${appUrl()}/v/${code}` };
 }
+
+// ---------- leave-the-area check (opt-in) ----------
+
+/** Whether this check-in can offer the leave-the-area toggle (the coordinator set a site) and whether it's on. */
+export async function leaveCheck(volunteerId: string, attendanceId: string): Promise<{ available: boolean; opted_in: boolean }> {
+  if (!isUuid(attendanceId)) return { available: false, opted_in: false };
+  const [r] = (await sql`
+    select a.location_opt_in, e.site_lat, e.site_lng from attendance a join event e on e.id = a.event_id
+    where a.id = ${attendanceId} and a.volunteer_id = ${volunteerId} and a.status = 'checked_in'`) as unknown as {
+    location_opt_in: boolean; site_lat: number | null; site_lng: number | null;
+  }[];
+  return { available: !!r && r.site_lat != null && r.site_lng != null, opted_in: !!r?.location_opt_in };
+}

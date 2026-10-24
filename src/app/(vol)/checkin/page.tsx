@@ -1,4 +1,4 @@
-import { activeSession, checkinState, eventByCheckinCode, normalizeCheckinCode, requireVolunteer } from '@/lib/vol-data';
+import { activeSession, checkinState, eventByCheckinCode, leaveCheck, normalizeCheckinCode, requireVolunteer } from '@/lib/vol-data';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { CheckinForm, LiveSession } from './CheckinClient';
@@ -15,6 +15,7 @@ export default async function CheckinPage({ searchParams }: PageProps<'/checkin'
   const active = await activeSession(vol.id);
 
   if (active) {
+    const leave = await leaveCheck(vol.id, active.id);
     return (
       <div className={s.narrow}>
         <PageHeader
@@ -22,7 +23,7 @@ export default async function CheckinPage({ searchParams }: PageProps<'/checkin'
           title={active.event.title}
           lede={`${fmtDay(active.event.starts_at)} · ${fmtTime(active.event.starts_at)} to ${fmtTime(active.event.ends_at)}${active.event.location ? ` · ${active.event.location}` : ''}`}
         />
-        <LiveSession session={active} name={vol.name} isMinor={vol.is_minor} />
+        <LiveSession session={active} name={vol.name} isMinor={vol.is_minor} leave={leave} />
       </div>
     );
   }
