@@ -58,7 +58,7 @@ export default async function BadgeVerifyPage({ params }: PageProps<'/v/b/[code]
             </div>
           </dl>
           <p className={s.wording}>
-            <strong>{b.org.name}</strong> recognizes <strong>{b.volunteer_name}</strong> with the <strong>{b.def.name}</strong> badge, for {b.def.skills.toLowerCase()}.
+            <strong>{b.org.name}</strong> recognizes <strong>{b.volunteer_name}</strong> with the <strong>{b.def.name}</strong> badge for meeting its rule in the attested record.
           </p>
           {b.evidence_note && (
             <p className={s.wording}>

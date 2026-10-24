@@ -97,8 +97,8 @@ export default async function HourLetter({ params }: PageProps<'/org/volunteers/
 
         {badges.length > 0 && (
           <p className="small">
-            <strong>Skills recognized:</strong>{' '}
-            {badges.map((b) => `${badgeByKey[b.badge].name} (${badgeByKey[b.badge].skills.toLowerCase()})`).join('; ')}.
+            <strong>Badges signed:</strong>{' '}
+            {badges.map((b) => `${badgeByKey[b.badge].name} (rule: ${badgeByKey[b.badge].rule.charAt(0).toLowerCase()}${badgeByKey[b.badge].rule.slice(1)})`).join('; ')}.
           </p>
         )}
 

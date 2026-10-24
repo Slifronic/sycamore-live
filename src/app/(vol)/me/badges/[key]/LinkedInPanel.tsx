@@ -7,17 +7,22 @@ import { CopyField } from '@/components/events/CopyField';
 // verification link, and the Licenses & certifications fields to copy. Nothing
 // is posted for the volunteer; LinkedIn opens and they publish it themselves.
 // Only shown to adults, and only once the badge has a real verification link.
+// The suggested post states facts only (role, organization, attested hours,
+// dates, who signed): no skill claims SycaMore can't verify.
 
 const monthYear = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'long', year: 'numeric' });
 const longDay = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'long', day: 'numeric', year: 'numeric' });
 
 export function LinkedInPanel(p: {
   badgeName: string;
-  skills: string;
+  roles: string[]; // roles held at the issuer's attested events, e.g. ["Team lead", "General volunteer"]
+  events: number;
+  hours: string; // already formatted
+  firstDate: string | null; // ISO, first attested event with the issuer
+  lastDate: string | null;
   orgName: string;
   signer: string;
   signedAt: string;
-  evidence: string | null;
   url: string | null;
   code: string | null;
 }) {
@@ -25,8 +30,10 @@ export function LinkedInPanel(p: {
   const [tab, setTab] = useState<'post' | 'profile'>('post');
   const initial = p.url
     ? [
-        `I was awarded the ${p.badgeName} badge by ${p.orgName}, for ${p.skills.toLowerCase()}. ${p.signer} signed it on ${longDay(p.signedAt)}.`,
-        p.evidence ? `From the coordinator: “${p.evidence}”` : null,
+        `${p.orgName} signed my ${p.badgeName} badge on ${longDay(p.signedAt)} (signed by ${p.signer}).`,
+        `It rests on ${p.events} attested ${p.events === 1 ? 'event' : 'events'} and ${p.hours} attested hours with ${p.orgName}${
+          p.firstDate && p.lastDate ? (monthYear(p.firstDate) === monthYear(p.lastDate) ? ` in ${monthYear(p.firstDate)}` : `, ${monthYear(p.firstDate)} to ${monthYear(p.lastDate)}`) : ''
+        }${p.roles.length ? `, as ${p.roles.join(' and ').toLowerCase()}` : ''}.`,
         `Anyone can check it here: ${p.url}`,
       ]
         .filter(Boolean)

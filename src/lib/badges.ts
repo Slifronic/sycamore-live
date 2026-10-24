@@ -2,7 +2,9 @@ import type { Activity, Role } from './types';
 
 // Badges from the team's pitch doc (Timothy's badge set), cut to the ones an
 // organization can check from attested data. A badge never issues itself:
-// the system finds who is ready, and a coordinator signs it off.
+// the system finds who is ready, and a coordinator signs it off. No skill
+// claims: a badge says which rule the attested record met, who signed it and
+// (where asked) what the coordinator saw, nothing about skills SycaMore can't verify.
 
 export type BadgeKey = 'team_leadership' | 'event_coordination' | 'urban_canopy' | 'resource_logistics';
 
@@ -12,7 +14,6 @@ export type BadgeTarget = { label: string; unit: 'events' | 'hours'; need: numbe
 export type BadgeDef = {
   key: BadgeKey;
   name: string;
-  skills: string;
   rule: string;
   needsNote: string | null; // evidence the coordinator writes when signing
   targets: BadgeTarget[]; // the rule, as numbers; progress is the weakest part
@@ -56,7 +57,6 @@ export const BADGES: BadgeDef[] = ([
   {
     key: 'team_leadership',
     name: 'Team Leadership',
-    skills: 'Leading a crew, delegating, keeping people safe',
     rule: 'Team lead at 3+ events, 9+ attested hours in that role',
     needsNote: null,
     targets: [
@@ -67,7 +67,6 @@ export const BADGES: BadgeDef[] = ([
   {
     key: 'event_coordination',
     name: 'Event Coordination',
-    skills: 'Planning, logistics on the day, running check-in',
     rule: 'Event coordinator or program manager at 2+ events, 6+ hours',
     needsNote: null,
     targets: [
@@ -78,7 +77,6 @@ export const BADGES: BadgeDef[] = ([
   {
     key: 'urban_canopy',
     name: 'Urban Canopy Practitioner',
-    skills: 'Field technique, environmental stewardship',
     rule: '10+ attested hours of tree planting or restoration across 3+ events',
     needsNote: 'Planting or bracing technique you saw them use',
     targets: [
@@ -89,7 +87,6 @@ export const BADGES: BadgeDef[] = ([
   {
     key: 'resource_logistics',
     name: 'Resource Logistics Organizer',
-    skills: 'Organizational planning, inventory',
     rule: '15+ attested hours of sorting or logistics across 2+ events',
     needsNote: 'The system they set up (e.g. a color-coded donation shelf)',
     targets: [

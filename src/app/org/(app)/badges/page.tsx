@@ -14,7 +14,7 @@ export default async function BadgesPage() {
       <PageHeader
         eyebrow={`People · ${ins.badgeReady.length} ready to sign`}
         title="Badges"
-        lede="Skills a volunteer built with you. SycaMore checks the rules from verified hours and roles; a badge only counts once you sign it. Signed badges go on a resume, LinkedIn or a college application."
+        lede="A badge records that a volunteer met a rule in your verified hours and roles. SycaMore finds who meets each rule; a badge only counts once you sign it, with your note where the badge asks for one."
       />
 
       <section className="stack">
@@ -77,7 +77,6 @@ export default async function BadgesPage() {
           {BADGES.map((b) => (
             <div key={b.key} className="card card-pad stack" style={{ gap: 6 }}>
               <h3>{b.name}</h3>
-              <p className="small muted">{b.skills}</p>
               <p className="small">
                 <strong>Rule:</strong> {b.rule}
                 {b.needsNote ? `, plus your note: ${b.needsNote.toLowerCase()}` : ''}

@@ -28,7 +28,7 @@ export type OrgProgress = {
 };
 
 export type VolBadge = {
-  def: Pick<BadgeDef, 'key' | 'name' | 'skills' | 'rule' | 'needsNote'>;
+  def: Pick<BadgeDef, 'key' | 'name' | 'rule' | 'needsNote'>;
   // signed: an org signed it. ready: meets an org's rule, waiting for sign-off.
   // progress: some attested work counts toward it. locked: nothing yet.
   state: 'signed' | 'ready' | 'progress' | 'locked';
@@ -91,7 +91,7 @@ export async function volunteerBadges(volunteerId: string): Promise<VolBadge[]> 
     // Once signed somewhere, show progress with an org that hasn't signed it yet (if any).
     const best = all.find((p) => !mine.some((a) => a.org.id === p.org.id)) ?? all[0] ?? null;
     const state: VolBadge['state'] = mine.length ? 'signed' : best && best.progress >= 1 ? 'ready' : best && best.progress > 0 ? 'progress' : 'locked';
-    return { def: { key: def.key, name: def.name, skills: def.skills, rule: def.rule, needsNote: def.needsNote }, state, awards: mine, best };
+    return { def: { key: def.key, name: def.name, rule: def.rule, needsNote: def.needsNote }, state, awards: mine, best };
   });
 }
 
@@ -130,7 +130,7 @@ export async function shareBadge(volunteerId: string, awardId: string): Promise<
 
 export const badgeUrl = (code: string) => `${appUrl()}/v/b/${code}`;
 
-export type PublicBadge = BadgeAward & { volunteer_name: string; def: Pick<BadgeDef, 'key' | 'name' | 'skills' | 'rule'> };
+export type PublicBadge = BadgeAward & { volunteer_name: string; def: Pick<BadgeDef, 'key' | 'name' | 'rule'> };
 
 /** Public lookup for /v/b/<code>: only badges the volunteer chose to share have a code. */
 export async function badgeByCode(raw: string): Promise<PublicBadge | null> {
@@ -143,5 +143,5 @@ export async function badgeByCode(raw: string): Promise<PublicBadge | null> {
     where b.code = ${code}`) as unknown as (AwardRow & { volunteer_name: string })[];
   if (!r) return null;
   const def = badgeByKey[r.badge];
-  return { ...toAward(r), volunteer_name: r.volunteer_name, def: { key: def.key, name: def.name, skills: def.skills, rule: def.rule } };
+  return { ...toAward(r), volunteer_name: r.volunteer_name, def: { key: def.key, name: def.name, rule: def.rule } };
 }

@@ -5,6 +5,7 @@ import { requireVolunteer, volunteerRecords } from '@/lib/vol-data';
 import { badgeUrl, volunteerBadge } from '@/lib/vol-badges';
 import { fmtHours } from '@/lib/hours';
 import { plural } from '@/lib/format';
+import { ROLE_LABEL } from '@/lib/types';
 import { PageHeader } from '@/components/PageHeader';
 import { BadgeEmblem } from '@/components/vol/BadgeEmblem';
 import { longDay, targetLine } from '@/components/vol/badge-format';
@@ -32,7 +33,7 @@ export default async function BadgeDetail({ params }: PageProps<'/me/badges/[key
         <Link href="/me/badges" className={`${s.link} no-print`}>
           ← All badges
         </Link>
-        <PageHeader eyebrow={b.state === 'ready' ? 'Ready for sign-off' : 'Your next milestone'} title={b.def.name} lede={b.def.skills} />
+        <PageHeader eyebrow={b.state === 'ready' ? 'Ready for sign-off' : 'Your next milestone'} title={b.def.name} lede={`The rule: ${b.def.rule}.`} />
         <div className={s.detail}>
           <section className={`card ${s.cert}`}>
             <div className={s.certHead}>
@@ -121,7 +122,7 @@ export default async function BadgeDetail({ params }: PageProps<'/me/badges/[key
             </div>
           </div>
           <p className={s.statement}>
-            <strong>{award.org.name}</strong> recognizes <strong>{vol.name}</strong> with the <strong>{b.def.name}</strong> badge, for {b.def.skills.toLowerCase()}. Signed by{' '}
+            <strong>{award.org.name}</strong> recognizes <strong>{vol.name}</strong> with the <strong>{b.def.name}</strong> badge for meeting its rule in the attested record. Signed by{' '}
             <strong>{award.signed_by}</strong> on <strong>{signed}</strong>.
           </p>
           {award.evidence_note ? (
@@ -173,11 +174,14 @@ export default async function BadgeDetail({ params }: PageProps<'/me/badges/[key
             <LinkedInPanel
               key={url ?? 'no-link'}
               badgeName={b.def.name}
-              skills={b.def.skills}
+              roles={[...new Set(records.map((r) => ROLE_LABEL[r.role]))]}
+              events={records.length}
+              hours={fmtHours(hours)}
+              firstDate={records.at(-1)?.starts_at ?? null}
+              lastDate={records[0]?.starts_at ?? null}
               orgName={award.org.name}
               signer={award.signed_by}
               signedAt={award.signed_at}
-              evidence={award.evidence_note}
               url={url}
               code={award.code}
             />
