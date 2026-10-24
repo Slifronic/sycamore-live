@@ -149,7 +149,12 @@ async function main() {
   // Open today, for live testing (code from the contract).
   let cleanup;
   {
-    const ev = await mkEvent({ title: 'Guadalupe River Cleanup', location: 'Guadalupe River Park', starts: at(0, 9), ends: at(0, 21), code: 'PLANT2', activity: 'planting', status: 'open', goalText: 'Clear two miles of riverbank' });
+    // 9 AM to 9 PM today, stretched so it is always on for a while after a
+    // reseed (a late-night reseed still gets a live event to check in to).
+    const quarter = 15 * 60_000;
+    const starts = new Date(Math.min(at(0, 9).getTime(), Math.floor((Date.now() - 3_600_000) / quarter) * quarter));
+    const ends = new Date(Math.max(at(0, 21).getTime(), Math.ceil((Date.now() + 4 * 3_600_000) / quarter) * quarter));
+    const ev = await mkEvent({ title: 'Guadalupe River Cleanup', location: 'Guadalupe River Park', starts, ends, code: 'PLANT2', activity: 'planting', status: 'open', goalText: 'Clear two miles of riverbank' });
     cleanup = { id: ev.id, crew: attendees[0].slice(3, 8) };
     for (const v of attendees[0].slice(3, 8)) {
       await sql`insert into attendance (event_id, volunteer_id, display_name, method, checked_in_at, status)
