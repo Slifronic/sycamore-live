@@ -50,6 +50,21 @@ This repo holds the **organization side** (Bryant, built with Claude). The volun
     - Publishing needs a verified event.
   - **Publishing:** the campaign goes to `/c/<slug>`; voice notes stay private. Media is stored on local disk in `.media/` (gitignored; set `MEDIA_DIR` to change it).
 
+## What the volunteer side does
+
+Same app, same theme: the volunteer pages live in `src/app/(vol)/` with a shell that mirrors the coordinator's (sidebar on desktop, bottom tabs on phones).
+
+- **`/join`:** name, email, birth date. Under 13 is refused and nothing is stored; 13 to 17 can join, but sharing needs a guardian's OK. An existing email signs back in only with its birth date. `?next=` brings them back (a QR scan lands on `/join?next=/checkin?code=…`).
+- **`/checkin`:** the event QR (`/checkin?code=<checkin_code>`) or the 6 typed characters; check-in opens 2 hours before the start and closes 2 hours after the end, and practice events never match. Checked in, it's the live session card (shared with the walk-in page) with Check out.
+- **`/me`:** attested hours, events and organizations; a private personal goal (`volunteer.hours_goal`, filled only by attested hours); pending events as "Waiting for {org} to confirm" with no number; one card per record.
+- **`/me/records/[id]`:** the contract's record wording with captured vs adjusted and the reason, a share link (`SYC-XXXX-XXXX`, `crypto.randomInt`) with copy and QR, and print / save as PDF. Minors get "Sharing needs a guardian's OK", and the API returns 403.
+- **`/v/<code>`:** public, no cookie, not indexed: VERIFIED or REVOKED, the wording, and who to call. Unknown codes are a 404.
+- **`/me/messages`:** coordinator threads and event group chats, over the existing `/api/vol/messages` and `/api/vol/event-chats`.
+- **API:** `POST /api/vol/join`, `GET`/`PATCH /api/vol/me`, `POST /api/vol/checkin`, `GET /api/vol/records`, `POST /api/vol/records/:id/share`, `GET /api/v/:code` (logic in `src/lib/vol-data.ts`). The browser never sends hours.
+- **Next up (nav slots are in place, marked Soon):** badges, journey, LinkedIn, Discover/matching and the AI blurb. The prototype they come from is in `sycamore-volunteer-preview/`.
+
+Demo volunteers: `ana@example.test` / 2007-04-12 (adult, three attested records, one pending, one already shared at `/v/SYC-RVR7-PLNT`) and `jay@example.test` / 2010-02-03 (16, can't share).
+
 ## Run it
 
 Needs Node 22+ and PostgreSQL 16/17 running locally.
@@ -57,7 +72,7 @@ Needs Node 22+ and PostgreSQL 16/17 running locally.
 ```bash
 npm install
 cp .env.example .env.local   # or create it: see below
-npm run db:reset             # creates sycamore_live and loads the demo seed
+npm run db:reset             # creates the database in DATABASE_URL and loads the demo seed
 npm run dev -- -p 3311
 ```
 
