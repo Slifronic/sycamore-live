@@ -6,6 +6,7 @@ import { getEvent, getRoster } from '@/lib/org-data';
 import { ACTIVITY_LABEL } from '@/lib/types';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { EventDay } from './EventDay';
+import { sheetImportEnabled } from '@/lib/sheet-import';
 import { requestNow } from '@/lib/format';
 
 export default async function EventPage({ params, searchParams }: PageProps<'/org/events/[id]'>) {
@@ -53,7 +54,7 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
         practice={event.is_practice}
         verified={!!event.attested_at}
         initial={JSON.parse(JSON.stringify(roster))}
-        aiEnabled={!!process.env.ANTHROPIC_API_KEY}
+        aiEnabled={sheetImportEnabled()}
         eventDate={new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(event.starts_at)}
       />
     </div>

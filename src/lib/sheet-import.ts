@@ -31,17 +31,25 @@ const HHMM = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
 export class SheetImportError extends Error {}
 
+// The app's own credentials only. An ANTHROPIC_BASE_URL inherited from a
+// developer tool would silently reroute requests, so the host is pinned
+// unless SYCAMORE_ANTHROPIC_BASE_URL is set on purpose.
+export const sheetImportEnabled = () => !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
+
+function client() {
+  return new Anthropic({ baseURL: process.env.SYCAMORE_ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com' });
+}
+
 export async function draftFromSheet(
   image: { base64: string; mediaType: 'image/jpeg' | 'image/png' | 'image/webp' },
   event: { starts_at: Date; ends_at: Date },
 ): Promise<SheetDraft[]> {
-  if (!process.env.ANTHROPIC_API_KEY) throw new SheetImportError('Sheet import needs ANTHROPIC_API_KEY on the server.');
-  const client = new Anthropic();
+  if (!sheetImportEnabled()) throw new SheetImportError('Sheet import needs ANTHROPIC_API_KEY in .env.local.');
   const local = (d: Date) => d.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hour12: false });
 
   let response;
   try {
-    response = await client.messages.parse({
+    response = await client().messages.parse({
       model: 'claude-opus-5-5',
       max_tokens: 16000,
       output_config: { effort: 'medium', format: zodOutputFormat(Sheet) },
@@ -56,6 +64,7 @@ export async function draftFromSheet(
       ],
     });
   } catch (e) {
+    if (e instanceof Anthropic.AuthenticationError) throw new SheetImportError('The Anthropic API key was rejected. Check ANTHROPIC_API_KEY in .env.local.');
     if (e instanceof Anthropic.RateLimitError) throw new SheetImportError('Too many requests right now. Try again in a minute.');
     if (e instanceof Anthropic.APIError) throw new SheetImportError(`Couldn’t read the sheet (error ${e.status}). Try a clearer photo.`);
     throw e;

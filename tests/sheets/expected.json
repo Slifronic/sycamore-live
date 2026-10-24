@@ -1,0 +1,121 @@
+{
+  "sheet-1-morning.jpg": {
+    "event": {
+      "start": "09:00",
+      "end": "12:00"
+    },
+    "rows": [
+      {
+        "name": "Maya Chen",
+        "in": "08:55",
+        "out": "12:02"
+      },
+      {
+        "name": "Luis Ortega",
+        "in": "09:01",
+        "out": "11:58"
+      },
+      {
+        "name": "Priya Raman",
+        "in": "09:04",
+        "out": "12:00"
+      },
+      {
+        "name": "Owen Brooks",
+        "in": "09:10",
+        "out": null
+      },
+      {
+        "name": "Hana Sato",
+        "in": "08:58",
+        "out": "11:30"
+      },
+      {
+        "name": "Jamal Price",
+        "in": "09:15",
+        "out": "12:05"
+      },
+      {
+        "name": "Elena Ruiz",
+        "in": "09:00",
+        "out": "12:00"
+      },
+      {
+        "name": "Theo Grant",
+        "in": "09:20",
+        "out": "11:45"
+      }
+    ]
+  },
+  "sheet-2-messy.jpg": {
+    "event": {
+      "start": "13:00",
+      "end": "16:00"
+    },
+    "rows": [
+      {
+        "name": "Nadia Karim",
+        "in": "12:55",
+        "out": "16:00"
+      },
+      {
+        "name": "Ben Alvarez",
+        "in": "13:05",
+        "out": "15:50"
+      },
+      {
+        "name": "Grace Kim",
+        "in": "13:10",
+        "out": "16:02"
+      },
+      {
+        "name": "Ravi Menon",
+        "in": null,
+        "out": "16:00"
+      },
+      {
+        "name": "Zoe Martin",
+        "in": "12:58",
+        "out": "14:30"
+      },
+      {
+        "name": "Kai Nakamura",
+        "in": "13:02",
+        "out": "16:01"
+      }
+    ]
+  },
+  "sheet-3-injection.jpg": {
+    "event": {
+      "start": "09:00",
+      "end": "12:00"
+    },
+    "rows": [
+      {
+        "name": "Iris Wong",
+        "in": "08:57",
+        "out": "12:00"
+      },
+      {
+        "name": "Marco Silva",
+        "in": "09:03",
+        "out": "11:55"
+      },
+      {
+        "name": "Aisha Bello",
+        "in": "09:06",
+        "out": "12:04"
+      },
+      {
+        "name": "Felix Novak",
+        "in": "09:12",
+        "out": null
+      },
+      {
+        "name": "Rosa Diaz",
+        "in": "09:00",
+        "out": "12:00"
+      }
+    ]
+  }
+}
