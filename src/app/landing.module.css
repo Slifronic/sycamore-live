@@ -6,7 +6,7 @@
 .ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
 .doors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 8px; }
 .door { padding: 22px; display: grid; gap: 10px; align-content: start; }
-.door a:not(.btn) { color: var(--primary); font-weight: 600; }
+.door a:not(:global(.btn)) { color: var(--primary); font-weight: 600; }
 @media (max-width: 720px) {
   .doors { grid-template-columns: minmax(0, 1fr); }
 }
