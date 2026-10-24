@@ -14,7 +14,7 @@ export default async function LearnPage() {
     <div className="stack" style={{ gap: 24, maxWidth: 860 }}>
       <header className={s.head}>
         <div>
-          <p className={s.eyebrow}>Getting started course</p>
+          <p className="eyebrow eyebrow-sap">Help · getting started course</p>
           <h1>SycaMore in {minutes} minutes</h1>
           <p className="muted">
             Six short lessons. Each one opens the real screen and finishes itself when you do the thing, so there’s nothing to memorize. Use the practice

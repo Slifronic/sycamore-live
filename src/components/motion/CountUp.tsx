@@ -29,9 +29,17 @@ export function CountUp({
   const fmt = (n: number) =>
     prefix + n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
 
-  // Before first paint, show the starting number so there's no flash of the final one.
+  // Before first paint, show the starting number so there's no flash of the final
+  // one. Only for numbers already on screen: anything below the fold keeps its true
+  // value until it scrolls in, so print and quick scrolls never see a 0.
   useLayoutEffect(() => {
-    if (!reduce && ref.current && from !== value) ref.current.textContent = fmt(from);
+    const el = ref.current;
+    if (!reduce && el && from !== value && el.getBoundingClientRect().top < window.innerHeight) el.textContent = fmt(from);
+    const onPrint = () => {
+      if (ref.current) ref.current.textContent = fmt(value);
+    };
+    window.addEventListener('beforeprint', onPrint);
+    return () => window.removeEventListener('beforeprint', onPrint);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -53,9 +61,13 @@ export function CountUp({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inView, reduce, value]);
 
+  // Screen readers get the true value once; the moving digits are hidden from them.
   return (
-    <span ref={ref} className="num">
-      {fmt(value)}
+    <span className="num">
+      <span className="sr-only">{fmt(value)}</span>
+      <span ref={ref} aria-hidden>
+        {fmt(value)}
+      </span>
     </span>
   );
 }

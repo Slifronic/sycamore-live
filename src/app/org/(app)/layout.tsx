@@ -20,6 +20,9 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
 
   return (
     <div className={s.shell}>
+      <a className="skip no-print" href="#main">
+        Skip to content
+      </a>
       <aside className={`${s.side} no-print`}>
         <Link href="/org" className={s.brand}>
           <span className={s.leaf} aria-hidden>❦</span> SycaMore
@@ -53,7 +56,7 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
           <button className="btn btn-quiet btn-sm">Sign out</button>
         </form>
       </aside>
-      <main className={s.main}>
+      <main className={s.main} id="main" tabIndex={-1}>
         <Suspense>
           <CoachBar />
         </Suspense>

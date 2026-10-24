@@ -7,6 +7,8 @@ import { ROLE_LABEL } from '@/lib/types';
 import { ago, fmtDay, initials } from '@/lib/format';
 import { inviteBack, sayThanks } from '@/lib/mailto';
 import { requestNow } from '@/lib/format';
+import { PageHeader } from '@/components/PageHeader';
+import { Segmented } from '@/components/Segmented';
 
 const TABS = [
   { key: 'all', label: 'Everyone' },
@@ -32,28 +34,39 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
   const counts = Object.fromEntries(TABS.map((t) => [t.key, t.key === 'all' ? ins.volunteers.length : ins.volunteers.filter((v) => v.status === t.key).length]));
 
   return (
-    <div className="stack" style={{ gap: 20, maxWidth: 1120 }}>
-      <header className="row between wrap">
-        <div>
-          <h1>Volunteers</h1>
-          <p className="muted">Everyone with verified hours. Built from your events; you never type anyone in.</p>
-        </div>
-        <a className="btn" href="/api/org/reports/csv">
-          Download hours (CSV)
-        </a>
-      </header>
+    <div className="page" style={{ gap: 20 }}>
+      <PageHeader
+        eyebrow={`People · ${ins.volunteers.length.toLocaleString()} with verified hours`}
+        title="Volunteers"
+        lede="Built from your events; you never type anyone in."
+        action={
+          <a className="btn" href="/api/org/reports/csv">
+            Download hours (CSV)
+          </a>
+        }
+      />
 
-      <div className="row between wrap">
-        <nav className="row wrap" style={{ gap: 6 }} aria-label="Filter">
-          {TABS.map((t) => (
-            <Link key={t.key} href={`/org/volunteers?tab=${t.key}`} className={`btn btn-sm ${tab === t.key ? 'btn-primary' : ''}`}>
-              {t.label} <span style={{ opacity: 0.7 }}>{counts[t.key]}</span>
-            </Link>
-          ))}
-        </nav>
-        <form className="row">
+      <div className="row between wrap" style={{ alignItems: 'end' }}>
+        <Segmented
+          id="volunteers"
+          label="Filter volunteers"
+          className="seg-tiles"
+          items={TABS.map((t) => ({
+            href: `/org/volunteers?tab=${t.key}`,
+            on: tab === t.key,
+            label: (
+              <>
+                <span className="figure" style={{ fontSize: 24, color: t.key === 'slipping' && counts[t.key] > 0 ? 'var(--amber)' : undefined }}>
+                  {counts[t.key]}
+                </span>
+                <span className="eyebrow" style={{ fontSize: 10.5 }}>{t.label}</span>
+              </>
+            ),
+          }))}
+        />
+        <form className="row" role="search">
           <input type="hidden" name="tab" value={tab} />
-          <input className="input" style={{ height: 36, width: 220 }} name="q" defaultValue={q} placeholder="Find a name" aria-label="Find a name" />
+          <input className="input" style={{ height: 40, width: 220 }} name="q" defaultValue={q} placeholder="Find a name" aria-label="Find a name" />
         </form>
       </div>
       {tab === 'slipping' && (
@@ -66,11 +79,12 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
         <table className="t tight">
           <thead>
             <tr>
-              <th>Volunteer</th>
-              <th>Served</th>
-              <th>Last came</th>
-              <th>Badges</th>
-              <th />
+              <th scope="col">Volunteer</th>
+              <th scope="col">Served</th>
+              <th scope="col">Last came</th>
+              <th scope="col">
+                <span className="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -88,6 +102,20 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                         <span className="small muted">
                           {ROLE_LABEL[v.topRole]} · since {fmtDay(v.first_seen)}
                         </span>
+                        {(v.badgesEarned.length > 0 || v.badgesReady.length > 0) && (
+                          <span className="row wrap" style={{ gap: 4, marginTop: 4 }}>
+                            {v.badgesEarned.map((b) => (
+                              <span key={b} className="chip chip-green" style={{ height: 20, fontSize: 11 }}>
+                                {badgeByKey[b].name}
+                              </span>
+                            ))}
+                            {v.badgesReady.length > 0 && (
+                              <Link href="/org/badges" className="chip chip-amber" style={{ height: 20, fontSize: 11 }}>
+                                {v.badgesReady.length} ready to sign
+                              </Link>
+                            )}
+                          </span>
+                        )}
                       </span>
                     </span>
                   </td>
@@ -111,27 +139,10 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                       </>
                     )}
                   </td>
-                  <td className="small">
-                    {v.badgesEarned.map((b) => (
-                      <span key={b} className="chip chip-green" style={{ margin: '0 4px 4px 0' }}>
-                        {badgeByKey[b].name}
-                      </span>
-                    ))}
-                    {v.badgesReady.length > 0 && (
-                      <Link href="/org/badges" className="chip chip-amber">
-                        {v.badgesReady.length} ready to sign
-                      </Link>
-                    )}
-                  </td>
                   <td>
-                    <div style={{ display: 'grid', gap: 6, justifyItems: 'end' }}>
-                    {v.volunteer_id && (
-                      <Link className="btn btn-sm" href={`/org/volunteers/${v.volunteer_id}/letter`}>
-                        Hour letter
-                      </Link>
-                    )}
+                    <div className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
                     {email && v.status === 'slipping' ? (
-                      <a className="btn btn-sm btn-primary" href={inviteBack(org, v.name, email, next)}>
+                      <a className="btn btn-sm" href={inviteBack(org, v.name, email, next)}>
                         Invite back
                       </a>
                     ) : email && v.status === 'new' ? (
@@ -139,6 +150,11 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                         Say thanks
                       </a>
                     ) : null}
+                    {v.volunteer_id && (
+                      <Link className="btn btn-sm btn-quiet" href={`/org/volunteers/${v.volunteer_id}/letter`}>
+                        Hour letter
+                      </Link>
+                    )}
                     </div>
                   </td>
                 </tr>
@@ -146,7 +162,7 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
             })}
             {list.length === 0 && (
               <tr>
-                <td colSpan={5} className="muted">
+                <td colSpan={4} className="muted">
                   {ins.volunteers.length === 0 ? 'Volunteers appear here after your first verified event.' : 'Nobody matches.'}
                 </td>
               </tr>

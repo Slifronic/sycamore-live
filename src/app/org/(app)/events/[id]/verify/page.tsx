@@ -4,8 +4,10 @@ import { requireOrg } from '@/lib/session';
 import { getEvent, getRoster } from '@/lib/org-data';
 import { loadOrgInsights, tierFor } from '@/lib/insights';
 import { Gauge } from '@/components/motion/Gauge';
-import { CountUp } from '@/components/motion/CountUp';
-import { fmtDay } from '@/lib/format';
+import { ago, fmtDay, requestNow } from '@/lib/format';
+import { PageHeader } from '@/components/PageHeader';
+import { tierClass } from '@/components/TierChip';
+import { FocusOnMount } from './FocusOnMount';
 import { VerifyConsole } from './VerifyConsole';
 import s from './verify.module.css';
 
@@ -28,9 +30,10 @@ export default async function VerifyPage({ params, searchParams }: PageProps<'/o
     return (
       <section className={`card ${s.done}`} style={{ maxWidth: 760 }}>
         <p className={s.check} aria-hidden>✓</p>
-        <h1>
-          <CountUp value={issued} duration={0.8} /> hour records issued
+        <h1 id="done-title" tabIndex={-1}>
+          {issued} hour records issued
         </h1>
+        <FocusOnMount id="done-title" />
         <p className="muted">
           {event.is_practice
             ? 'That’s the whole loop. On a real event, every volunteer could now share their record from their phone.'
@@ -40,14 +43,14 @@ export default async function VerifyPage({ params, searchParams }: PageProps<'/o
           <div className={s.celebrate}>
             <Gauge value={ins.index.score} from={from ?? ins.index.score} size={176} />
             <div className={s.celebrateText}>
-              <p className="eyebrow" style={{ color: 'var(--sap)' }}>Your SycaMore Index</p>
+              <p className="eyebrow eyebrow-sap">Your SycaMore Index</p>
               {moved ? (
                 <p className={s.tierMove}>
-                  <span className={s.tierOld}>★ {before}</span> → <span className={`chip chip-gold ${s.tierPulse}`}>★ {ins.index.tier} certified</span>
+                  <span className={s.tierOld}>★ {before}</span> → <span className={`chip ${tierClass(ins.index.tier)} ${s.tierPulse}`}>★ {ins.index.tier} certified</span>
                 </p>
               ) : (
                 <p className={s.tierMove}>
-                  <span className="chip chip-gold">★ {ins.index.tier}</span>
+                  <span className={`chip ${tierClass(ins.index.tier)}`}>★ {ins.index.tier}</span>
                 </p>
               )}
               <p className="small muted">
@@ -77,17 +80,20 @@ export default async function VerifyPage({ params, searchParams }: PageProps<'/o
   const before = (await loadOrgInsights(org.id)).index.score;
 
   return (
-    <div className="stack" style={{ gap: 20, maxWidth: 1120 }}>
-      <header>
-        <p className="small muted">
-          <Link href="/org/events">Events</Link> / <Link href={`/org/events/${id}`}>{event.title}</Link>
-        </p>
-        <h1>Verify {event.title}</h1>
-        <p className="muted">
-          {fmtDay(event.starts_at)} · {roster.length} people. Hours are filled in from the scans. Set roles, star anyone who stood out, then verify.
-          This replaces signing hour letters.
-        </p>
-      </header>
+    <div className="page" style={{ gap: 20 }}>
+      <PageHeader
+        eyebrow={
+          <span className="row wrap" style={{ gap: 8 }}>
+            <span className="chip chip-amber" style={{ letterSpacing: 0, textTransform: 'none' }}>
+              Needs verification
+            </span>
+            <Link href={`/org/events/${id}`}>{fmtDay(event.starts_at)}</Link>
+            {new Date(event.ends_at).getTime() < requestNow() ? <span>· ended {ago(event.ends_at)}</span> : null}
+          </span>
+        }
+        title={`Verify ${event.title}`}
+        lede={`${roster.length} people. Hours are filled in from the scans: answer the goal question, set roles, star anyone who stood out, then verify. This replaces signing hour letters.`}
+      />
       <VerifyConsole eventId={id} before={before} goalText={event.goal_text} signer={`${org.coordinator_name}, ${org.name}`} endsAt={new Date(event.ends_at).toISOString()} initial={JSON.parse(JSON.stringify(roster))} />
     </div>
   );

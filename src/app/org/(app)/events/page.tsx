@@ -4,6 +4,7 @@ import { sql } from '@/lib/db';
 import { ACTIVITY_LABEL, type EventRow } from '@/lib/types';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { requestNow } from '@/lib/format';
+import { PageHeader } from '@/components/PageHeader';
 
 type Row = EventRow & { people: number; hours: number };
 
@@ -20,26 +21,29 @@ export default async function EventsPage() {
   const now = requestNow();
 
   return (
-    <div className="stack" style={{ gap: 20, maxWidth: 1120 }}>
-      <header className="row between wrap">
-        <div>
-          <h1>Events</h1>
-          <p className="muted">Create one, show the QR code on the day, verify it when it ends.</p>
-        </div>
-        <Link className="btn btn-primary btn-big" href="/org/events/new">
-          + New event
-        </Link>
-      </header>
+    <div className="page" style={{ gap: 20 }}>
+      <PageHeader
+        eyebrow="Run events"
+        title="Events"
+        lede="Create one, show the QR code on the day, verify it when it ends."
+        action={
+          <Link className="btn btn-primary btn-big" href="/org/events/new">
+            + New event
+          </Link>
+        }
+      />
       <div className="card" style={{ overflowX: 'auto' }}>
         <table className="t">
           <thead>
             <tr>
-              <th>Event</th>
-              <th>When</th>
-              <th>People</th>
-              <th>Hours</th>
-              <th>Status</th>
-              <th />
+              <th scope="col">Event</th>
+              <th scope="col">When</th>
+              <th scope="col">People</th>
+              <th scope="col">Hours</th>
+              <th scope="col">Status</th>
+              <th scope="col">
+                <span className="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody>

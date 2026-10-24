@@ -67,3 +67,13 @@ The reel itself has no in-UI motion; these are layout ideas only, translated int
 - Muted secondary figures ("/ 100", units) at ~60% size in a lighter tone.
 - Fat pill progress bars with the percentage inside, for the course and "almost there" badges.
 - Grouped sidebar navigation with small section labels.
+
+## Round 2 decisions (design critique + accessibility audit)
+
+- One page header everywhere (`PageHeader`): eyebrow, title, a lede capped at 62ch, the action on the right. Page width is `--page-max` (1160px).
+- Butter is for Gold/Platinum and "needs you" only. Silver and Bronze use the neutral `chip-silver`.
+- Choices among a few options are segmented controls (`Segmented`) whose white pill slides (spring 380/32). Only the page's main action is ink.
+- The check-in path holds still: new roster rows get a static sap marker until the next poll (no flash), no hover lifts, and the headcount doesn't tick. The full-screen QR is a native modal `<dialog>`.
+- Verify: the goal question sits above the table; every blocker in the sticky bar is a button that jumps to the control that fixes it.
+- Count-ups keep the true value for screen readers and print; the gauge and bars fill only once on screen; bars animate `scaleX`, not width.
+- Text tokens pass WCAG AA: `--field` is #6f6d63, focus rings are 2px `--primary`, and controls are at least 44px on touch screens.

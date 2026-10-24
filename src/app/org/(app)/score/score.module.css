@@ -1,0 +1,14 @@
+.top { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.focus { padding: 22px 24px; display: grid; gap: 10px; background: #fffcf3; box-shadow: 0 0 0 1.5px #ecd59a, 0 10px 24px -16px rgba(107, 76, 7, 0.25); }
+.focusFig { display: flex; align-items: baseline; gap: 4px; }
+.formula { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.term { display: inline-flex; align-items: center; gap: 10px; }
+.op { font-family: var(--font-display), Georgia, serif; font-size: 24px; color: var(--ink-3); }
+.tile { display: grid; gap: 2px; padding: 10px 14px; border-radius: 12px; background: var(--primary-soft); min-width: 120px; }
+.times { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.tileLabel { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.total { background: var(--band); min-width: 90px; }
+.tiers { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 960px) {
+  .top { grid-template-columns: minmax(0, 1fr); }
+}

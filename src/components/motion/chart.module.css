@@ -3,6 +3,6 @@
 .bar { display: block; width: min(38px, 70%); border-radius: 10px 10px 4px 4px; background: linear-gradient(180deg, #6fbf90, #1f6e45); opacity: 0.85; transition: opacity 0.16s var(--ease); }
 .col:hover .bar, .on .bar { opacity: 1; }
 .col:focus-visible { outline: none; }
-.col:focus-visible .bar { outline: 3px solid #8cc2a2; outline-offset: 2px; }
+.col:focus-visible .bar { outline: 2px solid var(--primary); outline-offset: 2px; }
 .x { position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--field); white-space: nowrap; }
 .pill { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); white-space: nowrap; background: var(--ink); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; z-index: 2; pointer-events: none; }

@@ -6,16 +6,19 @@ import s from './index-card.module.css';
 export function IndexCard({ index, full = false, from }: { index: IndexResult; full?: boolean; from?: number }) {
   const score = index.score;
   const certified = score != null && index.tier !== 'Building';
+  const gold = index.tier === 'Gold' || index.tier === 'Platinum';
+  const scored = index.parts.filter((p) => p.score != null);
+  const lowest = scored.length > 1 ? scored.reduce((a, b) => ((b.score ?? 0) < (a.score ?? 0) ? b : a)).key : null;
   return (
     <section className={`card ${s.card}`}>
       <div className={s.top}>
         <Gauge value={score} from={from ?? 0} size={full ? 184 : 156} />
         <div className={s.head}>
-          <p className="eyebrow" style={{ color: 'var(--sap)' }}>SycaMore Index</p>
+          <p className="eyebrow eyebrow-sap">SycaMore Index</p>
           {score == null ? (
             <p className={s.tierNone}>Verify 3 events to get your score</p>
           ) : (
-            <p className={`${s.tier} ${certified ? s.tierGold : ''}`}>
+            <p className={`${s.tier} ${certified ? (gold ? s.tierGold : s.tierSilver) : ''}`}>
               ★ {index.tier}
               {certified ? ' certified' : ''}
             </p>
@@ -37,8 +40,9 @@ export function IndexCard({ index, full = false, from }: { index: IndexResult; f
             <div className="row between">
               <span className={s.partLabel}>
                 {p.label} <span className={s.weight}>×{p.weight.toFixed(2)}</span>
+                {full && p.key === lowest && <span className="chip chip-amber" style={{ marginLeft: 8, height: 20, fontSize: 11 }}>Lowest</span>}
               </span>
-              <strong className="num">{p.score ?? '—'}</strong>
+              <span className={`figure ${s.partScore}`}>{p.score ?? '—'}</span>
             </div>
             <GrowBar value={p.score} index={i} />
             {full && (

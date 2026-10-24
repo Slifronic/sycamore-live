@@ -6,6 +6,7 @@ import { badgeByKey } from '@/lib/badges';
 import { HOUR_RATES, money, rateKeyFor } from '@/lib/value';
 import { ago, fmtDay, plural } from './util';
 import { IndexCard } from '@/components/IndexCard';
+import { PageHeader } from '@/components/PageHeader';
 import { CountUp } from '@/components/motion/CountUp';
 import { Sparkline } from '@/components/motion/Sparkline';
 import { HoursChart } from '@/components/motion/HoursChart';
@@ -48,21 +49,20 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
 
   return (
     <div className={s.page}>
-      <header className={s.header}>
-        <div>
-          <p className="eyebrow">{today}</p>
-          <h1>
-            {greet}, {org.coordinator_name.split(' ')[0]}
-          </h1>
-          <p className="muted">{needs === 0 ? 'Nothing needs you right now.' : `${plural(needs, 'thing')} need${needs === 1 ? 's' : ''} you today.`}</p>
-        </div>
-        <Link className="btn btn-primary btn-big" href="/org/events/new">
-          + New event
-        </Link>
-      </header>
+      <PageHeader
+        className={s.header}
+        eyebrow={today}
+        title={`${greet}, ${org.coordinator_name.split(' ')[0]}`}
+        lede={needs === 0 ? 'Nothing needs you right now.' : `${plural(needs, 'thing')} need${needs === 1 ? 's' : ''} you today.`}
+        action={
+          <Link className="btn btn-primary btn-big" href="/org/events/new">
+            + New event
+          </Link>
+        }
+      />
 
       {welcome && (
-        <div className="notice notice-green">
+        <div className={`notice notice-green ${s.welcome}`}>
           <strong>You’re set up.</strong> Your sign-in PIN is <strong className="num">{org.coordinator_pin}</strong>. Write it down; that’s the only
           thing to remember. We made a practice event so you can try everything without real volunteers.
         </div>
@@ -77,6 +77,7 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
           value={ins.totals.verifiedEvents}
           sub={ins.awaiting.length ? `${ins.awaiting.length} waiting for you` : 'all caught up'}
           warn={ins.awaiting.length > 0}
+          spark={ins.series.map((_, i) => i + 1)}
           delay={0.16}
         />
         <Kpi label="Value of volunteer time" value={value} prefix="$" sub={`at ${money(hourRate.usd)}/hr (${hourRate.label})`} spark={valueRun} delay={0.24} />
@@ -85,16 +86,19 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
       {!course.complete && course.next && (
         <section className={`card ${s.lesson}`}>
           <div>
-            <p className="eyebrow" style={{ color: 'var(--sap)' }}>
+            <p className="eyebrow eyebrow-sap">
               Lesson {LESSONS.indexOf(course.next) + 1} of {course.total} · {course.next.minutes} min
             </p>
             <h2>{course.next.title}</h2>
             <p className="muted">{course.next.why}</p>
           </div>
           <div className={s.lessonSide}>
-            <div className={s.fat} aria-label={`${course.done} of ${course.total} lessons done`}>
-              <span style={{ width: `${Math.max(12, (100 * course.done) / course.total)}%` }}>
-                {course.done}/{course.total}
+            <div className={s.progress}>
+              <div className={s.fat} role="progressbar" aria-label="Lessons done" aria-valuemin={0} aria-valuemax={course.total} aria-valuenow={course.done}>
+                <span style={{ width: `${Math.max(6, (100 * course.done) / course.total)}%` }} />
+              </div>
+              <span className={s.fatText}>
+                {course.done} of {course.total} done
               </span>
             </div>
             <div className="row wrap">
@@ -109,7 +113,7 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
         </section>
       )}
 
-      <div className={s.split}>
+      <div className={`${s.split} ${s.first}`}>
         <section className="stack">
           <h2>Needs you</h2>
           {ins.awaiting.length === 0 && ins.badgeReady.length === 0 ? (
@@ -188,7 +192,7 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
           {chart.length > 0 && (
             <p className={s.chartFoot}>
               {chart.reduce((n, p) => n + p.hours, 0).toLocaleString()} hours across the last {chart.length} verified{' '}
-              {chart.length === 1 ? 'event' : 'events'}. Hover a bar for details.
+              {chart.length === 1 ? 'event' : 'events'}. Hover or tap a bar for details.
             </p>
           )}
         </section>

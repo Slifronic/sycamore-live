@@ -3,10 +3,12 @@
 .head { display: grid; gap: 6px; }
 .tier { font-family: var(--font-display), Georgia, serif; font-size: 24px; font-weight: 600; color: var(--canopy); letter-spacing: -0.01em; }
 .tierGold { display: inline-block; justify-self: start; background: var(--amber-soft); color: var(--amber); padding: 2px 12px; border-radius: 999px; font-size: 20px; box-shadow: 0 0 0 1px rgba(107, 76, 7, 0.15); }
+.tierSilver { display: inline-block; justify-self: start; background: #eef0ec; color: var(--ink); padding: 2px 12px; border-radius: 999px; font-size: 20px; box-shadow: 0 0 0 1px rgba(15, 38, 27, 0.08); }
 .tierNone { font-weight: 700; color: var(--ink-2); }
 .parts { display: grid; gap: 14px; padding: 16px 22px 20px; border-top: 1px solid var(--rule-soft); }
 .part { display: grid; gap: 6px; }
 .partLabel { font-weight: 600; font-size: 14px; }
+.partScore { font-size: 22px; }
 .weight { font-size: 12px; color: var(--field); font-weight: 500; }
 @media (max-width: 520px) {
   .top { flex-direction: column; align-items: flex-start; }

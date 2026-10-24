@@ -18,7 +18,7 @@ export function HoursChart({ points }: { points: Point[] }) {
 
   return (
     <div style={{ height: '100%' }}>
-      <div className={s.plot} role="group" aria-label="Verified hours per event">
+      <div className={s.plot} role="group" aria-label="Verified hours per event. Tap or focus a bar for its numbers.">
         {points.map((p, i) => (
           <button
             key={p.id}
@@ -40,7 +40,7 @@ export function HoursChart({ points }: { points: Point[] }) {
               style={{ height: `${(p.hours / max) * 100}%`, transformOrigin: 'bottom' }}
               initial={reduce ? false : { scaleY: 0 }}
               animate={{ scaleY: 1 }}
-              transition={{ duration: 0.9, delay: 0.1 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+              transition={reduce ? { duration: 0 } : { duration: 0.9, delay: 0.1 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
             />
             <span className={s.x}>{label(p)}</span>
           </button>

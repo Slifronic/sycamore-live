@@ -4,7 +4,13 @@
 .qr :global(svg), .fullQr :global(svg) { width: 100%; height: 100%; display: block; }
 .code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 34px; font-weight: 700; letter-spacing: 0.18em; color: var(--ink); }
 .tools { display: flex; gap: 12px; flex-wrap: wrap; padding: 16px 20px; border-top: 1px solid var(--line); background: #fbfaf7; border-radius: 0 0 var(--radius) var(--radius); }
-.full { position: fixed; inset: 0; z-index: 50; background: var(--paper); display: grid; place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center; }
+.full { position: fixed; inset: 0; z-index: 50; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0; background: var(--paper); color: var(--ink); place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center; }
+.full[open] { display: grid; }
+.full::backdrop { background: var(--paper); }
+/* The check-in screen holds still: no hover lifts. */
+.still :global(.btn:hover), .full :global(.btn:hover) { transform: none; }
+.headcount { display: flex; align-items: baseline; flex-wrap: wrap; margin-top: 4px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sap); }
 .close { position: absolute; top: 20px; right: 20px; }
 .fullTitle { font-family: var(--font-display), Georgia, serif; font-size: clamp(28px, 5vw, 48px); font-weight: 600; color: var(--canopy); }
 .fullQr { width: min(62vh, 80vw); height: min(62vh, 80vw); }
@@ -20,3 +26,4 @@
   .qr { width: 190px; height: 190px; }
   .code { font-size: 28px; }
 }
+.liveDot { width: 8px; height: 8px; border-radius: 50%; background: #3ddc84; box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.2); }

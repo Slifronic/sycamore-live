@@ -2,6 +2,7 @@ import { requireOrg } from '@/lib/session';
 import { loadOrgInsights } from '@/lib/insights';
 import { BADGES, badgeByKey } from '@/lib/badges';
 import { SignBadgeForm } from './SignBadgeForm';
+import { PageHeader } from '@/components/PageHeader';
 
 export default async function BadgesPage() {
   const org = await requireOrg();
@@ -9,14 +10,12 @@ export default async function BadgesPage() {
   const earnedCount = (key: string) => ins.awards.filter((a) => a.badge === key).length;
 
   return (
-    <div className="stack" style={{ gap: 24, maxWidth: 1000 }}>
-      <header>
-        <h1>Badges</h1>
-        <p className="muted">
-          Badges show the skills a volunteer built with you. SycaMore checks the rules from verified hours and roles; a badge only counts once you sign
-          it. Volunteers can put signed badges on a resume, LinkedIn or a college application.
-        </p>
-      </header>
+    <div className="page">
+      <PageHeader
+        eyebrow={`People · ${ins.badgeReady.length} ready to sign`}
+        title="Badges"
+        lede="Skills a volunteer built with you. SycaMore checks the rules from verified hours and roles; a badge only counts once you sign it. Signed badges go on a resume, LinkedIn or a college application."
+      />
 
       <section className="stack">
         <h2>Ready for your sign-off {ins.badgeReady.length > 0 && <span className="chip chip-amber">{ins.badgeReady.length}</span>}</h2>

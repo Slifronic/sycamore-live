@@ -14,6 +14,8 @@
   .nav::-webkit-scrollbar { display: none; }
   .group { display: contents; }
   .groupLabel { display: none; }
-  .link { flex: none; height: 34px; gap: 6px; }
+  .link { flex: none; height: 44px; gap: 6px; }
+  /* Fade the right edge so it reads as "more this way". */
+  .nav { mask-image: linear-gradient(90deg, #000 85%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); }
   .active .pill::before { display: none; }
 }

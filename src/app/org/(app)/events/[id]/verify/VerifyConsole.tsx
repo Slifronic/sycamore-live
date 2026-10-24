@@ -66,17 +66,27 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
   const changed = (r: Row) => r.hours !== '' && Number(r.hours) !== r.hours_captured;
 
   // Name exactly who is blocking the button, instead of a vague disabled state.
+  // Each one points at the control that fixes it, so the bar can take you there.
   const blockers = useMemo(() => {
-    const out: string[] = [];
+    const out: { text: string; target: string }[] = [];
+    if (!goal) out.push({ text: 'Answer “did the event achieve its goal?”', target: 'goal-yes' });
     for (const r of rows) {
       if (r.no_show) continue;
-      if (!r.checked_out_at && r.hours === '') out.push(`${r.display_name} never checked out: enter hours with a reason, or mark no-show`);
-      else if (changed(r) && !r.reason.trim()) out.push(`Add a reason for changing ${r.display_name}'s hours`);
-      else if (r.hours !== '' && (isNaN(Number(r.hours)) || Number(r.hours) < 0 || Number(r.hours) > 24)) out.push(`${r.display_name}'s hours must be between 0 and 24`);
+      if (!r.checked_out_at && r.hours === '') out.push({ text: `${r.display_name} never checked out: enter hours with a reason, or mark no-show`, target: `hours-${r.id}` });
+      else if (changed(r) && !r.reason.trim()) out.push({ text: `Add a reason for changing ${r.display_name}'s hours`, target: `reason-${r.id}` });
+      else if (r.hours !== '' && (isNaN(Number(r.hours)) || Number(r.hours) < 0 || Number(r.hours) > 24)) out.push({ text: `${r.display_name}'s hours must be between 0 and 24`, target: `hours-${r.id}` });
     }
-    if (!goal) out.push('Answer “did the event achieve its goal?”');
     return out;
   }, [rows, goal]);
+
+  function goTo(target: string) {
+    setFilter('');
+    requestAnimationFrame(() => {
+      const el = document.getElementById(target);
+      el?.scrollIntoView({ block: 'center' });
+      el?.focus({ preventScroll: true });
+    });
+  }
 
   // Flags worth a second look (not blockers): very long shifts and duplicate names.
   const dupNames = useMemo(() => {
@@ -113,6 +123,44 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
 
   return (
     <div className="stack" style={{ gap: 16 }}>
+      <section className={`card ${s.check2}`} aria-labelledby="goal-q">
+        <div className={s.goal}>
+          <p className="eyebrow eyebrow-sap">Post-event check · 30 seconds</p>
+          <h2 id="goal-q">Did the event achieve its goal?</h2>
+          {goalText && <p className="small muted">Goal: {goalText}</p>}
+          <div className="seg" role="group" aria-labelledby="goal-q" style={{ marginTop: 8 }}>
+            {(['yes', 'partly', 'no'] as const).map((g) => (
+              <button key={g} id={`goal-${g}`} type="button" className={`seg-item ${s.segBtn} ${goal === g ? s.segOn : ''}`} onClick={() => setGoal(g)} aria-pressed={goal === g}>
+                {g === 'yes' ? 'Yes' : g === 'partly' ? 'Partly' : 'No'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="field" style={{ alignSelf: 'end' }}>
+          <label htmlFor="outcome" className="small">
+            What got done? <span className="muted">(optional, goes on your funder report)</span>
+          </label>
+          <input id="outcome" className="input" value={outcome} onChange={(e) => setOutcome(e.target.value)} placeholder="e.g. Planted 46 trees" />
+        </div>
+        <fieldset className={s.rate}>
+          <legend className="small" style={{ fontWeight: 700 }}>Rate the crew (optional)</legend>
+          <div className="row" style={{ gap: 0 }}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <label key={n} className={`${s.star} ${rating && n <= rating ? s.starLit : ''}`}>
+                <input type="radio" name="rating" className="sr-only" checked={rating === n} onChange={() => setRating(n)} />
+                <span aria-hidden>★</span>
+                <span className="sr-only">
+                  {n} star{n > 1 ? 's' : ''}
+                </span>
+              </label>
+            ))}
+            <span className="small muted" style={{ marginLeft: 8, minWidth: 60 }}>
+              {rating ? `${rating} of 5` : 'Tap a star'}
+            </span>
+          </div>
+        </fieldset>
+      </section>
+
       <section className="card">
         <div className="card-head wrap">
           <div className="row wrap" style={{ gap: 8 }}>
@@ -125,7 +173,10 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
               </button>
             )}
             <span className="row small" style={{ gap: 6 }}>
-              <select className="select" style={{ height: 32, width: 170 }} value={bulkRole} onChange={(e) => setBulkRole(e.target.value as Role)} aria-label="Role for selected">
+              <label htmlFor="bulk-role" className="small muted">
+                Set role for selected:
+              </label>
+              <select id="bulk-role" className="select" style={{ height: 32, width: 170 }} value={bulkRole} onChange={(e) => setBulkRole(e.target.value as Role)}>
                 {ROLES.map((r) => (
                   <option key={r} value={r}>
                     {ROLE_LABEL[r]}
@@ -133,7 +184,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
                 ))}
               </select>
               <button className="btn btn-sm" disabled={!selected} onClick={() => setRows((rs) => rs.map((r) => (r.selected ? { ...r, role: bulkRole, selected: false } : r)))}>
-                Set for {selected || ''} selected
+                Apply{selected ? ` to ${selected}` : ''}
               </button>
             </span>
           </div>
@@ -145,12 +196,16 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
           <table className={`t ${s.table}`}>
             <thead>
               <tr>
-                <th style={{ width: 36 }} />
-                <th>Volunteer</th>
-                <th>Hours</th>
-                <th>Role</th>
-                <th>Standout</th>
-                <th>No-show</th>
+                <th scope="col" style={{ width: 36 }}>
+                  <span className="sr-only">Select</span>
+                </th>
+                <th scope="col">Volunteer</th>
+                <th scope="col">Hours</th>
+                <th scope="col">Role</th>
+                <th scope="col">Standout</th>
+                <th scope="col">
+                  <span className="sr-only">Attendance</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -165,7 +220,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
                       <span className="row" style={{ gap: 10 }}>
                         <span className="avatar">{initials(r.display_name)}</span>
                         <span>
-                          <strong>{r.display_name}</strong>
+                          <strong className={r.no_show ? s.struck : ''}>{r.display_name}</strong>
                           {r.method === 'paper_import' && <span className="small muted"> · from paper sheet</span>}
                           {needsHours && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>No check-out recorded</span>}
                           {!r.no_show && Number(r.hours) > 8 && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>Over 8 hours: double-check</span>}
@@ -176,6 +231,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
                     <td>
                       <div className={s.hours}>
                         <input
+                          id={`hours-${r.id}`}
                           className="input num"
                           type="number"
                           step="0.25"
@@ -189,6 +245,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
                         />
                         {(changed(r) || (needsHours && r.hours !== '')) && (
                           <input
+                            id={`reason-${r.id}`}
                             className="input"
                             placeholder="Why? (prints on their record)"
                             value={r.reason}
@@ -212,13 +269,22 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
                         className={`btn btn-sm ${r.standout ? s.starOn : ''}`}
                         disabled={r.no_show}
                         aria-pressed={r.standout}
+                        aria-label={`Standout: ${r.display_name}`}
                         onClick={() => set(r.id, { standout: !r.standout })}
                       >
-                        {r.standout ? '★ Standout' : '☆'}
+                        <span aria-hidden>{r.standout ? '★ Standout' : '☆'}</span>
                       </button>
                     </td>
-                    <td>
-                      <input type="checkbox" checked={r.no_show} onChange={(e) => set(r.id, { no_show: e.target.checked })} aria-label={`${r.display_name} was a no-show`} />
+                    <td style={{ textAlign: 'right' }}>
+                      <button
+                        type="button"
+                        className={`btn btn-sm ${r.no_show ? s.noShowOn : 'btn-quiet'}`}
+                        aria-pressed={r.no_show}
+                        aria-label={`${r.display_name} was a no-show`}
+                        onClick={() => set(r.id, { no_show: !r.no_show })}
+                      >
+                        <span aria-hidden>{r.no_show ? 'No-show ✕' : 'No-show'}</span>
+                      </button>
                     </td>
                   </tr>
                 );
@@ -228,60 +294,34 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
         </div>
       </section>
 
-      <section className={`card card-pad ${s.check2}`}>
-        <div>
-          <p className={s.eyebrow}>Post-event check · 30 seconds</p>
-          <h2>Did the event achieve its goal?</h2>
-          {goalText && <p className="small muted">Goal: {goalText}</p>}
-          <div className="row" style={{ marginTop: 10 }}>
-            {(['yes', 'partly', 'no'] as const).map((g) => (
-              <button key={g} className={`btn ${goal === g ? 'btn-primary' : ''}`} onClick={() => setGoal(g)} aria-pressed={goal === g}>
-                {g === 'yes' ? 'Yes' : g === 'partly' ? 'Partly' : 'No'}
-              </button>
-            ))}
-          </div>
-          <div className="field" style={{ marginTop: 14, maxWidth: 360 }}>
-            <label htmlFor="outcome" className="small">
-              What got done? <span className="muted">(optional, goes on your funder report)</span>
-            </label>
-            <input id="outcome" className="input" value={outcome} onChange={(e) => setOutcome(e.target.value)} placeholder="e.g. Planted 46 trees" />
-          </div>
-        </div>
-        <div>
-          <h3>Rate the crew (optional)</h3>
-          <div className="row" style={{ marginTop: 6, gap: 0 }} role="radiogroup" aria-label="Rate the crew">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button
-                key={n}
-                type="button"
-                role="radio"
-                aria-checked={rating === n}
-                className={`${s.star} ${rating && n <= rating ? s.starLit : ''}`}
-                onClick={() => setRating(rating === n ? null : n)}
-                aria-label={`${n} star${n > 1 ? 's' : ''}`}
-              >
-                ★
-              </button>
-            ))}
-            <span className="small muted" style={{ marginLeft: 8, minWidth: 60 }}>
-              {rating ? `${rating} of 5` : 'Tap a star'}
-            </span>
-          </div>
-        </div>
-      </section>
-
       <div className={s.bar}>
         <div>
-          <strong>
-            {present.length} people · {totalHours.toLocaleString()} hours
-          </strong>
-          <p className="small muted">{blockers.length ? blockers[0] + (blockers.length > 1 ? ` (+${blockers.length - 1} more)` : '') : 'Ready. Records are issued the moment you verify.'}</p>
-          {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
+          <p className={s.totals}>
+            <span className="figure" style={{ fontSize: 28 }}>{present.length}</span>
+            <span className="figure-unit">people</span>
+            <span className="figure" style={{ fontSize: 28, marginLeft: 14 }}>{totalHours.toLocaleString()}</span>
+            <span className="figure-unit">hours</span>
+          </p>
+          <p id="blockers" className="small" aria-live="polite">
+            {blockers.length ? (
+              <button type="button" className={s.blocker} onClick={() => goTo(blockers[0].target)}>
+                {blockers[0].text}
+                {blockers.length > 1 ? ` (+${blockers.length - 1} more)` : ''} →
+              </button>
+            ) : (
+              <span style={{ color: 'var(--verified)', fontWeight: 700 }}>Ready. Records are issued the moment you verify.</span>
+            )}
+          </p>
+          {error && (
+            <p className="small" role="alert" style={{ color: 'var(--red)' }}>
+              {error}
+            </p>
+          )}
           <p className="small" style={{ marginTop: 4 }}>
             Verifying as <strong>{signer}</strong>. Your name goes on every record as the person who confirmed these hours.
           </p>
         </div>
-        <button className="btn btn-primary btn-big" disabled={blockers.length > 0 || pending} onClick={submit}>
+        <button className="btn btn-primary btn-big" disabled={blockers.length > 0 || pending} aria-describedby="blockers" onClick={submit}>
           {pending ? 'Verifying…' : '✓ Verify & close'}
         </button>
       </div>

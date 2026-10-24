@@ -59,6 +59,7 @@ export function NavLinks({ awaiting, badgeReady }: { awaiting: number; badgeRead
                 {count > 0 && (
                   <span className={s.count} title={it.href === '/org/events' ? 'Events waiting for you to verify' : 'Badges ready for your sign-off'}>
                     {count}
+                    <span className="sr-only"> {it.href === '/org/events' ? 'waiting to verify' : 'ready to sign'}</span>
                   </span>
                 )}
               </Link>

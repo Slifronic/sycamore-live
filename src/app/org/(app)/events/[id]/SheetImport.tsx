@@ -92,13 +92,23 @@ export function SheetImport({ eventId, enabled, eventDate, rosterNames }: { even
         title={enabled ? 'Photograph a paper sign-in sheet; Claude drafts the rows and you confirm each one' : 'Add ANTHROPIC_API_KEY to turn this on'}
         onClick={() => input.current?.click()}
       >
-        {busy && !drafts ? 'Reading the sheet…' : '📷 Import paper sheet'}
+        {busy && !drafts ? (
+          'Reading the sheet…'
+        ) : (
+          <>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
+              <circle cx="12" cy="13.5" r="3.5" />
+            </svg>
+            Import paper sheet
+          </>
+        )}
       </button>
       {error && !drafts && <p className="notice notice-red small" style={{ flexBasis: '100%' }}>{error}</p>}
       {done && <p className="notice notice-green small" style={{ flexBasis: '100%' }}>{done}</p>}
 
       {drafts && (
-        <div className={s.overlay} role="dialog" aria-label="Review the paper sheet">
+        <div className={s.overlay} role="dialog" aria-modal="true" aria-label="Review the paper sheet">
           <div className={s.panel}>
             <div className={s.photo}>{photo && <img src={photo} alt="The sign-in sheet you photographed" />}</div>
             <div className={s.review}>

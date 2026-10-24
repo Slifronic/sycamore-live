@@ -28,6 +28,8 @@ export function EventDay(props: {
   const [full, setFull] = useState(false);
   const [pending, start] = useTransition();
   const known = useRef(new Set(props.initial.map((r) => r.id)));
+  const [arrived, setArrived] = useState('');
+  const dialog = useRef<HTMLDialogElement>(null);
   const boundAdd = addByName.bind(null, props.eventId);
   const [addState, addAction, adding] = useActionState(boundAdd, null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -40,12 +42,11 @@ export function EventDay(props: {
       const res = await fetch(`/api/org/events/${props.eventId}`, { cache: 'no-store' });
       if (!res.ok || !alive) return;
       const data = (await res.json()) as { attendance: Row[] };
-      const added = data.attendance.filter((r) => !known.current.has(r.id)).map((r) => r.id);
-      added.forEach((id) => known.current.add(id));
-      if (added.length) {
-        setFresh(new Set(added));
-        setTimeout(() => alive && setFresh(new Set()), 2200);
-      }
+      const added = data.attendance.filter((r) => !known.current.has(r.id));
+      added.forEach((r) => known.current.add(r.id));
+      // New rows keep a still marker until the next poll; nothing moves on the check-in path.
+      setFresh(new Set(added.map((r) => r.id)));
+      if (added.length) setArrived(`${added.map((r) => r.display_name).join(', ')} checked in.`);
       setRows(data.attendance);
     };
     const iv = setInterval(tick, 3000);
@@ -59,12 +60,11 @@ export function EventDay(props: {
     if (addState?.ok && nameRef.current) nameRef.current.value = '';
   }, [addState]);
 
-  // Full-screen QR: Esc closes it, like any other dialog.
+  // Full-screen QR is a native modal dialog: the page behind is inert, Esc closes
+  // it, and focus goes back to the button that opened it.
   useEffect(() => {
-    if (!full) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setFull(false);
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    const d = dialog.current;
+    if (full && d && !d.open) d.showModal();
   }, [full]);
 
   const here = rows.filter((r) => r.status === 'checked_in').length;
@@ -72,7 +72,10 @@ export function EventDay(props: {
 
   return (
     <>
-      <div className={s.grid}>
+      <p className="sr-only" aria-live="polite">
+        {arrived}
+      </p>
+      <div className={`${s.grid} ${s.still}`}>
         {props.verified ? (
           <section className={`card ${s.qrCard}`}>
             <span className="chip chip-green" style={{ height: 32, fontSize: 14 }}>✓ Verified</span>
@@ -83,7 +86,7 @@ export function EventDay(props: {
           </section>
         ) : (
         <section className={`card ${s.qrCard}`}>
-          <div className={s.qr} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
+          <div className={s.qr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
           <p className={s.code}>{props.code}</p>
           <p className="small muted" style={{ textAlign: 'center' }}>
             Scan to check in, or type the code at <br />
@@ -101,9 +104,13 @@ export function EventDay(props: {
         <section className="card">
           <div className="card-head">
             <div>
-              <h2>Roster</h2>
-              <p className="small muted">
-                {here} here now · {left} checked out{!props.verified && ' · updates live'}
+              <p className="eyebrow">Roster{!props.verified && ' · updates live'}</p>
+              <p className={s.headcount} aria-live="polite" aria-atomic="true">
+                <span className="figure" style={{ fontSize: 44 }}>{props.verified ? rows.length : here}</span>
+                <span className="figure-unit">{props.verified ? 'on the record' : 'here now'}</span>
+                <span className="small muted" style={{ marginLeft: 10 }}>
+                  {left} checked out
+                </span>
               </p>
             </div>
             <div className="row wrap" style={{ gap: 6 }}>
@@ -137,15 +144,17 @@ export function EventDay(props: {
               <table className="t tight">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>In → Out</th>
-                    <th>Hours</th>
-                    <th />
+                    <th scope="col">Name</th>
+                    <th scope="col">In → Out</th>
+                    <th scope="col">Hours</th>
+                    <th scope="col">
+                      <span className="sr-only">Actions</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((r) => (
-                    <tr key={r.id} className={fresh.has(r.id) ? 'flash' : ''}>
+                    <tr key={r.id} className={fresh.has(r.id) ? 'fresh' : ''}>
                       <td>
                         <strong>{r.display_name}</strong>
                         <span className="small muted" style={{ display: 'block' }}>
@@ -156,7 +165,14 @@ export function EventDay(props: {
                       <td className="num small" style={{ whiteSpace: 'nowrap' }}>
                         {t(r.checked_in_at)} → {t(r.checked_out_at)}
                       </td>
-                      <td className="num">{r.status === 'checked_in' ? <span className="chip chip-green">here</span> : Number(r.hours_adjusted ?? r.hours_captured)}</td>
+                      <td className="num">{r.status === 'checked_in' ? (
+                          <span className="chip chip-ink">
+                            <span className={s.dot} aria-hidden />
+                            here
+                          </span>
+                        ) : (
+                          Number(r.hours_adjusted ?? r.hours_captured)
+                        )}</td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         {r.status === 'checked_in' && !props.verified && (
                           <button className="btn btn-sm btn-quiet" onClick={() => start(() => checkOutNow(props.eventId, r.id))}>
@@ -181,21 +197,27 @@ export function EventDay(props: {
               <SheetImport eventId={props.eventId} enabled={props.aiEnabled} eventDate={props.eventDate} rosterNames={rows.map((r) => r.display_name)} />
             </div>
           )}
-          {addState?.error && <p className="notice notice-red" style={{ margin: '0 20px 16px' }}>{addState.error}</p>}
+          {addState?.error && (
+            <p className="notice notice-red" role="alert" style={{ margin: '0 20px 16px' }}>
+              {addState.error}
+            </p>
+          )}
         </section>
       </div>
 
       {full && (
-        <div className={s.full} role="dialog" aria-label="Check-in QR code">
-          <button className={`btn ${s.close}`} onClick={() => setFull(false)} autoFocus>
+        <dialog ref={dialog} className={s.full} aria-label="Check-in QR code" onClose={() => setFull(false)}>
+          <button className={`btn ${s.close}`} onClick={() => dialog.current?.close()} autoFocus>
             Close <span className="muted small">(Esc)</span>
           </button>
           <p className={s.fullTitle}>Check in here</p>
-          <div className={s.fullQr} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
+          <div className={s.fullQr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
           <p className={s.fullCode}>{props.code}</p>
           <p className={s.fullHint}>Scan with your phone camera. Scan again when you leave.</p>
-          <p className={s.fullCount}>{here} checked in</p>
-        </div>
+          <p className={s.fullCount} aria-live="polite" aria-atomic="true">
+            {here} checked in
+          </p>
+        </dialog>
       )}
     </>
   );

@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { requireOrg } from '@/lib/session';
 import { loadOrgInsights } from '@/lib/insights';
 import { markLesson } from '@/lib/org-data';
@@ -8,6 +7,9 @@ import { HOUR_RATES, RATE_SOURCE, money, usd, type RateKey } from '@/lib/value';
 import { ROLE_LABEL, type Role } from '@/lib/types';
 import { fmtDay } from '@/lib/format';
 import { PrintButton } from './PrintButton';
+import { PageHeader } from '@/components/PageHeader';
+import { Segmented } from '@/components/Segmented';
+import { tierClass } from '@/components/TierChip';
 import s from './report.module.css';
 import { requestNow } from '@/lib/format';
 
@@ -54,56 +56,38 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
   const today = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'long', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="stack" style={{ gap: 20, maxWidth: 900 }}>
-      <header className="row between wrap no-print">
-        <div>
-          <h1>Funder report</h1>
-          <p className="muted">Everything a grant report asks about your volunteers, from verified data. Pick the period, then save it as a PDF.</p>
-        </div>
-        <div className="row">
-          <a className="btn" href="/api/org/reports/csv">
-            Download CSV
-          </a>
-          <PrintButton />
-        </div>
-      </header>
-      <nav className="row wrap no-print" style={{ gap: 6 }}>
-        {PERIODS.map((p) => (
-          <Link key={p.key} href={`/org/reports?period=${p.key}&rate=${rk}`} className={`btn btn-sm ${p.key === period.key ? 'btn-primary' : ''}`}>
-            {p.label}
-          </Link>
-        ))}
-        <span className="muted small" style={{ marginLeft: 12 }}>Value per hour:</span>
-        {(Object.keys(HOUR_RATES) as RateKey[]).map((k) => (
-          <Link key={k} href={`/org/reports?period=${period.key}&rate=${k}`} className={`btn btn-sm ${k === rk ? 'btn-primary' : ''}`}>
-            {money(HOUR_RATES[k].usd)} {HOUR_RATES[k].label}
-          </Link>
-        ))}
-      </nav>
+    <div className="page">
+      <PageHeader
+        className="no-print"
+        eyebrow={<span className="eyebrow-sap">Proof · {period.label.toLowerCase()}</span>}
+        title="Funder report"
+        lede="Everything a grant report asks about your volunteers, from verified data. Pick the period, then save it as a PDF."
+      />
 
+      <div className={s.layout}>
       <article className={`card ${s.report}`}>
         <header className={s.head}>
           <div>
-            <p className={s.eyebrow}>Volunteer impact report</p>
+            <p className="eyebrow eyebrow-sap">Volunteer impact report</p>
             <h2 className={s.title}>{org.name}</h2>
             <p className="muted small">
               {period.label} · prepared {today} · {org.coordinator_name}, {org.contact_email}, {org.contact_phone}
             </p>
           </div>
           {ins.index.score != null && (
-            <div className={s.seal}>
+            <div className={`${s.seal} ${tierClass(ins.index.tier) === 'chip-gold' ? s.sealGold : ''}`}>
               <span className={s.sealScore}>{ins.index.score}</span>
               <span className="small">SycaMore Index</span>
-              <strong className="small" style={{ color: 'var(--gold)' }}>★ {ins.index.tier}</strong>
+              <span className={`chip ${tierClass(ins.index.tier)}`}>★ {ins.index.tier}</span>
             </div>
           )}
         </header>
 
         <section className={s.kpis}>
-          <Kpi value={hours.toLocaleString()} label="verified volunteer hours" />
-          <Kpi value={people.toLocaleString()} label="volunteers" />
-          <Kpi value={String(events.size)} label="events" />
-          <Kpi value={usd(value)} label={`value of volunteer time at ${money(hourRate.usd)}/hour (${hourRate.label})`} />
+          <Kpi eyebrow="Verified hours" value={hours.toLocaleString()} label={`${rows.length.toLocaleString()} attendances`} />
+          <Kpi eyebrow="Volunteers" value={people.toLocaleString()} label={`${firstTimers.toLocaleString()} new this period`} />
+          <Kpi eyebrow="Events" value={String(events.size)} label="each verified at close" />
+          <Kpi eyebrow="Value of time" value={usd(value)} label={`at ${money(hourRate.usd)}/hour (${hourRate.label})`} />
         </section>
         <p className="small">
           {firstTimers.toLocaleString()} {firstTimers === 1 ? 'person' : 'people'} volunteered with us for the first time in this period.
@@ -144,10 +128,10 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
           <table className="t">
             <thead>
               <tr>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Volunteers</th>
-                <th>Hours</th>
+                <th scope="col">Event</th>
+                <th scope="col">Date</th>
+                <th scope="col" className="r">Volunteers</th>
+                <th scope="col" className="r">Hours</th>
               </tr>
             </thead>
             <tbody>
@@ -155,12 +139,19 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
                 .sort((a, b) => +b.date - +a.date)
                 .map((e) => (
                   <tr key={e.title + e.date}>
-                    <td>{e.title}</td>
+                    <td style={{ fontWeight: 600 }}>{e.title}</td>
                     <td className="small">{fmtDay(e.date)}</td>
-                    <td className="num">{e.people}</td>
-                    <td className="num">{e.hours.toLocaleString()}</td>
+                    <td className="num r">{e.people}</td>
+                    <td className="num r">{e.hours.toLocaleString()}</td>
                   </tr>
                 ))}
+              {events.size > 1 && (
+                <tr className={s.total}>
+                  <td colSpan={2}>Total</td>
+                  <td className="num r">{rows.length.toLocaleString()}</td>
+                  <td className="num r">{hours.toLocaleString()}</td>
+                </tr>
+              )}
               {events.size === 0 && (
                 <tr>
                   <td colSpan={4} className="muted">No verified events in this period.</td>
@@ -201,13 +192,38 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
           coordinator’s own answer at the close of each event. Generated by SycaMore Live.
         </footer>
       </article>
+
+      <aside className={`${s.rail} no-print`}>
+        <div className="stack" style={{ gap: 8 }}>
+          <p className="eyebrow">Period</p>
+          <Segmented id="period" label="Report period" vertical items={PERIODS.map((p) => ({ href: `/org/reports?period=${p.key}&rate=${rk}`, label: p.label, on: p.key === period.key }))} />
+        </div>
+        <div className="stack" style={{ gap: 8 }}>
+          <p className="eyebrow">Value per hour</p>
+          <Segmented
+            id="rate"
+            label="Value per volunteer hour"
+            vertical
+            items={(Object.keys(HOUR_RATES) as RateKey[]).map((k) => ({ href: `/org/reports?period=${period.key}&rate=${k}`, label: `${money(HOUR_RATES[k].usd)} ${HOUR_RATES[k].label}`, on: k === rk }))}
+          />
+        </div>
+        <div className="stack" style={{ gap: 8 }}>
+          <PrintButton />
+          <a className="btn" href="/api/org/reports/csv">
+            Download CSV
+          </a>
+        </div>
+        <p className="small muted">Each volunteer’s hours can be checked by anyone at a public link, so a funder never has to take this sheet on trust.</p>
+      </aside>
+      </div>
     </div>
   );
 }
 
-function Kpi({ value, label }: { value: string; label: string }) {
+function Kpi({ eyebrow, value, label }: { eyebrow: string; value: string; label: string }) {
   return (
-    <div>
+    <div className={s.kpiBox}>
+      <p className="eyebrow">{eyebrow}</p>
       <p className={s.kpi}>{value}</p>
       <p className="small muted">{label}</p>
     </div>

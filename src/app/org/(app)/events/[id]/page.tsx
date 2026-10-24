@@ -6,6 +6,8 @@ import { getEvent, getRoster } from '@/lib/org-data';
 import { ACTIVITY_LABEL } from '@/lib/types';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { EventDay } from './EventDay';
+import { PageHeader } from '@/components/PageHeader';
+import s from './event.module.css';
 import { sheetImportEnabled } from '@/lib/sheet-import';
 import { requestNow } from '@/lib/format';
 
@@ -18,30 +20,49 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
   const roster = await getRoster(id);
   const url = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/checkin?code=${event.checkin_code}`;
   const qr = await QRCode.toString(url, { type: 'svg', margin: 1, color: { dark: '#10281d', light: '#ffffff' } });
-  const ended = new Date(event.ends_at).getTime() < requestNow();
+  const now = requestNow();
+  const ended = new Date(event.ends_at).getTime() < now;
+  const live = !event.attested_at && !ended && new Date(event.starts_at).getTime() <= now;
 
   return (
-    <div className="stack" style={{ gap: 20, maxWidth: 1120 }}>
-      <header className="row between wrap">
-        <div>
-          <p className="small muted">
-            <Link href="/org/events">Events</Link> / {event.is_practice ? 'Practice' : ACTIVITY_LABEL[event.activity]}
-          </p>
-          <h1>{event.title}</h1>
-          <p className="muted">
+    <div className="page" style={{ gap: 20 }}>
+      <PageHeader
+        eyebrow={
+          <span className="row" style={{ gap: 8 }}>
+            {live && <span className={s.liveDot} aria-hidden />}
+            {live ? <span style={{ color: 'var(--primary)' }}>Live</span> : <Link href="/org/events">Events</Link>}
+            <span aria-hidden>·</span>
+            {event.is_practice ? 'Practice' : ACTIVITY_LABEL[event.activity]}
+          </span>
+        }
+        title={event.title}
+        lede={
+          <>
             {fmtDay(event.starts_at)} · {fmtTime(event.starts_at)} to {fmtTime(event.ends_at)}
             {event.location ? ` · ${event.location}` : ''}
-          </p>
-          {event.goal_text && <p className="small">Goal: <strong>{event.goal_text}</strong></p>}
-        </div>
-        {event.attested_at ? (
-          <span className="chip chip-green" style={{ height: 32 }}>✓ Verified · records issued</span>
-        ) : (
-          <Link className={`btn btn-big ${ended || event.is_practice ? 'btn-primary' : ''}`} href={`/org/events/${id}/verify`}>
-            Close & verify
-          </Link>
-        )}
-      </header>
+            {event.goal_text && (
+              <>
+                <br />
+                Goal: <strong style={{ color: 'var(--ink)' }}>{event.goal_text}</strong>
+              </>
+            )}
+          </>
+        }
+        action={
+          event.attested_at ? (
+            <span className="chip chip-green" style={{ height: 32 }}>✓ Verified · records issued</span>
+          ) : ended || event.is_practice ? (
+            <Link className="btn btn-big btn-primary" href={`/org/events/${id}/verify`}>
+              Close & verify
+            </Link>
+          ) : (
+            // While the event runs, closing it is a quiet option; the QR is the job.
+            <Link className="btn btn-sm" href={`/org/events/${id}/verify`}>
+              Close & verify early
+            </Link>
+          )
+        }
+      />
       {created && (
         <p className="notice notice-green">
           <strong>Event created.</strong> On the day, tap “Show QR full screen” and set your phone or laptop on the sign-in table. That’s it.

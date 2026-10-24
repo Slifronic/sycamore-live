@@ -25,7 +25,7 @@ export function Sparkline({ points, width = 96, height = 32, color = 'currentCol
         strokeLinejoin="round"
         initial={reduce ? false : { pathLength: 0 }}
         animate={{ pathLength: 1 }}
-        transition={{ duration: 1.1, delay, ease: [0.16, 1, 0.3, 1] }}
+        transition={reduce ? { duration: 0 } : { duration: 1.1, delay, ease: [0.16, 1, 0.3, 1] }}
       />
       <motion.circle
         cx={lx}
@@ -34,7 +34,7 @@ export function Sparkline({ points, width = 96, height = 32, color = 'currentCol
         fill={color}
         initial={reduce ? false : { scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ delay: delay + 1, type: 'spring', stiffness: 380, damping: 18 }}
+        transition={reduce ? { duration: 0 } : { delay: delay + 1, type: 'spring', stiffness: 380, damping: 18 }}
       />
     </svg>
   );
