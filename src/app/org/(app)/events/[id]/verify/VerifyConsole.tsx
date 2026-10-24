@@ -21,7 +21,7 @@ type Row = Pick<AttendanceRow, 'id' | 'display_name' | 'method'> & {
 const ROLES = Object.keys(ROLE_LABEL) as Role[];
 const initials = (n: string) => n.split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
 
-export function VerifyConsole({ eventId, endsAt, initial }: { eventId: string; endsAt: string; initial: (AttendanceRow & { checked_in_at: string | null; checked_out_at: string | null })[] }) {
+export function VerifyConsole({ eventId, endsAt, goalText, signer, initial }: { eventId: string; endsAt: string; goalText: string | null; signer: string; initial: (AttendanceRow & { checked_in_at: string | null; checked_out_at: string | null })[] }) {
   const [rows, setRows] = useState<Row[]>(() =>
     initial.map((a) => ({
       id: a.id,
@@ -40,6 +40,7 @@ export function VerifyConsole({ eventId, endsAt, initial }: { eventId: string; e
   );
   const [goal, setGoal] = useState<'yes' | 'partly' | 'no' | null>(null);
   const [rating, setRating] = useState<number | null>(null);
+  const [outcome, setOutcome] = useState('');
   const [filter, setFilter] = useState('');
   const [bulkRole, setBulkRole] = useState<Role>('team_lead');
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +103,7 @@ export function VerifyConsole({ eventId, endsAt, initial }: { eventId: string; e
           hours_adjusted: r.hours !== '' && (changed(r) || !r.checked_out_at) ? Number(r.hours) : null,
           adjustment_reason: r.reason || null,
         })),
-        { goal_outcome: goal, cohort_rating: rating },
+        { goal_outcome: goal, cohort_rating: rating, outcome_text: outcome || null },
       );
       if (res.error) setError(res.error);
       else router.refresh(); // the page re-renders as the “records issued” screen
@@ -230,12 +231,19 @@ export function VerifyConsole({ eventId, endsAt, initial }: { eventId: string; e
         <div>
           <p className={s.eyebrow}>Post-event check · 30 seconds</p>
           <h2>Did the event achieve its goal?</h2>
+          {goalText && <p className="small muted">Goal: {goalText}</p>}
           <div className="row" style={{ marginTop: 10 }}>
             {(['yes', 'partly', 'no'] as const).map((g) => (
               <button key={g} className={`btn ${goal === g ? 'btn-primary' : ''}`} onClick={() => setGoal(g)} aria-pressed={goal === g}>
                 {g === 'yes' ? 'Yes' : g === 'partly' ? 'Partly' : 'No'}
               </button>
             ))}
+          </div>
+          <div className="field" style={{ marginTop: 14, maxWidth: 360 }}>
+            <label htmlFor="outcome" className="small">
+              What got done? <span className="muted">(optional, goes on your funder report)</span>
+            </label>
+            <input id="outcome" className="input" value={outcome} onChange={(e) => setOutcome(e.target.value)} placeholder="e.g. Planted 46 trees" />
           </div>
         </div>
         <div>
@@ -268,6 +276,9 @@ export function VerifyConsole({ eventId, endsAt, initial }: { eventId: string; e
           </strong>
           <p className="small muted">{blockers.length ? blockers[0] + (blockers.length > 1 ? ` (+${blockers.length - 1} more)` : '') : 'Ready. Records are issued the moment you verify.'}</p>
           {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
+          <p className="small" style={{ marginTop: 4 }}>
+            Verifying as <strong>{signer}</strong>. Your name goes on every record as the person who confirmed these hours.
+          </p>
         </div>
         <button className="btn btn-primary btn-big" disabled={blockers.length > 0 || pending} onClick={submit}>
           {pending ? 'Verifying…' : '✓ Verify & close'}

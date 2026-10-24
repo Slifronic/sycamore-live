@@ -49,7 +49,7 @@ export default async function HourLetter({ params }: PageProps<'/org/volunteers/
         <p className="small muted">
           <Link href="/org/volunteers">Volunteers</Link> / Hour letter
         </p>
-        <PrintButton />
+        <PrintButton label="Print or save letter" />
       </div>
       <article className={`card ${s.letter}`}>
         <header className={s.head}>

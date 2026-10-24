@@ -58,6 +58,8 @@ export type EventRow = {
   goal_outcome: 'yes' | 'partly' | 'no' | null;
   cohort_rating: number | null;
   attested_at: Date | null;
+  goal_text: string | null;
+  outcome_text: string | null;
 };
 
 export type AttendanceRow = {

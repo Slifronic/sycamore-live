@@ -32,6 +32,7 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
             {fmtDay(event.starts_at)} · {fmtTime(event.starts_at)} to {fmtTime(event.ends_at)}
             {event.location ? ` · ${event.location}` : ''}
           </p>
+          {event.goal_text && <p className="small">Goal: <strong>{event.goal_text}</strong></p>}
         </div>
         {event.attested_at ? (
           <span className="chip chip-green" style={{ height: 32 }}>✓ Verified · records issued</span>

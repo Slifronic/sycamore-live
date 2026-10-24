@@ -10,6 +10,7 @@ import type { Activity, AttendanceRow, EventRow, Role } from './types';
 
 const DAY = 86_400_000;
 export const SLIPPING_AFTER_DAYS = 30;
+export const MILESTONES = [10, 25, 50, 100, 250];
 
 export type Tier = 'Platinum' | 'Gold' | 'Silver' | 'Bronze' | 'Building';
 
@@ -37,6 +38,7 @@ export type VolunteerSummary = {
   badgesEarned: BadgeKey[];
   badgesReady: BadgeKey[];
   badgesClose: { key: BadgeKey; progress: number }[];
+  milestone: { hours: number; at: Date } | null; // most recent hour milestone crossed in the last 30 days
 };
 
 type Att = AttendanceRow & { activity: Activity; starts_at: Date };
@@ -112,7 +114,18 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
       if (p >= 1 && list[0].volunteer_id) ready.push(b.key);
       else if (p >= 0.6) close.push({ key: b.key, progress: p });
     }
+    // Hour milestones: walk events in date order and note the last threshold crossed.
+    let running = 0;
+    let milestone: VolunteerSummary['milestone'] = null;
+    for (const a of [...list].sort((x, y) => +new Date(x.starts_at) - +new Date(y.starts_at))) {
+      const before = running;
+      running += hoursTotal(a);
+      for (const m of MILESTONES) if (before < m && running >= m) milestone = { hours: m, at: new Date(a.starts_at) };
+    }
+    if (milestone && (now.getTime() - milestone.at.getTime()) / DAY > 30) milestone = null;
+
     return {
+      milestone,
       key,
       volunteer_id: list[0].volunteer_id,
       name: list[0].display_name,
@@ -201,6 +214,7 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
     awaiting,
     volunteers,
     slipping: volunteers.filter((v) => v.status === 'slipping').sort((a, b) => b.events - a.events),
+    milestones: volunteers.filter((v) => v.milestone).sort((a, b) => b.milestone!.hours - a.milestone!.hours || +b.milestone!.at - +a.milestone!.at),
     badgeReady: volunteers.flatMap((v) => v.badgesReady.map((k) => ({ v, badge: k }))),
     badgeClose: volunteers.flatMap((v) => v.badgesClose.map((c) => ({ v, ...c }))).sort((a, b) => b.progress - a.progress),
     awards,

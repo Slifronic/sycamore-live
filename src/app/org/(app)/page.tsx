@@ -8,6 +8,8 @@ import { ago, fmtDay, fmtHoursSafe, plural } from './util';
 import { IndexCard } from '@/components/IndexCard';
 import s from './home.module.css';
 import { requestNow } from '@/lib/format';
+import { sql } from '@/lib/db';
+import { milestoneThanks } from '@/lib/mailto';
 
 export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
   const org = await requireOrg();
@@ -17,6 +19,10 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
   const now = requestNow();
   const live = ins.events.filter((e) => !e.attested_at && new Date(e.starts_at).getTime() <= now && new Date(e.ends_at).getTime() >= now);
   const upcoming = ins.events.filter((e) => new Date(e.starts_at).getTime() > now && !e.is_practice).slice(-3).reverse();
+  const ids = ins.milestones.map((v) => v.volunteer_id).filter(Boolean) as string[];
+  const emails = new Map(
+    ((await sql`select id, email from volunteer where id = any(${ids})`) as unknown as { id: string; email: string }[]).map((r) => [r.id, r.email]),
+  );
   const hourRate = HOUR_RATES[rateKeyFor(org.city)];
   const value = ins.totals.verifiedHours * hourRate.usd;
   const hour = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', hour12: false });
@@ -152,6 +158,32 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
           </p>
         </section>
       </div>
+
+      {ins.milestones.length > 0 && (
+        <section className="stack">
+          <h2>Milestones to celebrate</h2>
+          <div className={s.needs}>
+            {ins.milestones.slice(0, 6).map((v) => {
+              const email = v.volunteer_id ? emails.get(v.volunteer_id) : undefined;
+              return (
+                <div key={v.key} className={`card ${s.need}`} style={{ borderColor: '#e3cf8f' }}>
+                  <span className="chip chip-gold">★ {v.milestone!.hours} hours</span>
+                  <h3>{v.name}</h3>
+                  <p className="muted small">
+                    Passed {v.milestone!.hours} verified hours {ago(v.milestone!.at)} · {v.events} events with you
+                  </p>
+                  {email && (
+                    <a className="btn btn-sm" href={milestoneThanks(org, v.name, email, v.milestone!.hours, upcoming[0])}>
+                      Send a thank-you
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p className="small muted">Recognition is one of the reasons volunteers stay. A two-line note from you is enough.</p>
+        </section>
+      )}
 
       {upcoming.length > 0 && (
         <section className="stack">

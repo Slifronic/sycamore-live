@@ -13,8 +13,14 @@
 .main { padding: 28px 32px 64px; min-width: 0; }
 
 @media (max-width: 860px) {
-  .shell { grid-template-columns: 1fr; }
-  .side { position: static; height: auto; flex-direction: column; border-right: 0; border-bottom: 1px solid var(--line); }
-  .signout { margin-top: 0; }
-  .main { padding: 20px 16px 48px; }
+  /* Phones: one compact header (brand, org, tier) and a swipeable nav strip, so the event is on the first screen. */
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .side { position: sticky; top: 0; z-index: 20; height: auto; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px 12px; padding: 10px 16px 8px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .brand { padding: 0; font-size: 18px; }
+  .org { padding: 0; background: none; border: 0; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+  .org > p { display: none; }
+  .org > div { margin-top: 0 !important; }
+  .side > nav { grid-column: 1 / -1; }
+  .course, .signout { display: none; }
+  .main { padding: 16px 16px 48px; }
 }

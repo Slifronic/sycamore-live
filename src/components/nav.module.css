@@ -4,5 +4,7 @@
 .active { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
 .count { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--amber-soft); color: var(--amber); font-size: 12px; font-weight: 800; display: inline-grid; place-items: center; }
 @media (max-width: 860px) {
-  .nav { display: flex; flex-wrap: wrap; gap: 4px; }
+  .nav { display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+  .nav::-webkit-scrollbar { display: none; }
+  .link { flex: none; height: 34px; gap: 6px; }
 }

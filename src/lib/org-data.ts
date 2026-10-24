@@ -31,16 +31,16 @@ export async function getRoster(eventId: string) {
 
 export async function createEvent(
   orgId: string,
-  input: { title: string; location: string | null; starts_at: Date; ends_at: Date; activity: Activity; is_practice?: boolean },
+  input: { title: string; location: string | null; starts_at: Date; ends_at: Date; activity: Activity; is_practice?: boolean; goal_text?: string | null },
 ) {
   if (!input.title.trim()) throw new RuleError('Give the event a name.');
   if (!(input.ends_at > input.starts_at)) throw new RuleError('The end time has to be after the start time.');
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const [event] = (await sql`
-        insert into event (org_id, title, location, starts_at, ends_at, checkin_code, activity, is_practice)
+        insert into event (org_id, title, location, starts_at, ends_at, checkin_code, activity, is_practice, goal_text)
         values (${orgId}, ${input.title.trim()}, ${input.location?.trim() || null}, ${input.starts_at}, ${input.ends_at},
-                ${checkinCode()}, ${input.activity}, ${input.is_practice ?? false})
+                ${checkinCode()}, ${input.activity}, ${input.is_practice ?? false}, ${input.goal_text?.trim() || null})
         returning *
       `) as unknown as EventRow[];
       if (!input.is_practice) await markLesson(orgId, 'event_created');
@@ -84,6 +84,18 @@ export async function checkOutAttendance(orgId: string, attendanceId: string, at
   return row ?? null;
 }
 
+// End of the day: everyone still here is checked out now, from their own check-in time.
+export async function checkOutAll(orgId: string, eventId: string, at = new Date()) {
+  const event = await getEvent(orgId, eventId);
+  if (!event || event.attested_at) return 0;
+  const rows = await sql`
+    update attendance set checked_out_at = ${at}, status = 'checked_out',
+      hours_captured = round(extract(epoch from (${at}::timestamptz - checked_in_at)) / 900) * 0.25
+    where event_id = ${eventId} and status = 'checked_in' and checked_in_at is not null
+    returning id`;
+  return rows.length;
+}
+
 export type AttestRow = {
   attendance_id: string;
   role: Role;
@@ -99,7 +111,7 @@ export async function attestEvent(
   orgId: string,
   eventId: string,
   rows: AttestRow[],
-  check: { goal_outcome: 'yes' | 'partly' | 'no' | null; cohort_rating: number | null },
+  check: { goal_outcome: 'yes' | 'partly' | 'no' | null; cohort_rating: number | null; outcome_text?: string | null },
 ) {
   const event = await getEvent(orgId, eventId);
   if (!event) throw new RuleError('Event not found.');
@@ -143,7 +155,7 @@ export async function attestEvent(
     }
     await tx`
       update event set status = 'closed', closed_at = coalesce(closed_at, ${now}), attested_at = ${now},
-        goal_outcome = ${check.goal_outcome}, cohort_rating = ${check.cohort_rating}
+        goal_outcome = ${check.goal_outcome}, cohort_rating = ${check.cohort_rating}, outcome_text = ${check.outcome_text?.trim() || null}
       where id = ${eventId}
     `;
   });

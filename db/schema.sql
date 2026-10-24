@@ -42,7 +42,9 @@ create table event (
   is_practice boolean not null default false,       -- the onboarding sandbox event
   goal_outcome text check (goal_outcome in ('yes','partly','no')),   -- post-event check
   cohort_rating smallint check (cohort_rating between 1 and 5),
-  attested_at timestamptz
+  attested_at timestamptz,
+  goal_text text,                  -- what the event set out to do, e.g. "Plant 40 trees"
+  outcome_text text                -- what got done, written at verify, e.g. "Planted 46 trees"
 );
 
 create table volunteer (

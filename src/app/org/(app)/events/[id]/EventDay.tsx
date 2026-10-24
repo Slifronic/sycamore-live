@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from 'react';
 import type { AttendanceRow } from '@/lib/types';
-import { addByName, addPracticeVolunteer, checkOutNow } from '../../../actions';
+import { addByName, addPracticeVolunteer, checkOutEveryone, checkOutNow } from '../../../actions';
+import Link from 'next/link';
 import { SheetImport } from './SheetImport';
 import s from './event.module.css';
 
@@ -91,6 +92,9 @@ export function EventDay(props: {
           <button className="btn btn-primary" onClick={() => setFull(true)}>
             Show QR full screen
           </button>
+          <Link className="btn btn-sm btn-quiet" href={`/org/events/${props.eventId}/sign`} target="_blank">
+            Print a sign for the table
+          </Link>
         </section>
         )}
 
@@ -102,11 +106,24 @@ export function EventDay(props: {
                 {here} here now · {left} checked out{!props.verified && ' · updates live'}
               </p>
             </div>
-            {props.practice && !props.verified && (
-              <button className="btn btn-sm" disabled={pending} onClick={() => start(() => addPracticeVolunteer(props.eventId))}>
-                + Add a practice volunteer
-              </button>
-            )}
+            <div className="row wrap" style={{ gap: 6 }}>
+              {props.practice && !props.verified && (
+                <button className="btn btn-sm" disabled={pending} onClick={() => start(() => addPracticeVolunteer(props.eventId))}>
+                  + Add a practice volunteer
+                </button>
+              )}
+              {here > 0 && !props.verified && (
+                <button
+                  className="btn btn-sm"
+                  disabled={pending}
+                  onClick={() => {
+                    if (window.confirm(`Check out all ${here} people still here, as of now?`)) start(() => checkOutEveryone(props.eventId));
+                  }}
+                >
+                  Check out all {here}
+                </button>
+              )}
+            </div>
           </div>
           {rows.length === 0 ? (
             <div className="card-pad stack" style={{ justifyItems: 'start' }}>

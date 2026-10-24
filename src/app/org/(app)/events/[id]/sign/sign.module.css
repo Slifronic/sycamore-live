@@ -1,0 +1,14 @@
+.sign { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 40px 48px; display: grid; justify-items: center; text-align: center; gap: 14px; }
+.org { font-weight: 700; color: var(--primary); letter-spacing: 0.02em; }
+.title { font-size: 56px; line-height: 1; }
+.event { font-size: 18px; color: var(--ink-2); }
+.qr { width: 360px; height: 360px; margin: 8px 0; }
+.qr :global(svg) { width: 100%; height: 100%; display: block; }
+.steps { text-align: left; font-size: 18px; display: grid; gap: 6px; margin: 0; padding-left: 24px; }
+.code { font-size: 16px; }
+.mono { font-family: ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: 0.15em; font-size: 20px; }
+.foot { font-size: 14px; color: var(--ink-3); }
+@media print {
+  @page { size: letter portrait; margin: 0.5in; }
+  .sign { border: 0; padding: 0; }
+}

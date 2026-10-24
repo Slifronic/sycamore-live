@@ -24,6 +24,13 @@ export function NewEventForm({ today }: { today: string }) {
         <label htmlFor="location">Where</label>
         <input className="input" id="location" name="location" placeholder="Park, address or “Remote”" />
       </div>
+      <div className="field">
+        <label htmlFor="goal">
+          Goal <span className="muted small">(optional)</span>
+        </label>
+        <input className="input" id="goal" name="goal" placeholder="e.g. Plant 40 trees, or sort 500 lbs of food" />
+        <span className="hint">One concrete goal makes the post-event check easy, and it goes on your funder report.</span>
+      </div>
       <div className="row wrap" style={{ alignItems: 'start' }}>
         <div className="field" style={{ flex: '2 1 180px' }}>
           <label htmlFor="date">Date</label>

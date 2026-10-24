@@ -29,15 +29,15 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
   const since = period.days ? new Date(requestNow() - period.days * 86_400_000) : new Date(0);
 
   const rows = (await sql`
-    select a.*, e.title, e.starts_at, e.activity from attendance a join event e on e.id = a.event_id
+    select a.*, e.title, e.starts_at, e.activity, e.goal_text, e.outcome_text from attendance a join event e on e.id = a.event_id
     where e.org_id = ${org.id} and not e.is_practice and a.status = 'attested' and e.starts_at >= ${since}
-  `) as unknown as { volunteer_id: string | null; display_name: string; hours_captured: number; hours_adjusted: number | null; role: Role; title: string; starts_at: Date; event_id: string; standout: boolean }[];
+  `) as unknown as { volunteer_id: string | null; display_name: string; hours_captured: number; hours_adjusted: number | null; role: Role; title: string; starts_at: Date; event_id: string; standout: boolean; goal_text: string | null; outcome_text: string | null }[];
 
   const hours = rows.reduce((s, r) => s + hoursTotal(r), 0);
   const people = new Set(rows.map((r) => r.volunteer_id ?? r.display_name.toLowerCase())).size;
-  const events = new Map<string, { title: string; date: Date; people: number; hours: number }>();
+  const events = new Map<string, { title: string; date: Date; people: number; hours: number; goal: string | null; outcome: string | null }>();
   for (const r of rows) {
-    const e = events.get(r.event_id) ?? { title: r.title, date: r.starts_at, people: 0, hours: 0 };
+    const e = events.get(r.event_id) ?? { title: r.title, date: r.starts_at, people: 0, hours: 0, goal: r.goal_text, outcome: r.outcome_text };
     e.people += 1;
     e.hours += hoursTotal(r);
     events.set(r.event_id, e);
@@ -46,6 +46,11 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
   const leaders = rows.filter((r) => r.role !== 'general').length;
   const adjusted = rows.filter((r) => r.hours_adjusted != null).length;
   const value = hours * hourRate.usd;
+  // First-timers: volunteers whose first verified event with this org falls in the period.
+  const inPeriod = new Set(rows.map((r) => r.volunteer_id ?? `name:${r.display_name.trim().toLowerCase()}`));
+  const firstTimers = ins.volunteers.filter((v) => inPeriod.has(v.key) && v.first_seen >= since).length;
+  const retention = ins.index.parts.find((p) => p.key === 'retention');
+  const outcomes = [...events.values()].filter((e) => e.outcome).sort((a, b) => +b.date - +a.date);
   const today = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'long', day: 'numeric', year: 'numeric' });
 
   return (
@@ -100,12 +105,36 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
           <Kpi value={String(events.size)} label="events" />
           <Kpi value={usd(value)} label={`value of volunteer time at ${money(hourRate.usd)}/hour (${hourRate.label})`} />
         </section>
+        <p className="small">
+          {firstTimers.toLocaleString()} {firstTimers === 1 ? 'person' : 'people'} volunteered with us for the first time in this period.
+          {retention?.score != null && ` Across all our events, ${retention.detail.charAt(0).toLowerCase()}${retention.detail.slice(1)} (${retention.score}%).`}
+        </p>
+
+        {outcomes.length > 0 && (
+          <section className={s.section}>
+            <h3>What got done</h3>
+            <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 4 }}>
+              {outcomes.map((e) => (
+                <li key={e.title + e.date}>
+                  <strong>{e.title}</strong> ({fmtDay(e.date)}): {e.outcome}
+                  {e.goal && <span className="muted"> · goal: {e.goal}</span>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className={s.section}>
           <h3>How the hours were recorded</h3>
           <p className="small">
             Volunteers checked in and out at each event by scanning a QR code, and {org.coordinator_name} verified every event when it closed. {rows.length.toLocaleString()} attendances were
-            verified; {adjusted === 0 ? 'none were' : `${adjusted} ${adjusted === 1 ? 'was' : 'were'}`} adjusted by hand, each with a written reason on the record. Any
+            verified;{' '}
+            {adjusted === 0
+              ? 'none were adjusted by hand.'
+              : adjusted === 1
+                ? '1 was adjusted by hand, with the reason written on the record.'
+                : `${adjusted} were adjusted by hand, each with the reason written on the record.`}{' '}
+            Any
             volunteer’s record can be checked at a public link.
           </p>
         </section>
@@ -150,7 +179,7 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
                 .filter((r) => roles[r])
                 .map((r) => `${roles[r]} ${ROLE_LABEL[r].toLowerCase()}`)
                 .join(', ') || 'none yet'}
-              . {ins.awards.length} skill badges signed.
+              . {ins.awards.length} skill {ins.awards.length === 1 ? 'badge' : 'badges'} signed.
             </p>
           </div>
           {ins.index.score != null && (

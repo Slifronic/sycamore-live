@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { sql } from '@/lib/db';
 import { pin } from '@/lib/codes';
 import { clearOrgCookie, requireOrg, setOrgCookie } from '@/lib/session';
-import { addManual, attestEvent, checkOutAttendance, createEvent, markLesson, RuleError, type AttestRow } from '@/lib/org-data';
+import { addManual, attestEvent, checkOutAll, checkOutAttendance, createEvent, markLesson, RuleError, type AttestRow } from '@/lib/org-data';
 import { badgeByKey, type BadgeKey } from '@/lib/badges';
 import type { Activity } from '@/lib/types';
 import type { LessonKey } from '@/lib/course';
@@ -80,6 +80,7 @@ export async function newEvent(_: FormState, form: FormData): Promise<FormState>
       starts_at: pacific(`${date}T${start}`),
       ends_at: pacific(`${date}T${end}`),
       activity: (String(form.get('activity') ?? 'general') as Activity) || 'general',
+      goal_text: String(form.get('goal') ?? '') || null,
     });
     id = ev.id;
   } catch (e) {
@@ -118,10 +119,16 @@ export async function checkOutNow(eventId: string, attendanceId: string) {
   revalidatePath(`/org/events/${eventId}`);
 }
 
+export async function checkOutEveryone(eventId: string) {
+  const org = await requireOrg();
+  await checkOutAll(org.id, eventId);
+  revalidatePath(`/org/events/${eventId}`);
+}
+
 export async function verifyEvent(
   eventId: string,
   rows: AttestRow[],
-  check: { goal_outcome: 'yes' | 'partly' | 'no' | null; cohort_rating: number | null },
+  check: { goal_outcome: 'yes' | 'partly' | 'no' | null; cohort_rating: number | null; outcome_text?: string | null },
 ): Promise<{ error?: string; issued?: number }> {
   const org = await requireOrg();
   try {

@@ -12,7 +12,7 @@
 .fullHint { font-size: 18px; color: var(--ink-2); }
 .fullCount { font-weight: 700; color: var(--verified); }
 @media (max-width: 860px) {
-  .grid { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: minmax(0, 1fr); }
   .qrCard { position: static; }
 }
 @media (min-width: 861px) and (max-width: 1240px) {

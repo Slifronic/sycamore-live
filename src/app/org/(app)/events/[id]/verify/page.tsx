@@ -62,7 +62,7 @@ export default async function VerifyPage({ params }: PageProps<'/org/events/[id]
           This replaces signing hour letters.
         </p>
       </header>
-      <VerifyConsole eventId={id} endsAt={new Date(event.ends_at).toISOString()} initial={JSON.parse(JSON.stringify(roster))} />
+      <VerifyConsole eventId={id} goalText={event.goal_text} signer={`${org.coordinator_name}, ${org.name}`} endsAt={new Date(event.ends_at).toISOString()} initial={JSON.parse(JSON.stringify(roster))} />
     </div>
   );
 }

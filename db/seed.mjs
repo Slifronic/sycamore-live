@@ -54,9 +54,9 @@ async function main() {
 
   const mkEvent = async (e) => {
     const [row] = await sql`
-      insert into event (org_id, title, location, starts_at, ends_at, checkin_code, status, closed_at, activity, goal_outcome, cohort_rating, attested_at)
+      insert into event (org_id, title, location, starts_at, ends_at, checkin_code, status, closed_at, activity, goal_outcome, cohort_rating, attested_at, goal_text, outcome_text)
       values (${org.id}, ${e.title}, ${e.location}, ${e.starts}, ${e.ends}, ${e.code}, ${e.status}, ${e.closed ?? null},
-              ${e.activity}, ${e.goal ?? null}, ${e.rating ?? null}, ${e.attested ?? null})
+              ${e.activity}, ${e.goal ?? null}, ${e.rating ?? null}, ${e.attested ?? null}, ${e.goalText ?? null}, ${e.outcome ?? null})
       returning *`;
     return row;
   };
@@ -64,10 +64,10 @@ async function main() {
   // Who comes to which planting event. Returning volunteers are drawn from earlier events.
   const attendees = [];
   const plantings = [
-    { title: 'Coyote Creek Planting', location: 'Coyote Creek Trail, San José', day: -63, n: 45, verifyLagH: 20, goal: 'yes', rating: 5 },
-    { title: 'Berryessa Creek Planting', location: 'Berryessa Creek Park, San José', day: -49, n: 48, verifyLagH: 18, goal: 'yes', rating: 4 },
-    { title: 'Santa Teresa Planting, Phase 1', location: 'Santa Teresa County Park', day: -35, n: 52, verifyLagH: 70, goal: 'partly', rating: 4 },
-    { title: 'Santa Teresa Planting, Phase 2', location: 'Santa Teresa County Park', day: -2, n: 58, verifyLagH: null, goal: null, rating: null },
+    { title: 'Coyote Creek Planting', location: 'Coyote Creek Trail, San José', day: -63, n: 45, verifyLagH: 20, goal: 'yes', rating: 5, goalText: 'Plant 20 oaks and willows', outcome: 'Planted 22 trees, mulched all of them' },
+    { title: 'Berryessa Creek Planting', location: 'Berryessa Creek Park, San José', day: -49, n: 48, verifyLagH: 18, goal: 'yes', rating: 4, goalText: 'Plant 25 trees along the creek', outcome: 'Planted 26 trees' },
+    { title: 'Santa Teresa Planting, Phase 1', location: 'Santa Teresa County Park', day: -35, n: 52, verifyLagH: 70, goal: 'partly', rating: 4, goalText: 'Plant 35 trees on the north slope', outcome: 'Planted 28 trees; rain closed the upper trail' },
+    { title: 'Santa Teresa Planting, Phase 2', location: 'Santa Teresa County Park', day: -2, n: 58, verifyLagH: null, goal: null, rating: null, goalText: 'Plant 30 trees on the south slope' },
   ];
   let fresh = 0;
   for (const [i, p] of plantings.entries()) {
@@ -94,7 +94,7 @@ async function main() {
     const attested = p.verifyLagH != null ? new Date(ends.getTime() + p.verifyLagH * 3_600_000) : null;
     const ev = await mkEvent({
       title: p.title, location: p.location, starts, ends, code: codes[i], activity: 'planting',
-      status: attested ? 'closed' : 'open', closed: attested, goal: p.goal, rating: p.rating, attested,
+      status: attested ? 'closed' : 'open', closed: attested, goal: p.goal, rating: p.rating, attested, goalText: p.goalText, outcome: p.outcome,
     });
     for (const [j, v] of attendees[i].entries()) {
       const inAt = addMin(starts, Math.floor(rand() * 8) - 3);
@@ -129,7 +129,7 @@ async function main() {
     const starts = at(-20, 13);
     const ends = at(-20, 16);
     const attested = new Date(ends.getTime() + 22 * 3_600_000);
-    const ev = await mkEvent({ title: 'Pantry Sort Night', location: 'Westside Community Pantry', starts, ends, code: 'PNTRY5', activity: 'logistics', status: 'closed', closed: attested, goal: 'yes', rating: 5, attested });
+    const ev = await mkEvent({ title: 'Pantry Sort Night', location: 'Westside Community Pantry', starts, ends, code: 'PNTRY5', activity: 'logistics', status: 'closed', closed: attested, goal: 'yes', rating: 5, attested, goalText: 'Sort the weekend food drive', outcome: 'Sorted 1,200 lbs of food into 140 family boxes' });
     const crew = [ana, ...attendees[2].slice(5, 22)];
     for (const v of crew) {
       const inAt = addMin(starts, Math.floor(rand() * 6));
@@ -144,14 +144,14 @@ async function main() {
 
   // Open today, for live testing (code from the contract).
   {
-    const ev = await mkEvent({ title: 'Guadalupe River Cleanup', location: 'Guadalupe River Park', starts: at(0, 9), ends: at(0, 21), code: 'PLANT2', activity: 'planting', status: 'open' });
+    const ev = await mkEvent({ title: 'Guadalupe River Cleanup', location: 'Guadalupe River Park', starts: at(0, 9), ends: at(0, 21), code: 'PLANT2', activity: 'planting', status: 'open', goalText: 'Clear two miles of riverbank' });
     for (const v of attendees[0].slice(3, 8)) {
       await sql`insert into attendance (event_id, volunteer_id, display_name, method, checked_in_at, status)
                 values (${ev.id}, ${v.id}, ${v.name}, 'qr', ${addMin(new Date(), -40 - Math.floor(rand() * 30))}, 'checked_in')`;
     }
   }
   // Coming up.
-  await mkEvent({ title: 'Earth Day Outreach Table', location: 'Downtown Farmers Market', starts: at(8, 10), ends: at(8, 14), code: 'EARTH6', activity: 'outreach', status: 'open' });
+  await mkEvent({ title: 'Earth Day Outreach Table', location: 'Downtown Farmers Market', starts: at(8, 10), ends: at(8, 14), code: 'EARTH6', activity: 'outreach', status: 'open', goalText: 'Sign up 50 new volunteers' });
 
   // One badge already signed, so the volunteer side has something to show.
   await sql`insert into badge_award (org_id, volunteer_id, badge, signed_by, signed_at)

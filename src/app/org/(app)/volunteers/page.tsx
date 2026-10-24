@@ -5,6 +5,7 @@ import { loadOrgInsights, SLIPPING_AFTER_DAYS } from '@/lib/insights';
 import { badgeByKey } from '@/lib/badges';
 import { ROLE_LABEL } from '@/lib/types';
 import { ago, fmtDay, initials } from '@/lib/format';
+import { inviteBack, sayThanks } from '@/lib/mailto';
 import { requestNow } from '@/lib/format';
 
 const TABS = [
@@ -29,14 +30,6 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
   const next = ins.events.find((e) => !e.is_practice && new Date(e.starts_at).getTime() > requestNow() && !e.attested_at);
   const list = ins.volunteers.filter((v) => (tab === 'all' || v.status === tab) && (!q || v.name.toLowerCase().includes(q)));
   const counts = Object.fromEntries(TABS.map((t) => [t.key, t.key === 'all' ? ins.volunteers.length : ins.volunteers.filter((v) => v.status === t.key).length]));
-
-  const mailto = (name: string, email: string) => {
-    const first = name.split(' ')[0];
-    const body = `Hi ${first},\n\nWe miss you at ${org.name}! ${
-      next ? `Our next event is ${next.title} on ${fmtDay(next.starts_at)}${next.location ? ` at ${next.location}` : ''}. ` : ''
-    }Would you like to come?\n\nThanks for everything you've done with us.\n${org.coordinator_name}`;
-    return `mailto:${email}?subject=${encodeURIComponent(`We miss you at ${org.name}`)}&body=${encodeURIComponent(body)}`;
-  };
 
   return (
     <div className="stack" style={{ gap: 20, maxWidth: 1120 }}>
@@ -138,11 +131,11 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                       </Link>
                     )}
                     {email && v.status === 'slipping' ? (
-                      <a className="btn btn-sm btn-primary" href={mailto(v.name, email)}>
+                      <a className="btn btn-sm btn-primary" href={inviteBack(org, v.name, email, next)}>
                         Invite back
                       </a>
                     ) : email && v.status === 'new' ? (
-                      <a className="btn btn-sm" href={mailto(v.name, email)}>
+                      <a className="btn btn-sm" href={sayThanks(org, v.name, email, next)}>
                         Say thanks
                       </a>
                     ) : null}
