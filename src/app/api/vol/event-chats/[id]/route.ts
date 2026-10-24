@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { sql } from '@/lib/db';
 import { MessageError } from '@/lib/messages';
+import { MINOR_CHAT_OFF, isMinor } from '@/lib/minors';
 import { chatForVolunteer, chatMembers, isMember, markChatRead, postAsVolunteer, shortName } from '@/lib/event-chat';
 
 // Volunteer side (owner: volunteer). Reference implementation; see
-// build/00-SHARED-CONTRACT.md. Only people who came to the event can read or post.
+// build/00-SHARED-CONTRACT.md. Only people who came to the event can read or post,
+// and never volunteers under 18 (403 for every method; see lib/minors.ts).
 //   GET                       → { event, org, members, messages }
 //   POST { body }             → post to the group (201)
 //   POST { read: true }       → mark the chat read
@@ -14,6 +16,7 @@ const UUID = /^[0-9a-f-]{36}$/;
 async function who(id: string) {
   const vid = (await cookies()).get('vid')?.value;
   if (!vid || !UUID.test(vid)) return { error: NextResponse.json({ error: 'Join first.' }, { status: 401 }) };
+  if (await isMinor(vid)) return { error: NextResponse.json({ error: MINOR_CHAT_OFF, minor: true }, { status: 403 }) };
   if (!UUID.test(id) || !(await isMember(id, vid))) return { error: NextResponse.json({ error: 'Only people who came to this event can see its chat.' }, { status: 403 }) };
   return { vid };
 }

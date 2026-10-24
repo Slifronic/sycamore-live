@@ -5,8 +5,8 @@ import { MessageError, volunteerMarkRead, volunteerReply, volunteerThreads } fro
 // Volunteer side (owner: volunteer). Reference implementation written with the
 // org side so coordinator messages work end to end; see
 // build/00-SHARED-CONTRACT.md. The volunteer's Messages screen calls it.
-//   GET                                   → { threads: VolThread[], unread }
-//   POST { org_id, body }                 → reply to an organization
+//   GET                                   → { threads: VolThread[], unread }   (thread.can_reply is false under 18)
+//   POST { org_id, body }                 → reply to an organization (403 under 18: direct messages are off)
 //   POST { org_id, read: true }           → mark that organization's messages read
 const UUID = /^[0-9a-f-]{36}$/;
 

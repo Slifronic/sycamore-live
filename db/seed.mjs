@@ -39,6 +39,7 @@ async function main() {
   const vols = [];
   const addVol = async (name, email, dob) => {
     const [v] = await sql`insert into volunteer (name, email, date_of_birth) values (${name}, ${email}, ${dob}) returning id, name`;
+    v.dob = dob;
     vols.push(v);
     return v;
   };
@@ -53,6 +54,14 @@ async function main() {
     await addVol(name, `${name.toLowerCase().replace(' ', '.')}@example.test`, `${year}-0${1 + Math.floor(rand() * 9)}-1${Math.floor(rand() * 9)}`);
   }
   const pool = vols.slice(2);
+  // Volunteers under 18 get announcements only: no direct messages and no event
+  // group chats (src/lib/minors.ts). Seeded replies and chat posts come from adults.
+  const adult = (v) => {
+    const d = new Date(`${v.dob}T00:00:00Z`);
+    const n = new Date();
+    return n.getUTCFullYear() - d.getUTCFullYear() - (n.getUTCMonth() < d.getUTCMonth() || (n.getUTCMonth() === d.getUTCMonth() && n.getUTCDate() < d.getUTCDate()) ? 1 : 0) >= 18;
+  };
+  const firstAdult = (xs, from = 0) => [...xs.slice(from), ...xs.slice(0, from)].find(adult);
 
   const mkEvent = async (e) => {
     const [row] = await sql`
@@ -156,8 +165,10 @@ async function main() {
     const starts = new Date(Math.min(at(0, 9).getTime(), Math.floor((Date.now() - 3_600_000) / quarter) * quarter));
     const ends = new Date(Math.max(at(0, 21).getTime(), Math.ceil((Date.now() + 4 * 3_600_000) / quarter) * quarter));
     const ev = await mkEvent({ title: 'Guadalupe River Cleanup', location: 'Guadalupe River Park', starts, ends, code: 'PLANT2', activity: 'planting', status: 'open', goalText: 'Clear two miles of riverbank' });
-    cleanup = { id: ev.id, crew: attendees[0].slice(3, 8) };
-    for (const v of attendees[0].slice(3, 8)) {
+    // Five adults checked in (they post in the event's group chat below).
+    const crew = [...attendees[0].slice(3), ...attendees[0].slice(0, 3)].filter(adult).slice(0, 5);
+    cleanup = { id: ev.id, crew };
+    for (const v of crew) {
       await sql`insert into attendance (event_id, volunteer_id, display_name, method, checked_in_at, status)
                 values (${ev.id}, ${v.id}, ${v.name}, 'qr', ${addMin(new Date(), -40 - Math.floor(rand() * 30))}, 'checked_in')`;
     }
@@ -202,7 +213,7 @@ async function main() {
     for (const v of crew) {
       const read = rand() < 0.78 ? addMin(sentAt, 20 + Math.floor(rand() * 900)) : null;
       await msg(v, 'out', `Hi ${firstName(v)}, thank you for Phase 1! ${phase2.title} is ${new Date(at(phase2.day, 9)).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', month: 'short', day: 'numeric' })} at 9:00 AM, Santa Teresa County Park. We’re finishing the south slope. Scan the QR at the sign-in table when you arrive.`, sentAt, { source: 'broadcast', broadcast: b1.id, read });
-      if (read && v !== ana && rand() < 0.22) await msg(v, 'in', replies[r++ % replies.length], addMin(read, 3 + Math.floor(rand() * 40)), { read: addMin(read, 300) });
+      if (read && v !== ana && rand() < 0.22 && adult(v)) await msg(v, 'in', replies[r++ % replies.length], addMin(read, 3 + Math.floor(rand() * 40)), { read: addMin(read, 300) });
     }
 
     // 2. A thank-you after the pantry shift, no event attached.
@@ -215,7 +226,7 @@ async function main() {
       const read = rand() < 0.83 ? addMin(pantry.sent, 30 + Math.floor(rand() * 600)) : null;
       await msg(v, 'out', `Hi ${firstName(v)}, thank you for Pantry Sort Night. Your 3 hours are verified and on your record.`, pantry.sent, { source: 'broadcast', broadcast: b2.id, read });
     }
-    const pantryFan = pantry.crew[4];
+    const pantryFan = firstAdult(pantry.crew, 4);
     await msg(pantryFan, 'in', 'That was so fun. Sign me up for the next sort night please!', addMin(pantry.sent, 95), { read: addMin(pantry.sent, 400) });
 
     // 3. Conversations waiting for Sam.
@@ -224,16 +235,16 @@ async function main() {
     await msg(ana, 'out', 'Of course. She can check in with her own phone; anyone 13 or older can join.', at(-4, 13, 5), { read: at(-4, 13, 20) });
     await msg(ana, 'in', 'Great, see you Saturday! Also, is there parking near the south trailhead?', at(-1, 20, 14));
 
-    const forgot = attendees[3][10];
+    const forgot = firstAdult(attendees[3], 10);
     await msg(forgot, 'in', 'Hi! I forgot to tap Check out on Saturday. I left around 12:15 if that helps.', at(-1, 9, 32));
     await msg(forgot, 'in', 'Sorry about that!', at(-1, 9, 33));
 
-    const away = attendees[1].slice(0, 14).find((v) => attendees[0].includes(v) && !attendees[2].includes(v)) ?? attendees[1][0];
+    const away = attendees[1].find((v) => adult(v) && attendees[0].includes(v) && !attendees[2].includes(v)) ?? firstAdult(attendees[1]);
     await msg(away, 'out', `Hi ${firstName(away)}, we miss you at Riverside Restoration Crew! Our next event is Earth Day Outreach Table at the Downtown Farmers Market. Want to come?`, at(-3, 10), { source: 'automation', automation: 'invite_back', dedupe: `invite_back:${away.id}:${new Date().toISOString().slice(0, 7)}`, read: at(-2, 19) });
     await msg(away, 'in', 'Sorry, finals week! Is there anything on a Sunday this month?', at(0, 8, 5));
 
-    await msg(jay, 'in', 'Do I need a parent to sign anything to get my hours?', at(-6, 16, 2), { read: at(-6, 17) });
-    await msg(jay, 'out', 'No signature needed. Your hours are verified by us when we close the event, and they show in My hours. Sharing your record with your school will need a parent or guardian’s OK, and that part isn’t available yet.', at(-6, 17, 4), { read: at(-6, 18, 30) });
+    // Jay is 16: no direct messages either way (lib/minors.ts), so his thread
+    // holds only the announcements above.
 
     // 4. Event group chats: today's cleanup is happening now; Phase 2 wrapped up two days ago.
     const post = (eventId, v, body, created) => sql`
@@ -249,7 +260,7 @@ async function main() {
     await sql`insert into event_chat_read (event_id, reader, last_read_at) values (${cleanup.id}, 'org', ${minsAgo(85)})`;
 
     const p2 = phase2.id;
-    const p2crew = attendees[3];
+    const p2crew = attendees[3].filter(adult);
     await post(p2, null, 'Phase 2 tomorrow! Meet at the south trailhead at 9. Rain is out of the forecast.', at(-3, 19));
     await post(p2, p2crew[2], 'Do we need to bring shovels or are there enough?', at(-3, 19, 40));
     await post(p2, null, 'Enough for everyone. Bring water and closed-toe shoes.', at(-3, 20, 5));

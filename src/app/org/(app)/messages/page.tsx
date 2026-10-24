@@ -8,6 +8,7 @@ import { ago, fmtDay, fmtTime, initials, lastCame, plural, requestNow } from '@/
 import { ROLE_LABEL } from '@/lib/types';
 import { PageHeader } from '@/components/PageHeader';
 import { orgChatUnread } from '@/lib/event-chat';
+import { MINOR_MESSAGES_OFF, minorIds } from '@/lib/minors';
 import { MessagesTabs } from './MessagesTabs';
 import { Composer } from './Composer';
 import { LiveInbox } from './LiveInbox';
@@ -64,7 +65,12 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
   const broadcastTitles = new Map(
     ((await sql`select id, title from broadcast where org_id = ${org.id}`) as unknown as { id: string; title: string }[]).map((b) => [b.id, b.title]),
   );
-  const startable = ins.volunteers.filter((v) => v.volunteer_id && !threads.some((t) => t.volunteer_id === v.volunteer_id)).sort((a, b) => a.name.localeCompare(b.name));
+  // Volunteers under 18 get announcements only (lib/minors.ts), so they can't be picked for a direct message.
+  const minors = await minorIds([...ins.volunteers.map((v) => v.volunteer_id).filter((x): x is string => !!x), ...(openId ? [openId] : [])]);
+  const openIsMinor = !!openId && minors.has(openId);
+  const startable = ins.volunteers
+    .filter((v) => v.volunteer_id && !minors.has(v.volunteer_id) && !threads.some((t) => t.volunteer_id === v.volunteer_id))
+    .sort((a, b) => a.name.localeCompare(b.name));
   const qs = (patch: Record<string, string | null>) => {
     const p = new URLSearchParams();
     const merged = { f: f === 'all' ? null : f, q: q || null, v: openId, ...patch };
@@ -118,6 +124,11 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                   <span style={{ minWidth: 0 }}>
                     <span className={s.tName}>
                       <span>{t.name}</span>
+                      {t.is_minor && (
+                        <span className="chip chip-ink" style={{ height: 18, fontSize: 10.5, padding: '0 7px' }}>
+                          under 18
+                        </span>
+                      )}
                     </span>
                     <span className={`${s.tPreview} ${t.unread ? s.unreadText : ''}`} style={{ display: 'block' }}>
                       {t.last_direction === 'out' ? 'You: ' : ''}
@@ -188,7 +199,7 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                     <span className={s.emptyIcon} aria-hidden>
                       ✉
                     </span>
-                    <p>No messages with {named.name.split(' ')[0]} yet. Say hello below.</p>
+                    <p>{openIsMinor ? `No announcements to ${named.name.split(' ')[0]} yet.` : `No messages with ${named.name.split(' ')[0]} yet. Say hello below.`}</p>
                   </div>
                 )}
                 {messages.map((m, i) => {
@@ -217,7 +228,14 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                   );
                 })}
               </div>
-              <Composer key={openId} volunteerId={openId} firstName={named.name.split(' ')[0]} />
+              {openIsMinor ? (
+                <p className={`notice small ${s.offNote}`}>
+                  {MINOR_MESSAGES_OFF} {named.name.split(' ')[0]} still gets your announcements.{' '}
+                  <Link href="/org/messages/broadcasts?new=1">Send an announcement</Link>
+                </p>
+              ) : (
+                <Composer key={openId} volunteerId={openId} firstName={named.name.split(' ')[0]} />
+              )}
             </>
           ) : (
             <div className={s.empty} style={{ gridRow: '1 / -1' }}>

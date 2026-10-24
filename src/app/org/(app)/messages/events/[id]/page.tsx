@@ -48,7 +48,7 @@ export default async function EventChatPage({ params }: PageProps<'/org/messages
       <div className={`card ${s.announce}`}>
         <span className="small" style={{ flex: 1, minWidth: 220 }}>
           <strong>Group chat</strong> · {plural(members.length, 'member')}
-          {live ? ' · live now' : ''}. Everyone here sees every post. For a one-to-one message, use the inbox.
+          {live ? ' · live now' : ''}. Everyone here sees every post. For a one-to-one message, use the inbox. Volunteers under 18 aren’t in group chats; an announcement reaches them.
         </span>
         <Link className="btn btn-sm" href={`/org/messages/broadcasts?new=1&event=${id}`}>
           Send an announcement instead

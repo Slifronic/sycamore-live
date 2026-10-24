@@ -36,6 +36,7 @@
 .stampMine { align-self: flex-end; }
 .composer { border-top: 1px solid var(--rule-soft); padding: 12px 16px; display: grid; gap: 8px; background: var(--paper); }
 .composer textarea { resize: none; min-height: 64px; }
+.offNote { margin: 12px 16px; background: var(--primary-soft); color: var(--ink-2); }
 .emptyConvo { display: grid; place-items: center; padding: 40px; grid-row: 1 / -1; }
 
 @media (max-width: 860px) {

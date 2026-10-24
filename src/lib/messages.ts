@@ -4,6 +4,7 @@ import { loadOrgInsights, type OrgInsights } from './insights';
 import { hoursTotal } from './hours';
 import { fmtDay, fmtTime } from './format';
 import type { AttendanceRow, EventRow, Org } from './types';
+import { MINOR_MESSAGES_OFF, isMinor, minorIds } from './minors';
 
 // Messages between a coordinator and the volunteers who have served with them.
 // Everything stays inside SycaMore: no phone numbers, no SMS, no email sent on
@@ -13,6 +14,9 @@ import type { AttendanceRow, EventRow, Org } from './types';
 //   direct      the coordinator writes to one volunteer from the inbox
 //   broadcast   one message to an audience, with a funnel (read, replied, showed up)
 //   automation  a rule fires on attested data (forgot to check out, hours verified…)
+// Volunteers under 18: direct messages are off in both directions (sendDirect
+// and volunteerReply refuse with 403); broadcasts and automatic notices are
+// one-way org announcements and still reach them. See lib/minors.ts.
 // Every number a template fills in ({hours}, {event}, dates) comes from the
 // database, never from the person writing it.
 
@@ -48,6 +52,7 @@ export type ThreadSummary = {
   status: 'new' | 'active' | 'away' | null;
   hours: number;
   last_seen: Date | null; // their last verified event with this org
+  is_minor: boolean; // under 18: the thread shows announcements only, no direct messages
 };
 
 // ---------- placeholders ----------
@@ -106,10 +111,11 @@ export async function listThreads(orgId: string, ins?: OrgInsights): Promise<Thr
     from message m join volunteer v on v.id = m.volunteer_id
     where m.org_id = ${orgId}
     order by m.volunteer_id, m.created_at desc
-  `) as unknown as Omit<ThreadSummary, 'status' | 'hours' | 'last_seen'>[];
+  `) as unknown as Omit<ThreadSummary, 'status' | 'hours' | 'last_seen' | 'is_minor'>[];
   const vols = new Map((ins ?? (await loadOrgInsights(orgId))).volunteers.filter((v) => v.volunteer_id).map((v) => [v.volunteer_id!, v]));
+  const minors = await minorIds(rows.map((r) => r.volunteer_id));
   return rows
-    .map((r) => ({ ...r, status: vols.get(r.volunteer_id)?.status ?? null, hours: vols.get(r.volunteer_id)?.hours ?? 0, last_seen: vols.get(r.volunteer_id)?.last_seen ?? null }))
+    .map((r) => ({ ...r, is_minor: minors.has(r.volunteer_id), status: vols.get(r.volunteer_id)?.status ?? null, hours: vols.get(r.volunteer_id)?.hours ?? 0, last_seen: vols.get(r.volunteer_id)?.last_seen ?? null }))
     .sort((a, b) => +b.last_at - +a.last_at);
 }
 
@@ -151,6 +157,7 @@ function cleanBody(body: string) {
 export async function sendDirect(org: Org, volunteerId: string, body: string) {
   const text = cleanBody(body);
   if (!(await canMessage(org.id, volunteerId))) throw new MessageError('You can only message volunteers who have served with you.');
+  if (await isMinor(volunteerId)) throw new MessageError(MINOR_MESSAGES_OFF, 403);
   await sql`
     insert into message (org_id, volunteer_id, direction, body, source, sent_by)
     values (${org.id}, ${volunteerId}, 'out', ${text}, 'direct', ${org.coordinator_name})`;
@@ -442,6 +449,7 @@ export async function runAutomations(org: Org, only?: AutomationKey): Promise<Re
 
 export type VolThread = {
   org: { id: string; name: string; coordinator_name: string; contact_phone: string };
+  can_reply: boolean; // false for volunteers under 18: announcements only
   unread: number;
   messages: { id: string; direction: 'out' | 'in'; body: string; source: MessageRow['source']; created_at: Date; read_at: Date | null }[];
 };
@@ -454,9 +462,10 @@ export async function volunteerThreads(volunteerId: string): Promise<VolThread[]
     where m.volunteer_id = ${volunteerId}
     order by m.created_at
   `) as unknown as (VolThread['messages'][number] & { org_id: string; name: string; coordinator_name: string; contact_phone: string })[];
+  const canReply = !(await isMinor(volunteerId));
   const byOrg = new Map<string, VolThread>();
   for (const r of rows) {
-    const t = byOrg.get(r.org_id) ?? { org: { id: r.org_id, name: r.name, coordinator_name: r.coordinator_name, contact_phone: r.contact_phone }, unread: 0, messages: [] };
+    const t = byOrg.get(r.org_id) ?? { org: { id: r.org_id, name: r.name, coordinator_name: r.coordinator_name, contact_phone: r.contact_phone }, can_reply: canReply, unread: 0, messages: [] };
     t.messages.push({ id: r.id, direction: r.direction, body: r.body, source: r.source, created_at: r.created_at, read_at: r.read_at });
     if (r.direction === 'out' && !r.read_at) t.unread++;
     byOrg.set(r.org_id, t);
@@ -474,6 +483,7 @@ export async function volunteerReply(volunteerId: string, orgId: string, body: s
   if (text.length > MAX_BODY) throw new MessageError(`Keep it under ${MAX_BODY} characters.`);
   // Volunteers can only write to an organization that has messaged them or that they've served with.
   if (!(await canMessage(orgId, volunteerId))) throw new MessageError('You can only message organizations you’ve volunteered with.', 403);
+  if (await isMinor(volunteerId)) throw new MessageError(MINOR_MESSAGES_OFF, 403);
   const [m] = await sql`
     insert into message (org_id, volunteer_id, direction, body, source)
     values (${orgId}, ${volunteerId}, 'in', ${text}, 'direct') returning id, created_at`;

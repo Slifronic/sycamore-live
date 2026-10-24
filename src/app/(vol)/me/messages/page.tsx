@@ -3,6 +3,7 @@ import { requireVolunteer } from '@/lib/vol-data';
 import { volunteerThreads, type VolThread } from '@/lib/messages';
 import { chatForVolunteer, chatMembers, isMember, shortName, volunteerChats } from '@/lib/event-chat';
 import { isUuid } from '@/lib/ids';
+import { MINOR_CHAT_OFF, MINOR_MESSAGES_OFF } from '@/lib/minors';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { Composer, LiveThread } from './MessagesClient';
@@ -13,7 +14,8 @@ import s from './messages.module.css';
 // chat per event they came to. Data comes from lib/messages.ts and
 // lib/event-chat.ts; replies and "read" go through /api/vol/messages and
 // /api/vol/event-chats, so the rules (only orgs you've served with, members
-// only, names as "Ana R.") live in one place.
+// only, names as "Ana R.", nothing for volunteers under 18 but one-way
+// announcements) live in one place.
 
 const dayLabel = (d: Date) => {
   const ymd = (x: Date) => x.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
@@ -47,11 +49,18 @@ export default async function MessagesPage({ searchParams }: PageProps<'/me/mess
 
   return (
     <div className={s.page}>
-      <PageHeader eyebrow="Messages" title="Messages" lede="Notes from your coordinators and the group chat for each event you came to. No phone numbers change hands." className={open ? s.hideOnPhone : ''} />
+      <PageHeader
+        eyebrow="Messages"
+        title="Messages"
+        lede={vol.is_minor ? 'Announcements from the organizations you volunteer with. No phone numbers change hands.' : 'Notes from your coordinators and the group chat for each event you came to. No phone numbers change hands.'}
+        className={open ? s.hideOnPhone : ''}
+      />
       <div className={`${s.inbox} ${open ? s.isOpen : ''}`}>
         <nav className={`card ${s.list}`} aria-label="Conversations">
           <p className={s.listLabel}>Organizations</p>
-          {threads.length === 0 && <p className="small muted" style={{ padding: '4px 14px 12px' }}>When a coordinator writes to you, it shows up here.</p>}
+          {threads.length === 0 && (
+            <p className="small muted" style={{ padding: '4px 14px 12px' }}>{vol.is_minor ? 'Announcements from an organization show up here.' : 'When a coordinator writes to you, it shows up here.'}</p>
+          )}
           {threads.map((t) => {
             const last = t.messages.at(-1)!;
             return (
@@ -69,7 +78,11 @@ export default async function MessagesPage({ searchParams }: PageProps<'/me/mess
             );
           })}
           <p className={s.listLabel}>Event group chats</p>
-          {chats.length === 0 && <p className="small muted" style={{ padding: '4px 14px 12px' }}>Check in at an event to join its group chat.</p>}
+          {vol.is_minor ? (
+            <p className="small muted" style={{ padding: '4px 14px 12px' }}>{MINOR_CHAT_OFF}</p>
+          ) : (
+            chats.length === 0 && <p className="small muted" style={{ padding: '4px 14px 12px' }}>Check in at an event to join its group chat.</p>
+          )}
           {chats.map((c) => (
             <Link key={c.event.id} href={`/me/messages?event=${c.event.id}`} className={s.row} aria-current={c.event.id === eventId ? 'page' : undefined}>
               <span className={s.rowTop}>
@@ -139,7 +152,13 @@ function OrgThread({ t }: { t: VolThread }) {
         })}
       </div>
       <LiveThread kind="org" id={t.org.id} lastUnreadId={lastUnread} />
-      <Composer kind="org" id={t.org.id} placeholder={`Reply to ${t.org.coordinator_name}…`} />
+      {t.can_reply ? (
+        <Composer kind="org" id={t.org.id} placeholder={`Reply to ${t.org.coordinator_name}…`} />
+      ) : (
+        <p className={`notice small ${s.offNote}`}>
+          {MINOR_MESSAGES_OFF} Announcements from {t.org.name} still show up here.
+        </p>
+      )}
     </>
   );
 }
