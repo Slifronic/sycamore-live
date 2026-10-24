@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:reset": "createdb sycamore_live 2>/dev/null; node db/seed.mjs",
+    "db:reset": "node db/reset.mjs",
     "check": "tsc --noEmit && eslint src --quiet",
     "eval:sheets": "node tests/sheets/eval.mjs"
   },

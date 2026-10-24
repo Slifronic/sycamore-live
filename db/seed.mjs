@@ -159,6 +159,15 @@ async function main() {
   // Coming up.
   await mkEvent({ title: 'Earth Day Outreach Table', location: 'Downtown Farmers Market', starts: at(8, 10), ends: at(8, 14), code: 'EARTH6', activity: 'outreach', status: 'open', goalText: 'Sign up 50 new volunteers' });
 
+  // Volunteer side: Ana has a personal goal and has already shared her Phase 1
+  // record, so /v/<code> works from the first load. (Codes made in the app are
+  // random; this one is fixed so it can go on a slide.) Jay is 16: he can see
+  // his records but can't share them.
+  await sql`update volunteer set hours_goal = 40 where id = ${ana.id}`;
+  await sql`
+    update record r set code = 'SYC-RVR7-PLNT', shared_at = r.issued_at + interval '1 day'
+    from attendance a where a.id = r.attendance_id and a.event_id = ${plantings[2].id} and r.volunteer_id = ${ana.id}`;
+
   // One badge already signed, so the volunteer side has something to show.
   await sql`insert into badge_award (org_id, volunteer_id, badge, signed_by, signed_at)
             values (${org.id}, ${ana.id}, 'event_coordination', 'Sam Rivera', ${at(-19, 10)})`;

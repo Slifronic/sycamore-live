@@ -77,7 +77,10 @@ create table volunteer (
   -- first event so the roster can show "new".
   google_sub text unique,
   signup_method text not null default 'join' check (signup_method in ('join','walk_in_email','walk_in_google')),
-  signup_event_id uuid references event(id)
+  signup_event_id uuid references event(id),
+  -- volunteer addition: a private personal target ("40 hours this year"). It is
+  -- never a claim of hours served; only attested records count toward it.
+  hours_goal integer check (hours_goal between 1 and 2000)
 );
 
 create table attendance (
