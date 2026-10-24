@@ -28,7 +28,8 @@ export function SiteHeader() {
     button.current?.focus();
   }, []);
 
-  // A link inside the sheet was followed: close without stealing focus.
+  // A link inside the sheet was followed: close without stealing focus. (The
+  // links also close it on click, since Next keeps a left page's state.)
   const [lastPath, setLastPath] = useState(path);
   if (lastPath !== path) {
     setLastPath(path);
@@ -165,7 +166,7 @@ export function SiteHeader() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.04 + i * 0.035, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     >
-                      <Link href={l.href} className={s.sheetLink} aria-current={active === l.href ? 'page' : undefined}>
+                      <Link href={l.href} className={s.sheetLink} aria-current={active === l.href ? 'page' : undefined} onClick={() => setOpen(false)}>
                         {l.label}
                         <span aria-hidden="true">→</span>
                       </Link>
@@ -174,13 +175,13 @@ export function SiteHeader() {
                 </ul>
               </nav>
               <div className={s.sheetActions}>
-                <Link href="/org/start" className="btn btn-primary btn-big">
+                <Link href="/org/start" className="btn btn-primary btn-big" onClick={() => setOpen(false)}>
                   Set up your organization
                 </Link>
-                <Link href="/join" className="btn btn-big">
+                <Link href="/join" className="btn btn-big" onClick={() => setOpen(false)}>
                   I’m volunteering
                 </Link>
-                <Link href="/org/login" className={s.sheetSignin}>
+                <Link href="/org/login" className={s.sheetSignin} onClick={() => setOpen(false)}>
                   Coordinator sign in
                 </Link>
               </div>

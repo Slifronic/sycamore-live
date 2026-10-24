@@ -50,7 +50,7 @@
 .story[data-live] .steps { gap: 0; }
 .story[data-live] .step { grid-template-columns: minmax(0, 1fr); min-height: 78vh; }
 .story[data-live] .inlineVisual { display: none; }
-.story[data-live] .stepText { opacity: 0.32; transform: translateX(-6px); transition: opacity 0.5s var(--ease), transform 0.6s var(--out); }
+.story[data-live] .stepText { opacity: 0.4; transform: translateX(-6px); transition: opacity 0.5s var(--ease), transform 0.6s var(--out); }
 .story[data-live] .step[data-active] .stepText { opacity: 1; transform: none; }
 .story[data-live] .step[data-active] .stepNum { background: var(--ink); color: #fff; }
 

@@ -313,7 +313,7 @@
   .heroGrid, .trustGrid { grid-template-columns: minmax(0, 1fr); }
   .heroPhoto { aspect-ratio: 4 / 3; min-height: 0; max-height: none; border-radius: 26px; }
   .heroArt { padding-bottom: 0; }
-  .heroCard { position: relative; left: auto; bottom: auto; width: calc(100% - 24px); margin: -88px auto 0; }
+  .heroCard { position: relative; left: auto; bottom: auto; width: calc(100% - 24px); margin: -56px auto 0; }
   .trustHead { position: static; }
   .bento { grid-template-columns: minmax(0, 1fr); }
   .c2, .c3, .c4 { grid-column: auto; }

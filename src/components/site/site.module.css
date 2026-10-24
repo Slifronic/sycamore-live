@@ -148,7 +148,7 @@
 .lifted { transition: transform 0.35s var(--out), box-shadow 0.35s var(--out); }
 .lifted:hover { transform: translateY(-4px); box-shadow: var(--shadow-hi); }
 
-.illo { position: relative; width: 112px; aspect-ratio: 1; border-radius: 26px; overflow: hidden; background: #efeee6; flex: none; }
+.illo { display: block; position: relative; width: 112px; aspect-ratio: 1; border-radius: 26px; overflow: hidden; background: #efeee6; flex: none; }
 .illo img { object-fit: contain; }
 
 .check {

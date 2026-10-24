@@ -1,0 +1,62 @@
+/* Native <details>: keyboard accessible and readable with no JavaScript.
+   The height animates where the browser supports interpolate-size. */
+.list { display: grid; gap: 10px; }
+.item {
+  interpolate-size: allow-keywords;
+  background: var(--paper);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.3s var(--ease);
+}
+.item[open] { box-shadow: var(--shadow-hi); }
+.item::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition: block-size 0.4s var(--out), content-visibility 0.4s allow-discrete;
+}
+.item[open]::details-content { block-size: auto; }
+.q {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  min-height: 64px;
+  padding: 16px 22px;
+  cursor: pointer;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(18px, 1.7vw, 21px);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--canopy);
+  border-radius: 18px;
+}
+.q::-webkit-details-marker { display: none; }
+.q:hover { color: var(--primary); }
+.icon {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  transition: background 0.3s var(--ease), transform 0.4s var(--out);
+}
+.icon::before, .icon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 2px;
+  margin: -1px 0 0 -6px;
+  border-radius: 2px;
+  background: var(--canopy);
+  transition: transform 0.4s var(--out), background 0.3s var(--ease);
+}
+.icon::after { transform: rotate(90deg); }
+.item[open] .icon { background: var(--ink); transform: rotate(180deg); }
+.item[open] .icon::before, .item[open] .icon::after { background: #fff; }
+.item[open] .icon::after { transform: rotate(0deg); }
+.a { padding: 0 22px 22px; font-size: 16px; line-height: 1.7; color: var(--ink-2); max-width: 68ch; }
+.a a { color: var(--primary); font-weight: 700; }
