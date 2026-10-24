@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'motion/react';
 import { CopyField } from '@/components/events/CopyField';
 import s from '../badges.module.css';
 
@@ -11,6 +12,9 @@ export function BadgeSharePanel({ awardId, url, qrSvg, isMinor }: { awardId: str
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [justMade, setJustMade] = useState(false);
+  const reveal = (i: number) =>
+    justMade ? { initial: { opacity: 0, y: 10, scale: 0.98 }, animate: { opacity: 1, y: 0, scale: 1 }, transition: { duration: 0.5, delay: 0.08 + i * 0.12, ease: [0.16, 1, 0.3, 1] as const } } : {};
 
   return (
     <section className="card card-pad stack">
@@ -19,12 +23,22 @@ export function BadgeSharePanel({ awardId, url, qrSvg, isMinor }: { awardId: str
         <p className="notice notice-amber">Sharing needs a guardian’s OK. That’s coming after the hackathon; until then your badge stays private to you.</p>
       ) : url ? (
         <>
-          <p className="small muted">Anyone with this link sees who signed the badge, when, and who to call. No account needed.</p>
-          <CopyField label="Verification link" value={url} />
-          {qrSvg && <div className={s.qr} role="img" aria-label="QR code for the verification link" dangerouslySetInnerHTML={{ __html: qrSvg }} />}
-          <a className="btn" href={url} target="_blank" rel="noopener">
+          {justMade ? (
+            <motion.p className="notice notice-green small" role="status" {...reveal(0)}>
+              ✓ Your verification link is ready.
+            </motion.p>
+          ) : (
+            <p className="small muted">Anyone with this link sees who signed the badge, when, and who to call. No account needed.</p>
+          )}
+          <motion.div {...reveal(1)}>
+            <CopyField label="Verification link" value={url} />
+          </motion.div>
+          {qrSvg && (
+            <motion.div className={s.qr} role="img" aria-label="QR code for the verification link" dangerouslySetInnerHTML={{ __html: qrSvg }} {...reveal(2)} />
+          )}
+          <motion.a className="btn" href={url} target="_blank" rel="noopener" {...reveal(3)}>
             Open the public page ↗
-          </a>
+          </motion.a>
         </>
       ) : (
         <>
@@ -39,6 +53,7 @@ export function BadgeSharePanel({ awardId, url, qrSvg, isMinor }: { awardId: str
               const data = await res?.json().catch(() => ({}));
               setBusy(false);
               if (!res?.ok) return setError(data?.error ?? 'No connection. Try again.');
+              setJustMade(true);
               router.refresh();
             }}
           >

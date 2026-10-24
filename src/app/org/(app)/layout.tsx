@@ -12,6 +12,7 @@ import s from './shell.module.css';
 import { initials } from '@/lib/format';
 import { PinReveal } from '@/components/PinReveal';
 import { DemoRibbon } from '@/components/DemoRibbon';
+import { Leaf } from '@/components/media/Leaf';
 
 // Every org screen reads the coordinator's cookie, so it renders per request.
 export const instant = false;
@@ -32,7 +33,7 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
         </a>
         <aside className={`${s.side} no-print`}>
           <Link href="/org" className={s.brand}>
-            <span className={s.leaf} aria-hidden>❦</span> SycaMore
+            <Leaf size={22} color="var(--canopy)" className={s.leaf} /> SycaMore
           </Link>
           <div className={s.org}>
             <span className={s.tile} aria-hidden>

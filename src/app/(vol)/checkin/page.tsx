@@ -1,4 +1,5 @@
 import { activeSession, checkinState, eventByCheckinCode, leaveCheck, normalizeCheckinCode, requireVolunteer } from '@/lib/vol-data';
+import Image from 'next/image';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { CheckinForm, LiveSession } from './CheckinClient';
@@ -32,6 +33,9 @@ export default async function CheckinPage({ searchParams }: PageProps<'/checkin'
   const state = event ? checkinState(event) : null;
   return (
     <div className={s.narrow}>
+      <div className={`${s.checkinArt} settle`} aria-hidden>
+        <Image src="/media/photo/audience-volunteer-sm.webp" alt="" fill sizes="480px" className={s.joinImg} />
+      </div>
       <PageHeader eyebrow="Check in" title={event ? event.title : 'Check in to an event'} lede={event ? `${event.org_name} · ${fmtDay(event.starts_at)}, ${fmtTime(event.starts_at)} to ${fmtTime(event.ends_at)}${event.location ? ` · ${event.location}` : ''}` : 'Scan the QR code at the sign-in table, or type the 6-character code the coordinator shows.'} />
       {code && !event && <p className="notice notice-amber">We couldn’t find an event with the code {code}. Check it with the coordinator, or type it again below.</p>}
       {event && state !== 'open' && (

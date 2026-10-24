@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'motion/react';
 import { CopyField } from '@/components/events/CopyField';
 import s from '../../../pages.module.css';
 
@@ -9,6 +10,11 @@ export function SharePanel({ recordId, url, qrSvg, isMinor, revoked }: { recordI
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // Set when this visit made the link: the link and its QR arrive with a
+  // gentle reveal instead of popping in. A later visit just shows them.
+  const [justMade, setJustMade] = useState(false);
+  const reveal = (i: number) =>
+    justMade ? { initial: { opacity: 0, y: 10, scale: 0.98 }, animate: { opacity: 1, y: 0, scale: 1 }, transition: { duration: 0.5, delay: 0.08 + i * 0.12, ease: [0.16, 1, 0.3, 1] as const } } : {};
 
   return (
     <section className="card card-pad stack">
@@ -19,12 +25,25 @@ export function SharePanel({ recordId, url, qrSvg, isMinor, revoked }: { recordI
         <p className="notice notice-amber">Sharing needs a guardian’s OK. That’s coming after the hackathon; until then your record stays private to you.</p>
       ) : url ? (
         <>
-          <p className="small muted">Anyone with this link sees the organization’s statement and who to call. No account needed.</p>
-          <CopyField label="Share link" value={url} />
-          {qrSvg && <div className={s.qr} role="img" aria-label="QR code for the share link" dangerouslySetInnerHTML={{ __html: qrSvg }} />}
-          <a className="btn" href={url} target="_blank" rel="noopener">
+          {justMade ? (
+            <motion.p className={`notice notice-green small ${s.madeNote}`} role="status" {...reveal(0)}>
+              <span aria-hidden>✓</span> Your link is ready. Anyone you give it to can check this record.
+            </motion.p>
+          ) : (
+            <p className="small muted">Anyone with this link sees the organization’s statement and who to call. No account needed.</p>
+          )}
+          <motion.div {...reveal(1)}>
+            <CopyField label="Share link" value={url} />
+          </motion.div>
+          {qrSvg && (
+            <motion.div className={s.qrFrame} {...reveal(2)}>
+              <div className={s.qr} role="img" aria-label="QR code for the share link" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+              <span className="small muted">Scan to open the public record</span>
+            </motion.div>
+          )}
+          <motion.a className="btn" href={url} target="_blank" rel="noopener" {...reveal(3)}>
             Open the public page ↗
-          </a>
+          </motion.a>
         </>
       ) : (
         <>
@@ -39,6 +58,7 @@ export function SharePanel({ recordId, url, qrSvg, isMinor, revoked }: { recordI
               const data = await res?.json().catch(() => ({}));
               setBusy(false);
               if (!res?.ok) return setError(data?.error ?? 'No connection. Try again.');
+              setJustMade(true);
               router.refresh();
             }}
           >

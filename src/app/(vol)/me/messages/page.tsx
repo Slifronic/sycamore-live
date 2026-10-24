@@ -7,6 +7,7 @@ import { MINOR_CHAT_OFF, MINOR_MESSAGES_OFF } from '@/lib/minors';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { Composer, LiveThread } from './MessagesClient';
+import { EmptyState } from '@/components/media/EmptyState';
 import s from './messages.module.css';
 
 // Messages, the volunteer's half of the coordinator inbox. One thread per
@@ -102,7 +103,26 @@ export default async function MessagesPage({ searchParams }: PageProps<'/me/mess
             <EventChat eventId={chatSummary.event.id} title={chatSummary.event.title} orgName={chatSummary.org.name} when={chatSummary.event.starts_at} me={vol.id} />
           ) : (
             <div className={s.emptyConvo}>
-              <p className="muted">{orgId || eventId ? 'That conversation isn’t one of yours.' : 'Pick a conversation.'}</p>
+              <EmptyState
+                compact
+                illo="envelope"
+                title={orgId || eventId ? 'That conversation isn’t one of yours.' : threads.length || chats.length ? 'Pick a conversation.' : 'No messages yet.'}
+                action={
+                  !threads.length && !chats.length && !vol.is_minor ? (
+                    <Link href="/checkin" className="btn btn-sm">
+                      Check in to an event
+                    </Link>
+                  ) : undefined
+                }
+              >
+                {orgId || eventId
+                  ? 'Choose one from the list.'
+                  : threads.length || chats.length
+                    ? 'Choose a coordinator or an event chat from the list.'
+                    : vol.is_minor
+                      ? 'Announcements from the organizations you volunteer with show up here.'
+                      : 'Coordinators can write to you after your first event, and each event you check in to has a group chat.'}
+              </EmptyState>
             </div>
           )}
         </section>

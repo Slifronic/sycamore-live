@@ -15,6 +15,18 @@ export type SessionAttendance = { id: string; status: string; checked_in_at: str
 const clock = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
 const first = (name: string) => name.split(/\s+/)[0] ?? name;
 
+// The confirmation mark: a ring and a tick that draw in once (about half a
+// second, never blocking the button below it). Without JS or with reduced
+// motion it's simply drawn.
+function Tick({ tone = 'green' }: { tone?: 'green' | 'ink' }) {
+  return (
+    <svg className={`${s.tick} ${tone === 'ink' ? s.tickInk : ''}`} viewBox="0 0 52 52" width="52" height="52" aria-hidden>
+      <circle className={s.tickRing} cx="26" cy="26" r="23" pathLength={1} />
+      <path className={s.tickMark} d="M15 27 L23 34 L37 18" pathLength={1} />
+    </svg>
+  );
+}
+
 export function SessionCard(props: {
   att: SessionAttendance;
   name: string;
@@ -55,6 +67,7 @@ export function SessionCard(props: {
         return;
       }
       setSaving(null);
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate?.(12);
       props.onChange({ ...att, ...data.attendance });
     } catch {
       setSaving('queued'); // no signal: keep the tap time and retry
@@ -69,8 +82,11 @@ export function SessionCard(props: {
 
   if (att.status !== 'checked_in') {
     return (
-      <section className={s.card}>
-        <p className={s.badge}>✓ Checked out{att.checked_out_at ? ` at ${clock(att.checked_out_at)}` : ''}</p>
+      <section className={`${s.card} ${s.pop}`}>
+        <div className={s.head}>
+          <Tick tone="ink" />
+          <p className={s.badge}>✓ Checked out{att.checked_out_at ? ` at ${clock(att.checked_out_at)}` : ''}</p>
+        </div>
         <h2 className={s.h2}>Thanks, {first(props.name)}</h2>
         <p>{props.orgName} confirms everyone’s hours when the event closes. After that, your record is in My hours{props.isMinor ? '' : ', ready to share'}.</p>
         <Link className={`${s.btn} ${s.primary}`} href="/me">
@@ -80,15 +96,28 @@ export function SessionCard(props: {
     );
   }
 
-  const mins = att.checked_in_at ? Math.max(0, Math.floor((now - Date.parse(att.checked_in_at)) / 60_000)) : 0;
+  const secs = att.checked_in_at ? Math.max(0, Math.floor((now - Date.parse(att.checked_in_at)) / 1000)) : 0;
+  const mins = Math.floor(secs / 60);
   return (
-    <section className={s.card}>
-      <p className={s.badge}>✓ Checked in{att.checked_in_at ? ` at ${clock(att.checked_in_at)}` : ''}</p>
+    <section className={`${s.card} ${s.pop}`}>
+      <div className={s.head}>
+        <Tick />
+        <p className={s.badge}>✓ Checked in{att.checked_in_at ? ` at ${clock(att.checked_in_at)}` : ''}</p>
+      </div>
       <h2 className={s.h2}>{props.isNew ? `You’re signed up, ${first(props.name)}` : `You’re here, ${first(props.name)}`}</h2>
       {props.eventTitle && <p className={s.event}>{props.eventTitle} · {props.orgName}</p>}
-      <p className={s.timer} aria-live="off">
-        {Math.floor(mins / 60)}<span>h</span> {String(mins % 60).padStart(2, '0')}<span>m</span>
-      </p>
+      <div className={s.timerRow}>
+        <p className={s.timer} aria-live="off">
+          {Math.floor(mins / 60)}
+          <span>h</span> {String(mins % 60).padStart(2, '0')}
+          <span>m</span>
+          <span className={s.secs} suppressHydrationWarning>
+            {String(secs % 60).padStart(2, '0')}s
+          </span>
+        </p>
+        <span className={s.liveDot} aria-hidden />
+        <span className="sr-only">Time since you checked in: {Math.floor(mins / 60)} hours {mins % 60} minutes</span>
+      </div>
       <p className={s.muted}>The coordinator can see you on the roster now. Tap Check out when you leave, so your hours count.</p>
       <button className={`${s.btn} ${s.primary}`} disabled={saving === 'sending'} onClick={checkOut}>
         {saving === 'sending' ? 'Checking you out…' : 'Check out'}

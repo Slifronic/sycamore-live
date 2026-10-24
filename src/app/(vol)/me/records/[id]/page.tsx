@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { RecordWording, longDate } from '@/components/vol/RecordWording';
 import { PrintButton } from '@/app/org/(app)/reports/PrintButton';
 import { SharePanel } from './SharePanel';
+import { HoursBar } from '@/components/media/HoursBar';
 import { BlurbPanel } from './BlurbPanel';
 import s from '../../../pages.module.css';
 
@@ -54,16 +55,7 @@ export default async function RecordPage({ params }: PageProps<'/me/records/[id]
             </div>
           </div>
           <RecordWording r={r} className={s.wording} fineClassName={s.fine} />
-          <div className={s.split}>
-            <div>
-              <strong>Captured</strong>
-              <p className="muted">{fmtHours(r.hours_captured)} hours, from check-in and check-out</p>
-            </div>
-            <div>
-              <strong>Coordinator adjustment</strong>
-              <p className="muted">{r.hours_adjusted == null ? 'None' : `Changed to ${fmtHours(r.hours_adjusted)} hours by ${r.adjusted_by}. Reason: “${r.adjustment_reason}”`}</p>
-            </div>
-          </div>
+          <HoursBar captured={r.hours_captured} attested={r.hours_total} adjustedBy={r.adjusted_by} reason={r.adjustment_reason} />
           <p className={s.fine}>
             Attested {pacificDay(r.attested_at)} · Times in Pacific time{r.code ? ` · Verify at ${appUrl().replace(/^https?:\/\//, '')}/v/${r.code}` : ''}
           </p>

@@ -7,6 +7,7 @@ import { initials } from '@/lib/format';
 import { VolSideNav, VolTabBar } from '@/components/vol/VolNav';
 import { volSignOut } from './actions';
 import { DemoRibbon } from '@/components/DemoRibbon';
+import { Leaf } from '@/components/media/Leaf';
 import s from './vol.module.css';
 
 // The volunteer side's shell. Same look as the coordinator's (parchment,
@@ -26,7 +27,7 @@ export default async function VolShell({ children }: LayoutProps<'/'>) {
         <div className={s.bare}>
           <header className={s.bareHead}>
             <Link href="/" className={s.brand}>
-              <span aria-hidden>❦</span> SycaMore
+              <Leaf size={22} color="var(--canopy)" /> SycaMore
             </Link>
             <Link href="/org/login" className="small muted">
               Coordinator? Sign in
@@ -52,7 +53,7 @@ export default async function VolShell({ children }: LayoutProps<'/'>) {
         </a>
         <aside className={`${s.side} no-print`}>
           <Link href="/me" className={s.brand}>
-            <span aria-hidden>❦</span> SycaMore
+            <Leaf size={22} color="var(--canopy)" /> SycaMore
           </Link>
           <div className={s.who}>
             <span className={s.tile} aria-hidden>

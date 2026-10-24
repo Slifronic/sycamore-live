@@ -4,7 +4,8 @@
   padding: 20px 14px;
 }
 .brand { display: flex; align-items: center; gap: 8px; font-family: var(--font-display), Georgia, serif; font-size: 20px; font-weight: 600; color: var(--canopy); text-decoration: none; padding: 0 8px; }
-.leaf { font-size: 22px; }
+.leaf { flex: none; transition: transform 0.4s var(--out); }
+.brand:hover .leaf { transform: rotate(-12deg); }
 .org { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 8px 10px; align-items: center; padding: 12px; border-radius: 14px; background: var(--paper); box-shadow: var(--shadow); }
 .tile { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--band); color: #fff; font-family: var(--font-display), Georgia, serif; font-weight: 600; font-size: 15px; letter-spacing: 0.02em; }
 .orgText { min-width: 0; }
