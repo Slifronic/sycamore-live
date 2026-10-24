@@ -18,6 +18,17 @@ This repo holds the **organization side** (Bryant, built with Claude). The volun
 - **Badges:** the system finds who meets a rule; a coordinator signs each one (with an evidence note where the badge asks for one).
 - **Funder report:** hours, unique volunteers, events, value of volunteer time (Independent Sector 2025, preliminary: $36.14 national, $41.75 California), leadership, Index; print to PDF or download CSV.
 - **Leave-the-area check (opt-in):** the coordinator sets the site and a radius on event day. A volunteer who opts in pings their location while the check-in page is open. After 10 minutes outside the circle, the roster shows "Left the area around 7:14 PM?", and the verify screen offers that time as their check-out with a printed reason. Nobody is checked out automatically, no coordinates are stored (only when they left and how far), vague GPS fixes are ignored, and verifying wipes it all. Logic in `src/lib/presence.ts`; the volunteer endpoint `POST /api/vol/presence` is a reference implementation for the volunteer side.
+- **Walk-in sign-up:** for someone who just shows up with no account. Each event gets a second QR code, under the check-in code, in the full-screen view and on page 2 of the printed sign. Scanning it opens `/w/<token>`:
+  - **Sign up:** "Continue with Google" (asks only for a birth date after) or name, email and birth date. It also checks them in to that event in the same step and sets the contract's `vid` cookie.
+  - **Check-in screen:** a running timer and a Check out button. Reopening the link on the same phone brings it back, and someone who signed up on that phone before checks in with one tap.
+  - **When it works:** from 2 hours before the start to 2 hours after the end, and never once the event is verified. The coordinator can turn it off or make a new link, which kills every photo or print of the old one. Even then, a walk-in who is still checked in can reach Check out from the old link.
+  - **Roster:** walk-ins show as "Signed up at the door", with a "New" tag at the event where they joined.
+  - **Rules:**
+    - Under 13 is refused and nothing is stored.
+    - Ages 13 to 17 are told that sharing will need a guardian's OK.
+    - An email that's already signed up needs its matching birth date, so typing someone else's email doesn't open their record or messages.
+    - Google ID tokens are verified with Google on the server (audience, issuer, expiry, verified email).
+  - **Code:** logic in `src/lib/walkin.ts` and `src/lib/google.ts`. `POST /api/vol/checkout` is a reference implementation of the contract route for the volunteer side.
 - **Event story (Claude):** after an event, the coordinator records a voice debrief and adds phone videos.
   - **Voice:** a live transcript from the browser's speech service; the audio is kept privately.
   - **Videos:** the browser cuts a few still frames from each clip, and Claude describes them: what's happening, usable moments, a caption, and a flag when people or possibly minors are recognizable.
@@ -46,7 +57,13 @@ npm run dev -- -p 3311
 DATABASE_URL=postgres://localhost:5432/sycamore_live
 NEXT_PUBLIC_APP_URL=http://localhost:3311
 ANTHROPIC_API_KEY=...        # for "Import paper sheet" and "Event story"
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=...apps.googleusercontent.com   # optional: "Continue with Google" for walk-ins
 ```
+
+**Google sign-in for walk-ins (optional).** Without a client ID the walk-in page shows only the short form, which works on its own. To turn Google on:
+1. Google Cloud Console → APIs & Services → Credentials → Create credentials → OAuth client ID → **Web application**.
+2. Under **Authorized JavaScript origins**, add every origin the app runs on, for example `http://localhost:3311` and the Vercel URL. No redirect URI is needed; there is no client secret to store.
+3. Put the client ID in `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (locally and in Vercel) and restart the server.
 
 Demo coordinator PIN: **246810** (Riverside Restoration Crew, made-up names). The seed mirrors the shape of the team's real pilot: four planting events with 45/48/52/58 attendances at 3 hours each. Phase 2 is left unverified on purpose: verifying it on stage moves the Index from Silver to Gold and makes new badges ready.
 

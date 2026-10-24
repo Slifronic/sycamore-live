@@ -1,5 +1,19 @@
 .grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
-.qrCard { padding: 20px; display: grid; gap: 12px; justify-items: center; position: sticky; top: 20px; }
+.side { display: grid; gap: 16px; position: sticky; top: 20px; align-self: start; }
+.qrCard { padding: 20px; display: grid; gap: 12px; justify-items: center; }
+/* Walk-in sign-up: the second, smaller code, for people with no account yet. */
+.walkin { padding: 18px 20px; display: grid; gap: 10px; }
+.walkinTitle { margin: 2px 0 4px; font-size: 17px; font-weight: 700; color: var(--ink); }
+.walkinQr { width: 150px; height: 150px; justify-self: center; }
+.walkinQr :global(svg), .fullQrHalf :global(svg) { width: 100%; height: 100%; display: block; }
+.fullPair { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(20px, 5vw, 72px); align-items: start; }
+.fullHalf { display: grid; justify-items: center; gap: 12px; max-width: 46vw; }
+.fullQrHalf { width: min(52vh, 38vw); height: min(52vh, 38vw); }
+@media (max-width: 700px) {
+  .fullPair { grid-template-columns: 1fr; }
+  .fullHalf { max-width: none; }
+  .fullQrHalf { width: min(36vh, 72vw); height: min(36vh, 72vw); }
+}
 .qr { width: 220px; height: 220px; }
 .qr :global(svg), .fullQr :global(svg) { width: 100%; height: 100%; display: block; }
 .code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 34px; font-weight: 700; letter-spacing: 0.18em; color: var(--ink); }
@@ -19,7 +33,7 @@
 .fullCount { font-weight: 700; color: var(--verified); }
 @media (max-width: 860px) {
   .grid { grid-template-columns: minmax(0, 1fr); }
-  .qrCard { position: static; }
+  .side { position: static; }
 }
 @media (min-width: 861px) and (max-width: 1240px) {
   .grid { grid-template-columns: 250px minmax(0, 1fr); }

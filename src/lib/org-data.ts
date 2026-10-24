@@ -24,8 +24,10 @@ export async function getEvent(orgId: string, eventId: string) {
 
 export async function getRoster(eventId: string) {
   return (await sql`
-    select * from attendance where event_id = ${eventId}
-    order by coalesce(checked_in_at, now()) asc, display_name asc
+    select a.*, coalesce(v.signup_event_id = a.event_id, false) as new_signup
+    from attendance a left join volunteer v on v.id = a.volunteer_id
+    where a.event_id = ${eventId}
+    order by coalesce(a.checked_in_at, now()) asc, a.display_name asc
   `) as unknown as AttendanceRow[];
 }
 

@@ -229,6 +229,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
                         <span>
                           <strong className={r.no_show ? s.struck : ''}>{r.display_name}</strong>
                           {r.method === 'paper_import' && <span className="small muted"> · from paper sheet</span>}
+                          {r.method === 'walk_in' && <span className="small muted"> · signed up at the door</span>}
                           {needsHours && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>No check-out recorded</span>}
                           {needsHours && r.left_area_at && r.checked_in_at && (
                             <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>

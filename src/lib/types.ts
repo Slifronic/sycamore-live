@@ -3,7 +3,7 @@
 
 export type Role = 'general' | 'team_lead' | 'event_coordinator' | 'program_manager';
 export type AttendanceStatus = 'checked_in' | 'checked_out' | 'no_show' | 'attested';
-export type Method = 'qr' | 'code' | 'coordinator' | 'paper_import';
+export type Method = 'qr' | 'code' | 'coordinator' | 'paper_import' | 'walk_in'; // walk_in: org addition
 
 export type SheetDraft = {
   display_name: string;
@@ -63,6 +63,9 @@ export type EventRow = {
   site_lat: number | null;
   site_lng: number | null;
   site_radius_m: number;
+  walkin_token: string | null;
+  walkin_open: boolean;
+  walkin_until: Date | null;
 };
 
 export type AttendanceRow = {
@@ -86,6 +89,7 @@ export type AttendanceRow = {
   outside_since: Date | null;
   left_area_at: Date | null;
   left_area_m: number | null;
+  new_signup?: boolean | null;   // read-only, from getRoster: this event is where they signed up
 };
 
 export const ROLE_LABEL: Record<Role, string> = {

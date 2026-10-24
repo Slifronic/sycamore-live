@@ -11,6 +11,8 @@ import s from './event.module.css';
 import { sheetImportEnabled } from '@/lib/sheet-import';
 import { requestNow } from '@/lib/format';
 import { orgChats } from '@/lib/event-chat';
+import { ensureWalkinToken } from '@/lib/walkin';
+import { walkinPanel } from '@/lib/walkin-panel';
 
 export default async function EventPage({ params, searchParams }: PageProps<'/org/events/[id]'>) {
   const org = await requireOrg();
@@ -25,6 +27,9 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
   const ended = new Date(event.ends_at).getTime() < now;
   const live = !event.attested_at && !ended && new Date(event.starts_at).getTime() <= now;
   const chat = (await orgChats(org.id)).find((c) => c.event_id === id) ?? { messages: 0, unread: 0 };
+  // Walk-in sign-up QR (not for practice events or ones already verified).
+  const walkinToken = event.is_practice || event.attested_at ? null : await ensureWalkinToken(org.id, id);
+  const walkin = walkinToken ? await walkinPanel({ ...event, walkin_token: walkinToken }) : null;
 
   return (
     <div className="page" style={{ gap: 20 }}>
@@ -103,6 +108,8 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
         aiEnabled={sheetImportEnabled()}
         eventDate={new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(event.starts_at)}
         site={{ lat: event.site_lat, lng: event.site_lng, radius_m: event.site_radius_m }}
+        walkin={walkin}
+        now={now}
       />
     </div>
   );

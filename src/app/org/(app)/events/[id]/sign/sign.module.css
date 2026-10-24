@@ -11,4 +11,5 @@
 @media print {
   @page { size: letter portrait; margin: 0.5in; }
   .sign { border: 0; padding: 0; }
+  .second { break-before: page; }
 }

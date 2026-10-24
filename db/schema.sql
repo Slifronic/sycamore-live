@@ -56,7 +56,14 @@ create table event (
   -- leave-the-area check: the site's centre and radius, set by the coordinator on the day
   site_lat double precision,
   site_lng double precision,
-  site_radius_m integer not null default 200 check (site_radius_m between 50 and 2000)
+  site_radius_m integer not null default 200 check (site_radius_m between 50 and 2000),
+  -- walk-in sign-up: a per-event link for people who have never signed up.
+  -- It works from 2 hours before the start until walkin_until (default: 2 hours
+  -- after the end), and never once the event is verified. Rotating the token
+  -- kills every printed or photographed copy of the old QR code.
+  walkin_token text unique,
+  walkin_open boolean not null default true,
+  walkin_until timestamptz
 );
 
 create table volunteer (
@@ -64,7 +71,13 @@ create table volunteer (
   name text not null,
   email text not null unique,
   date_of_birth date not null,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  -- org additions: how this person joined. A walk-in signs up at the event
+  -- itself, with Google or a three-field form; signup_event_id marks their
+  -- first event so the roster can show "new".
+  google_sub text unique,
+  signup_method text not null default 'join' check (signup_method in ('join','walk_in_email','walk_in_google')),
+  signup_event_id uuid references event(id)
 );
 
 create table attendance (
@@ -72,7 +85,7 @@ create table attendance (
   event_id uuid not null references event(id),
   volunteer_id uuid references volunteer(id),
   display_name text not null,
-  method text not null check (method in ('qr','code','coordinator','paper_import')),
+  method text not null check (method in ('qr','code','coordinator','paper_import','walk_in')),  -- org addition: walk_in
   checked_in_at timestamptz,
   checked_out_at timestamptz,
   hours_captured numeric(5,2) not null default 0,
