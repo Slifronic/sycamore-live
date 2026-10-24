@@ -177,3 +177,6 @@
 @media (prefers-reduced-motion: reduce) {
   .ln > span, .fade { animation: none; }
 }
+
+/* The global skip link, made a full 44px target on the marketing pages. */
+.shell :global(.skip) { min-height: 44px; display: inline-flex; align-items: center; }

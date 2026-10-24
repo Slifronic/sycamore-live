@@ -10,7 +10,8 @@
 .heroStack { position: relative; padding: 0 0 48px; }
 .heroPhone { position: absolute; right: -2%; bottom: 0; width: 30%; transform: rotate(4deg); }
 .heroPhoto { position: relative; }
-.heroBadge { position: absolute; left: -18px; bottom: -22px; width: min(320px, 78%); transform: rotate(-2deg); }
+.heroBadge { position: absolute; left: -48px; bottom: -28px; width: min(400px, 88%); transform: rotate(-2deg); }
+@media (max-width: 960px) { .heroBadge { position: relative; left: auto; bottom: auto; width: calc(100% - 24px); margin: -56px auto 0; } }
 
 .layered { position: relative; padding-bottom: 28px; }
 .layerRoster { position: absolute; right: -10px; bottom: 0; transform: scale(0.88); transform-origin: bottom right; }
@@ -78,7 +79,7 @@
 
 .hoursDemo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .hoursCard { background: var(--paper); border-radius: 22px; box-shadow: var(--shadow); padding: 26px; display: grid; gap: 12px; align-content: start; }
-.hoursNum { font-family: var(--font-display), Georgia, serif; font-size: 56px; line-height: 1; letter-spacing: -0.04em; color: var(--canopy); font-weight: 500; }
+.hoursCard .hoursNum { font-family: var(--font-display), Georgia, serif; font-size: 56px; line-height: 1; letter-spacing: -0.04em; color: var(--canopy); font-weight: 500; }
 .hoursNum small { font-family: var(--font-sans), system-ui, sans-serif; font-size: 14px; color: var(--field); letter-spacing: 0; margin-left: 6px; font-weight: 600; }
 .hoursCard p { color: var(--ink-2); line-height: 1.6; font-size: 15px; }
 
