@@ -1,0 +1,80 @@
+/* Shared layout bits for the volunteer pages. Tokens and fonts come from
+   globals.css, the same as the coordinator side. */
+.narrow { max-width: 480px; margin: 0 auto; display: grid; gap: 20px; }
+.center { text-align: center; justify-items: center; display: grid; gap: 8px; }
+.bigTitle { font-size: clamp(28px, 6vw, 36px); }
+
+/* Dashboard */
+.page { display: grid; gap: 24px; max-width: var(--page-max); }
+.page > * { min-width: 0; }
+.cols { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.col { display: grid; gap: 14px; min-width: 0; }
+.sectionHead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+/* The one saturated band: what is attested so far. */
+.band { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--band); color: #eef5ef; border-radius: 20px; padding: 6px; box-shadow: 0 24px 50px -28px rgba(15, 38, 27, 0.55); }
+.kpi { padding: 18px 20px; display: grid; gap: 6px; }
+.kpi + .kpi { box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.08); }
+.kpiLabel { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: #a8cdb6; }
+.kpiNum { font-family: var(--font-display), Georgia, serif; font-size: 38px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; }
+.kpiSub { font-size: 13px; color: #b8d4c2; }
+
+/* Live session panel (the org home's dark "live" panel). */
+.live { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 20px; border-radius: 18px; background: var(--ink); color: #e7efe9; text-decoration: none; box-shadow: 0 20px 40px -24px rgba(15, 38, 27, 0.6); }
+.liveTop { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #8fd3ab; }
+.liveTitle { font-family: var(--font-display), Georgia, serif; font-size: 20px; font-weight: 600; color: #fff; }
+.liveCta { font-weight: 700; color: #fff; font-size: 14px; white-space: nowrap; }
+.pulse { position: relative; width: 9px; height: 9px; border-radius: 50%; background: #3ddc84; }
+.pulse::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #3ddc84; animation: pulse 1.8s var(--out) infinite; }
+@keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 80%, 100% { transform: scale(3); opacity: 0; } }
+
+/* Record cards */
+.record { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 16px 18px; text-decoration: none; color: inherit; }
+.datebox { display: grid; justify-items: center; padding: 8px 0; border-radius: 12px; background: var(--primary-soft); color: var(--canopy); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
+.datebox b { font-family: var(--font-display), Georgia, serif; font-size: 22px; letter-spacing: 0; line-height: 1.1; }
+.recordBody { display: grid; gap: 4px; min-width: 0; }
+.recordTitle { font-weight: 700; overflow-wrap: anywhere; }
+.recordHours { text-align: right; display: grid; justify-items: end; }
+.recordHours :global(.figure) { font-size: 28px; }
+.pending { display: grid; gap: 6px; padding: 16px 18px; background: #fffcf3; box-shadow: 0 0 0 1.5px #ecd59a, 0 10px 24px -16px rgba(107, 76, 7, 0.25); border-radius: var(--radius); }
+.empty { padding: 28px 22px; display: grid; gap: 10px; justify-items: start; }
+
+/* Goal ring: a private target. Only attested hours fill it. */
+.goal { padding: 20px; display: grid; gap: 12px; }
+.goalTop { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ring { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.ring span { width: 60px; height: 60px; border-radius: 50%; background: var(--paper); display: grid; place-items: center; font-weight: 800; font-size: 15px; color: var(--canopy); font-variant-numeric: tabular-nums; }
+.goalForm { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+.goalForm :global(.input) { width: 110px; }
+
+/* Record page */
+.detail { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.cert { padding: 28px; display: grid; gap: 18px; border-top: 4px solid var(--primary); }
+.certStats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.certStats :global(.figure) { font-size: 30px; }
+.wording { font-size: 16px; line-height: 1.65; }
+.wording strong { color: var(--canopy); }
+.fine { font-size: 13px; color: var(--ink-3); line-height: 1.55; }
+.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; font-size: 14px; }
+.qr { width: 168px; height: 168px; justify-self: center; }
+.qr svg { width: 100%; height: 100%; display: block; }
+.back { font-size: 14px; font-weight: 600; color: var(--primary); text-decoration: none; padding: 10px 0; justify-self: start; }
+
+@media (max-width: 1000px) {
+  .cols, .detail { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .band { grid-template-columns: minmax(0, 1fr); }
+  .kpi + .kpi { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+  .kpi { grid-template-columns: 1fr auto; align-items: baseline; padding: 12px 16px; }
+  .kpi .kpiSub { grid-column: 1 / -1; }
+  .kpiNum { font-size: 30px; grid-row: 1; grid-column: 2; }
+  .record { grid-template-columns: 48px minmax(0, 1fr); }
+  .recordHours { grid-column: 2; justify-items: start; text-align: left; }
+  .cert { padding: 20px; }
+  .split { grid-template-columns: minmax(0, 1fr); }
+}
+@media print {
+  .detail { display: block; }
+  .cert { box-shadow: none; border: 1px solid #ccc; }
+}

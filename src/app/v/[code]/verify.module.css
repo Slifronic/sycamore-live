@@ -1,0 +1,28 @@
+/* Public verification page: one column, readable by a stranger on any phone. */
+.page { min-height: 100dvh; padding: 28px 16px 48px; display: grid; justify-items: center; }
+.inner { width: 100%; max-width: 640px; display: grid; gap: 16px; align-content: start; }
+.brand { font-family: var(--font-display), Georgia, serif; font-weight: 600; color: var(--canopy); font-size: 17px; }
+.banner { display: grid; gap: 4px; padding: 16px 18px; border-radius: var(--radius); font-size: 15px; }
+.banner strong { font-size: 17px; letter-spacing: 0.04em; }
+.ok { background: var(--verified-soft); color: var(--verified); box-shadow: inset 4px 0 0 var(--verified); }
+.bad { background: var(--red-soft); color: var(--red); box-shadow: inset 4px 0 0 var(--red); }
+.card { background: var(--paper); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px 20px; display: grid; gap: 14px; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); }
+.title { font-size: 30px; }
+.h2 { font-size: 19px; }
+.facts { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 16px; margin: 0; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.facts dt { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); }
+.facts dd { margin: 4px 0 0; font-weight: 700; display: grid; overflow-wrap: anywhere; }
+.facts dd span { font-weight: 400; font-size: 13px; color: var(--ink-3); }
+.big { font-family: var(--font-display), Georgia, serif; font-size: 30px; line-height: 1; color: var(--canopy); }
+.wording { font-size: 16px; line-height: 1.65; }
+.wording strong { color: var(--canopy); }
+.hoursSplit { display: grid; gap: 4px; font-size: 14px; color: var(--ink-2); }
+.fine { font-size: 13px; color: var(--ink-3); line-height: 1.55; }
+.card a { color: var(--primary); font-weight: 600; display: inline-block; padding: 6px 0; }
+.foot { text-align: center; font-size: 13px; color: var(--ink-3); }
+.foot a { padding: 10px; display: inline-block; }
+@media (max-width: 520px) {
+  .facts { grid-template-columns: auto minmax(0, 1fr); }
+  .facts > div:last-child { grid-column: 1 / -1; }
+}

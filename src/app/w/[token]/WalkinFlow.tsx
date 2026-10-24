@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { SessionCard, type SessionAttendance } from '@/components/vol/SessionCard';
 import s from './walkin.module.css';
 
-export type WalkinAttendance = { id: string; status: string; checked_in_at: string | null; checked_out_at: string | null };
+export type WalkinAttendance = SessionAttendance;
 
 type GoogleId = {
   initialize: (o: { client_id: string; callback: (r: { credential: string }) => void; ux_mode?: string; auto_select?: boolean }) => void;
@@ -15,7 +16,6 @@ declare global {
   }
 }
 
-const clock = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
 const first = (name: string) => name.split(/\s+/)[0] ?? name;
 
 // The ID token's payload, decoded only to greet the person by name while they
@@ -80,7 +80,7 @@ export function WalkinFlow(props: {
   );
 
   // Checked in already: the live session screen.
-  if (att && who) return <Session att={att} name={who.name} isMinor={who.is_minor} isNew={who.is_new} orgName={props.orgName} onChange={setAtt} />;
+  if (att && who) return <SessionCard att={att} name={who.name} isMinor={who.is_minor} isNew={who.is_new} orgName={props.orgName} onChange={setAtt} />;
   if (att && !who) return null;
 
   if (!props.open) {
@@ -232,86 +232,4 @@ function GoogleButton({ clientId, disabled, onCredential }: { clientId: string; 
 
   if (failed) return <p className={s.muted}>Google sign-in didn’t load. Use your email below.</p>;
   return <div ref={box} className={s.google} style={disabled ? { opacity: 0.5, pointerEvents: 'none' } : undefined} />;
-}
-
-function Session(props: { att: WalkinAttendance; name: string; isMinor: boolean; isNew: boolean; orgName: string; onChange: (a: WalkinAttendance) => void }) {
-  const { att } = props;
-  const [now, setNow] = useState(() => Date.now());
-  const [saving, setSaving] = useState<null | 'sending' | 'queued'>(null);
-  const [error, setError] = useState('');
-  const tapped = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (att.status !== 'checked_in') return;
-    const iv = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(iv);
-  }, [att.status]);
-
-  const checkOut = useCallback(async () => {
-    tapped.current ??= new Date().toISOString(); // a retry keeps the time of the first tap
-    setSaving('sending');
-    setError('');
-    try {
-      const res = await fetch('/api/vol/checkout', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ attendance_id: att.id, client_time: tapped.current }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setSaving(null);
-        setError(data.error ?? 'That didn’t go through. Ask the coordinator to check you out.');
-        return;
-      }
-      setSaving(null);
-      props.onChange({ ...att, ...data.attendance });
-    } catch {
-      setSaving('queued'); // no signal: keep the tap time and retry
-    }
-  }, [att, props]);
-
-  useEffect(() => {
-    if (saving !== 'queued') return;
-    const iv = setTimeout(checkOut, 5000);
-    return () => clearTimeout(iv);
-  }, [saving, checkOut]);
-
-  if (att.status !== 'checked_in') {
-    return (
-      <section className={s.card}>
-        <p className={s.badge}>✓ Checked out{att.checked_out_at ? ` at ${clock(att.checked_out_at)}` : ''}</p>
-        <h2 className={s.h2}>Thanks, {first(props.name)}</h2>
-        <p>{props.orgName} confirms everyone’s hours when the event closes. After that, your record is ready to share.</p>
-      </section>
-    );
-  }
-
-  const mins = att.checked_in_at ? Math.max(0, Math.floor((now - Date.parse(att.checked_in_at)) / 60_000)) : 0;
-  return (
-    <section className={s.card}>
-      <p className={s.badge}>✓ Checked in{att.checked_in_at ? ` at ${clock(att.checked_in_at)}` : ''}</p>
-      <h2 className={s.h2}>{props.isNew ? `You’re signed up, ${first(props.name)}` : `You’re here, ${first(props.name)}`}</h2>
-      <p className={s.timer} aria-live="off">
-        {Math.floor(mins / 60)}<span>h</span> {String(mins % 60).padStart(2, '0')}<span>m</span>
-      </p>
-      <p className={s.muted}>The coordinator can see you on the roster now. Tap Check out when you leave, so your hours count.</p>
-      <button className={`${s.btn} ${s.primary}`} disabled={saving === 'sending'} onClick={checkOut}>
-        {saving === 'sending' ? 'Checking you out…' : 'Check out'}
-      </button>
-      {saving === 'queued' && (
-        <p className={s.notice} role="status">
-          Saved on this phone. It will send when you have signal, with the time you tapped.
-        </p>
-      )}
-      {error && (
-        <p className={s.error} role="alert">
-          {error}
-        </p>
-      )}
-      <p className={s.fine}>
-        You can close this page. To check out later, scan the same QR code or open this link again on this phone.
-        {props.isMinor && ' Because you’re under 18, sharing your record will need a parent or guardian’s OK.'}
-      </p>
-    </section>
-  );
 }
