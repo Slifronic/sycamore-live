@@ -171,6 +171,7 @@ export default async function BadgeDetail({ params }: PageProps<'/me/badges/[key
           <BadgeSharePanel awardId={award.id} url={url} qrSvg={qr} isMinor={vol.is_minor} />
           {!vol.is_minor && (
             <LinkedInPanel
+              key={url ?? 'no-link'}
               badgeName={b.def.name}
               skills={b.def.skills}
               orgName={award.org.name}
