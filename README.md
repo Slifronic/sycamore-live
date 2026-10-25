@@ -99,7 +99,7 @@ Org and volunteer pages show a slim "Demo data · made-up names" ribbon whenever
 2. Under **Authorized JavaScript origins**, add every origin the app runs on, for example `http://localhost:3311` and the Vercel URL. No redirect URI is needed; there is no client secret to store.
 3. Put the client ID in `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (locally and in Vercel) and restart the server.
 
-Demo coordinator PIN: **246810** (Riverside Restoration Crew, made-up names). The seed mirrors the shape of the team's real pilot: four planting events with 45/48/52/58 attendances at 3 hours each. Phase 2 is left unverified on purpose: verifying it on stage adds its hours to the record and makes new badges ready.
+Demo coordinator PIN: **246810** (Riverside Restoration Crew, made-up names). The seed mirrors the shape of the team's real pilot: four planting events with 45/48/52/58 attendances at 3 hours each. Phase 2 is left unverified on purpose, with 4 of its 58 people who never scanned out (so verify shows "Fill in 4 who didn't scan out"): verifying it on stage adds its hours to the record and makes new badges ready. Today's walk-in event, Guadalupe River Cleanup, runs 9:00 AM to 1:00 PM Pacific on the day you seed; seeded later than that, it shows as ended but its walk-in QR keeps working for 4 hours.
 
 ## Checks
 

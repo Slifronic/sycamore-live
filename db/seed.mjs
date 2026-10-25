@@ -99,6 +99,12 @@ async function main() {
   }
 
   const codes = ['CYOTE4', 'BRYSA8', 'STRSA3', 'STRSB7'];
+  // Phase 2 (unverified) has four people who never scanned out, so the verify
+  // screen has a "Fill in 4 who didn't scan out" to show. One of them messages
+  // Sam about it below. Ana scanned out normally: the demo changes her hours.
+  const p2Forgot = firstAdult(attendees[3], 10);
+  const p2NoCheckout = new Set([p2Forgot, attendees[3][23], attendees[3][37], attendees[3][49]].filter((v) => v !== ana));
+  const p2Missing = [];
   for (const [i, p] of plantings.entries()) {
     const starts = at(p.day, 9);
     const ends = at(p.day, 12);
@@ -119,7 +125,9 @@ async function main() {
         adjusted = 3;
         reason = 'Phone died at 10:30; stayed to finish mulching. Confirmed by the team lead.';
       }
-      const hours = Math.round((outAt - inAt) / 900_000) * 0.25;
+      const noCheckout = i === 3 && p2NoCheckout.has(v);
+      if (noCheckout) outAt = null;
+      const hours = outAt ? Math.round((outAt - inAt) / 900_000) * 0.25 : 0;
       let role = 'general';
       if (v === ana) role = 'team_lead';
       else if (j % 9 === 1) role = 'team_lead';
@@ -130,8 +138,9 @@ async function main() {
         insert into attendance (event_id, volunteer_id, display_name, method, checked_in_at, checked_out_at, hours_captured,
           hours_adjusted, adjustment_reason, role, status, attested_at, standout)
         values (${ev.id}, ${v.id}, ${v.name}, ${rand() < 0.85 ? 'qr' : 'code'}, ${inAt}, ${outAt}, ${hours},
-          ${adjusted}, ${reason}, ${attested ? role : 'general'}, ${attested ? 'attested' : 'checked_out'}, ${attested}, ${standout})
+          ${adjusted}, ${reason}, ${attested ? role : 'general'}, ${attested ? 'attested' : noCheckout ? 'checked_in' : 'checked_out'}, ${attested}, ${standout})
         returning id`;
+      if (noCheckout) p2Missing.push({ v, attendanceId: a.id });
       if (attested) await sql`insert into record (attendance_id, volunteer_id, org_id, issued_at) values (${a.id}, ${v.id}, ${org.id}, ${attested})`;
     }
   }
@@ -156,21 +165,28 @@ async function main() {
     }
   }
 
-  // Open today, for live testing (code from the contract).
+  // Today's walk-in event (code from the contract). It always reads as an
+  // ordinary morning, 9:00 AM to 1:00 PM Pacific, whenever the seed runs; judging
+  // runs until 12:30, so it is live all through it. Seeded after 1 PM (a late
+  // rehearsal), the event shows as ended, but its walk-in link stays open for
+  // 4 hours from the seed so the walk-in QR can still be scanned.
   let cleanup;
   {
-    // 9 AM to 9 PM today, stretched so it is always on for a while after a
-    // reseed (a late-night reseed still gets a live event to check in to).
     const quarter = 15 * 60_000;
-    const starts = new Date(Math.min(at(0, 9).getTime(), Math.floor((Date.now() - 3_600_000) / quarter) * quarter));
-    const ends = new Date(Math.max(at(0, 21).getTime(), Math.ceil((Date.now() + 4 * 3_600_000) / quarter) * quarter));
+    const now = Date.now();
+    const starts = at(0, 9);
+    const ends = at(0, 13);
     const ev = await mkEvent({ title: 'Guadalupe River Cleanup', location: 'Guadalupe River Park', starts, ends, code: 'PLANT2', activity: 'planting', status: 'open', goalText: 'Clear two miles of riverbank' });
-    // Five adults checked in (they post in the event's group chat below).
+    if (now > ends.getTime()) await sql`update event set walkin_until = ${new Date(Math.ceil((now + 4 * 3_600_000) / quarter) * quarter)} where id = ${ev.id}`;
+    // Five adults checked in about 40 to 70 minutes ago, inside the event's hours
+    // (they post in the event's group chat below).
     const crew = [...attendees[0].slice(3), ...attendees[0].slice(0, 3)].filter(adult).slice(0, 5);
     cleanup = { id: ev.id, crew };
     for (const v of crew) {
+      const ago = 40 + Math.floor(rand() * 30);
+      const inAt = now > ends.getTime() ? addMin(starts, ago - 35) : new Date(Math.max(now - ago * 60_000, Math.min(now, starts.getTime() - 10 * 60_000)));
       await sql`insert into attendance (event_id, volunteer_id, display_name, method, checked_in_at, status)
-                values (${ev.id}, ${v.id}, ${v.name}, 'qr', ${addMin(new Date(), -40 - Math.floor(rand() * 30))}, 'checked_in')`;
+                values (${ev.id}, ${v.id}, ${v.name}, 'qr', ${inAt}, 'checked_in')`;
     }
   }
   // Coming up.
@@ -235,8 +251,13 @@ async function main() {
     await msg(ana, 'out', 'Of course. She can check in with her own phone; anyone 13 or older can join.', at(-4, 13, 5), { read: at(-4, 13, 20) });
     await msg(ana, 'in', 'Great, see you Saturday! Also, is there parking near the south trailhead?', at(-1, 20, 14));
 
-    const forgot = firstAdult(attendees[3], 10);
-    await msg(forgot, 'in', 'Hi! I forgot to tap Check out on Saturday. I left around 12:15 if that helps.', at(-1, 9, 32));
+    // The missing-check-out reminder already went to the four who never scanned
+    // out of Phase 2, and one of them wrote back.
+    for (const { v, attendanceId } of p2Missing)
+      await msg(v, 'out', `Hi ${firstName(v)}, ${phase2.title} ended at 12:00 PM. You’re still checked in: open SycaMore and tap Check out so your hours count. If you left earlier, reply with the time and Riverside Restoration Crew will fix it.`, at(phase2.day, 12, 30), { source: 'automation', automation: 'missing_checkout', dedupe: `missing_checkout:${attendanceId}`, read: v === p2Forgot ? at(-1, 9, 30) : null });
+    const forgot = p2Forgot;
+    const p2Weekday = at(phase2.day, 9).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long' });
+    await msg(forgot, 'in', `Hi! I forgot to tap Check out on ${p2Weekday}. I left around 12:15 if that helps.`, at(-1, 9, 32));
     await msg(forgot, 'in', 'Sorry about that!', at(-1, 9, 33));
 
     const away = attendees[1].find((v) => adult(v) && attendees[0].includes(v) && !attendees[2].includes(v)) ?? firstAdult(attendees[1]);
