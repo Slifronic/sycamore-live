@@ -142,13 +142,13 @@ export function SaveButton({ id, title, wide = false }: { id: string; title: str
   );
 }
 
-export function OpportunityCard({ r }: { r: Evaluation }) {
+export function OpportunityCard({ r, priority = false }: { r: Evaluation; priority?: boolean }) {
   const { prefs, tab, hide } = useDiscover();
   const l = listingOf(r);
   return (
     <article className={`card lift ${s.card}`}>
       <Link href={`/discover/${l.slug}`} className={s.cardCover} tabIndex={-1} aria-hidden>
-        <Cover cover={listingCover(l)} variant="card" />
+        <Cover cover={listingCover(l)} variant="card" priority={priority} />
       </Link>
       <div className="row between wrap" style={{ gap: 8 }}>
         <span className="eyebrow">{l.area ? groups[l.area].name : l.kind}</span>

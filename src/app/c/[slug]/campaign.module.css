@@ -16,3 +16,10 @@
 .cta p { margin: 0; font-size: 17px; }
 .foot { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 16px; }
 .foot p { margin: 0; }
+.onPhoto.org { color: #cfe6d6; }
+.onPhoto.title { color: #fbfaf5; text-wrap: balance; }
+@media (max-width: 520px) {
+  .page { padding: 16px 16px 56px; }
+}
+/* Long organization names wrap instead of pushing the page sideways. */
+.cta :global(.btn) { white-space: normal; height: auto; min-height: 52px; padding: 12px 22px; text-align: center; max-width: 100%; }

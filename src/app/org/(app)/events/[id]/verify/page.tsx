@@ -30,7 +30,7 @@ export default async function VerifyPage({ params, searchParams }: PageProps<'/o
       <section className={`card ${s.done}`} style={{ maxWidth: 760 }}>
         <p className={s.check} aria-hidden>✓</p>
         <h1 id="done-title" tabIndex={-1}>
-          {issued} hour records issued
+          {issued} hour {issued === 1 ? 'record' : 'records'} issued
         </h1>
         <FocusOnMount id="done-title" />
         <p className="muted">

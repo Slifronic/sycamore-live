@@ -1,7 +1,11 @@
 /* Walk-in sign-up: a phone, outdoors, in sunlight, on bad signal. Big targets,
    high contrast, one column. */
 .page { min-height: 100dvh; background: var(--parchment); padding: 28px 16px 40px; display: grid; align-content: start; justify-items: center; gap: 18px; }
-.head { width: 100%; max-width: 440px; display: grid; gap: 4px; }
+.head { width: 100%; max-width: 440px; display: grid; gap: 10px; }
+.hero { height: 190px !important; border-radius: 18px !important; box-shadow: var(--shadow-hi); }
+.hero .org { color: #cfe6d6; }
+.hero .title { color: #fbfaf5; font-size: 26px; text-wrap: balance; }
+.badTitle { font-size: 20px; }
 .org { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--primary); }
 .title { font-family: var(--font-display), Georgia, serif; font-size: 28px; line-height: 1.15; font-weight: 600; color: var(--canopy); margin: 0; }
 .lede { color: var(--ink-2); font-size: 15px; }

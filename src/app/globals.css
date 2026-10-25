@@ -236,6 +236,9 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 @supports (animation-timeline: view()) {
   .reveal { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
 }
+@media print {
+  .reveal, .rise, .fade-in { animation: none !important; }
+}
 /* A progress bar that fills once on arrival. */
 @keyframes fill-x { from { transform: scaleX(0); } }
 .bar-grow > span { transform-origin: left; animation: fill-x 1s var(--out) 0.15s both; }

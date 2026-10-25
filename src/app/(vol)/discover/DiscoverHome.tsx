@@ -200,7 +200,7 @@ export function DiscoverHome() {
             <div className={s.grid}>
               {/* Re-ranking slides cards to their new places instead of jumping. */}
               <AnimatePresence initial={false} mode="popLayout">
-                {items.map((r) => (
+                {items.map((r, i) => (
                   <motion.div
                     key={r.opportunity.id}
                     layout={reduce ? false : 'position'}
@@ -210,7 +210,7 @@ export function DiscoverHome() {
                     transition={spring}
                     className={s.cell}
                   >
-                    <OpportunityCard r={r} />
+                    <OpportunityCard r={r} priority={i < 2} />
                   </motion.div>
                 ))}
               </AnimatePresence>
