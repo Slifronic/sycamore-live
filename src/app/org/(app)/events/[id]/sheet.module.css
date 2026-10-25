@@ -7,7 +7,8 @@
 .row { border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 8px; }
 .amber { border-color: #e8c98c; background: var(--amber-soft); }
 .ok { border-color: #9ccfb0; background: var(--verified-soft); }
-.fields { display: grid; grid-template-columns: 1fr 120px 120px; gap: 8px; }
+.fields { display: grid; grid-template-columns: minmax(0, 1fr) 152px 152px; gap: 8px; }
+.fields input { min-width: 0; }
 @media (max-width: 860px) {
   .panel { grid-template-columns: 1fr; }
   .photo { max-height: 30vh; }
