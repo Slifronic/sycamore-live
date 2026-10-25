@@ -188,7 +188,7 @@ export function CheckinForm({ initialCode, fromQr, ready }: { initialCode: strin
             autoCapitalize="characters"
             spellCheck={false}
             inputMode="text"
-            placeholder="PLANT2"
+            placeholder="ABC123"
             aria-describedby="checkin-code-hint"
           />
           <button className={`btn btn-primary ${oneTap ? 'btn-big' : ''} ${c.submit}`} disabled={busy || code.length !== 6}>

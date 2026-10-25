@@ -14,7 +14,7 @@
   height: 52px; text-align: center; font: 700 22px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.24em; text-transform: uppercase;
 }
 .codeBig .code { height: 60px; font-size: 28px; letter-spacing: 0.3em; }
-.code::placeholder { color: var(--field); opacity: 0.55; letter-spacing: 0.24em; }
+.code::placeholder { color: var(--field); opacity: 0.65; letter-spacing: 0.24em; font-weight: 400; }
 .submit { height: 52px; padding: 0 20px; border-radius: 12px; }
 /* Disabled keeps its ink, faded, so it reads as "not yet" rather than broken. */
 .submit[disabled], .submit[disabled]:hover { background: var(--ink); border-color: var(--ink); color: var(--on-ink); opacity: 0.4; }

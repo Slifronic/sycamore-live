@@ -1,7 +1,7 @@
 .frame { min-height: 100dvh; display: flex; flex-direction: column; }
 .frame :global(.skip) { min-height: 44px; }
 .bar {
-  width: min(100% - 32px, 760px);
+  width: min(100% - 32px, var(--frame-w, 760px));
   margin-inline: auto;
   height: 64px;
   display: flex;
@@ -21,7 +21,7 @@
 .main { flex: 1; }
 .main:focus { outline: none; }
 .foot {
-  width: min(100% - 32px, 760px);
+  width: min(100% - 32px, var(--frame-w, 760px));
   margin-inline: auto;
   display: flex;
   flex-wrap: wrap;

@@ -10,7 +10,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/media/EmptyState';
 import { Icon } from '@/components/shell/icons';
 import { useDiscover, type Prefs } from './DiscoverState';
-import { OpportunityCard, SkillPicker } from './parts';
+import { ChoiceMenu, OpportunityCard, SkillPicker, cardReason } from './parts';
 import s from './discover.module.css';
 
 const MODE_HINT: Record<Mode, string> = {
@@ -40,9 +40,16 @@ function FilterGlyph() {
   );
 }
 
-// How to rank, cause, skills, area, format and day. On desktop it sits in the
-// left column; on phones it lives in the filter sheet, so the first event card
-// is the second thing on the screen.
+const FORMATS: { value: Prefs['format']; label: string }[] = [
+  { value: 'any', label: 'Any format' },
+  { value: 'inperson', label: 'In person' },
+  { value: 'remote', label: 'Remote' },
+  { value: 'hybrid', label: 'Hybrid' },
+];
+
+// How to rank, cause, skills, area, format and day. It lives in the filter
+// sheet on every screen size (a bottom sheet on phones, a side sheet on
+// desktop), so the events are the page.
 function Preferences() {
   const d = useDiscover();
   const { prefs, setPrefs } = d;
@@ -68,62 +75,39 @@ function Preferences() {
         <span className={s.prefLabel}>Quick starts</span>
         <div className="row wrap" style={{ gap: 6 }}>
           {PRESETS.map((p) => (
-            <button key={p.label} type="button" className={`${s.skillBtn} ${s.preset}`} aria-pressed={presetOn(p.prefs)} onClick={() => setPrefs({ roleArea: 'any', day: 'any', format: 'any', ...p.prefs })}>
+            <button
+              key={p.label}
+              type="button"
+              className={`${s.skillBtn} ${s.preset}`}
+              aria-pressed={presetOn(p.prefs)}
+              onClick={() => setPrefs({ roleArea: 'any', day: 'any', format: 'any', ...p.prefs })}
+            >
               {p.label}
             </button>
           ))}
         </div>
       </div>
-      <div className="field">
-        <label htmlFor={`${id}-cause`}>Cause I care about</label>
-        <select id={`${id}-cause`} className="select" value={prefs.cause} onChange={(e) => setPrefs({ cause: e.target.value })}>
-          <option value="any">Open to any cause</option>
-          {causes.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        <span className="hint">A preference, not a filter. Other causes stay in the list.</span>
-      </div>
+      <ChoiceMenu
+        label="Cause I care about"
+        value={prefs.cause}
+        options={[{ value: 'any', label: 'Open to any cause' }, ...causes.map((c) => ({ value: c, label: c }))]}
+        onChange={(cause) => setPrefs({ cause })}
+      />
       <SkillPicker field="useSkills" label="Skills I want to use" />
       <SkillPicker field="learnSkills" label="Skills I want to develop" />
-      <div className="field">
-        <label htmlFor={`${id}-area`}>Contribution area</label>
-        <select id={`${id}-area`} className="select" value={prefs.roleArea} onChange={(e) => setPrefs({ roleArea: e.target.value })}>
-          <option value="any">Open to any role</option>
-          {Object.entries(groups).map(([k, g]) => (
-            <option key={k} value={k}>
-              {g.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className={s.pair}>
-        <div className="field">
-          <label htmlFor={`${id}-format`}>Format</label>
-          <select id={`${id}-format`} className="select" value={prefs.format} onChange={(e) => setPrefs({ format: e.target.value as Prefs['format'] })}>
-            <option value="any">Any format</option>
-            <option value="inperson">In person</option>
-            <option value="remote">Remote</option>
-            <option value="hybrid">Hybrid</option>
-          </select>
+      <ChoiceMenu
+        label="Contribution area"
+        value={prefs.roleArea}
+        options={[{ value: 'any', label: 'Open to any role' }, ...Object.entries(groups).map(([k, g]) => ({ value: k, label: g.name }))]}
+        onChange={(roleArea) => setPrefs({ roleArea })}
+      />
+      <div className={s.prefGroup}>
+        <div className={s.pair}>
+          <ChoiceMenu label="Format" value={prefs.format} options={FORMATS} onChange={(format) => setPrefs({ format })} />
+          <ChoiceMenu label="Day I’m free" value={prefs.day} options={[{ value: 'any', label: 'Any day' }, ...DAYS.map((x) => ({ value: x, label: x }))]} onChange={(day) => setPrefs({ day })} />
         </div>
-        <div className="field">
-          <label htmlFor={`${id}-day`}>Day I’m free</label>
-          <select id={`${id}-day`} className="select" value={prefs.day} onChange={(e) => setPrefs({ day: e.target.value })}>
-            <option value="any">Any day</option>
-            {DAYS.map((x) => (
-              <option key={x} value={x}>
-                {x}
-              </option>
-            ))}
-          </select>
-        </div>
+        <span className="hint">Format and day filter the list; cause and skills only reorder it.</span>
       </div>
-      <span className="hint" style={{ marginTop: -8 }}>
-        Format and day are filters: events that don’t match move to Browse all.
-      </span>
     </div>
   );
 }
@@ -140,7 +124,13 @@ function RoleHistory() {
             <span className="row wrap" style={{ gap: 6 }}>
               {r.skills.length ? (
                 r.skills.map((sk) => (
-                  <button key={sk} type="button" className={s.skillBtn} aria-label={`Find events using ${sk} from ${r.title}`} onClick={() => setPrefs({ useSkills: [sk], mode: 'experience', roleArea: 'any', cause: 'any' })}>
+                  <button
+                    key={sk}
+                    type="button"
+                    className={s.skillBtn}
+                    aria-label={`Find events using ${sk} from ${r.title}`}
+                    onClick={() => setPrefs({ useSkills: [sk], mode: 'experience', roleArea: 'any', cause: 'any' })}
+                  >
                     {sk}
                   </button>
                 ))
@@ -173,7 +163,26 @@ export function DiscoverHome() {
   const items = tab === 'all' ? all : tab === 'saved' ? all.filter((r) => saved.has(r.opportunity.id)) : ranked;
   const excluded = all.filter((r) => r.status === 'excluded').length;
   const savedCount = [...saved].filter((id) => listings.some((l) => l.id === id)).length;
-  const active = (prefs.mode !== 'experience' ? 1 : 0) + (prefs.cause !== 'any' ? 1 : 0) + prefs.useSkills.length + prefs.learnSkills.length + (prefs.roleArea !== 'any' ? 1 : 0) + (prefs.format !== 'any' ? 1 : 0) + (prefs.day !== 'any' ? 1 : 0);
+  // A card's reason line shows only when it tells cards apart: a line every
+  // visible card would share is dropped.
+  const reasons = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of items) {
+      const why = cardReason(r, prefs);
+      if (why) m.set(r.opportunity.id, why);
+    }
+    const vals = [...m.values()];
+    if (items.length > 1 && vals.length === items.length && vals.every((v) => v === vals[0])) m.clear();
+    return m;
+  }, [items, prefs]);
+  const active =
+    (prefs.mode !== 'experience' ? 1 : 0) +
+    (prefs.cause !== 'any' ? 1 : 0) +
+    prefs.useSkills.length +
+    prefs.learnSkills.length +
+    (prefs.roleArea !== 'any' ? 1 : 0) +
+    (prefs.format !== 'any' ? 1 : 0) +
+    (prefs.day !== 'any' ? 1 : 0);
 
   useEffect(() => {
     const el = sheet.current;
@@ -186,112 +195,111 @@ export function DiscoverHome() {
     <div className={s.page}>
       <PageHeader title="Find your next event" className={s.head} />
 
-      <div className={s.body}>
-        <aside className={s.rail} aria-label="Your preferences">
-          <section className="card card-pad">
-            <Preferences />
-            <button type="button" className={`btn btn-quiet btn-sm ${s.reset}`} onClick={d.resetPrefs}>
-              Reset preferences
-            </button>
-          </section>
-          <RoleHistory />
-        </aside>
-
-        <section className={s.results} aria-labelledby="discover-results">
-          <h2 id="discover-results" className="sr-only">
-            {tab === 'saved' ? 'Saved for later' : tab === 'all' ? 'Every upcoming event' : 'Recommended for you'}
-          </h2>
-          <div className={s.toolbar}>
-            <div className={`seg ${s.seg}`} role="tablist" aria-label="Event lists">
-              {(
-                [
-                  ['recommended', 'For you'],
-                  ['all', 'Browse'],
-                  ['saved', savedCount ? `Saved ${savedCount}` : 'Saved'],
-                ] as const
-              ).map(([k, label]) => (
-                <button key={k} type="button" role="tab" aria-selected={tab === k} className={`seg-item ${s.segBtn}`} onClick={() => setTab(k)}>
-                  {tab === k && <motion.span layoutId="discover-tab" className="seg-pill" transition={spring} aria-hidden />}
-                  <span className="seg-text">{label}</span>
-                </button>
-              ))}
-            </div>
-            <button type="button" className={s.filterBtn} aria-haspopup="dialog" aria-label={active ? `Preferences, ${active} set` : 'Preferences'} onClick={() => setSheetOpen(true)}>
-              <FilterGlyph />
-              {active > 0 && (
-                <span className={s.filterCount} aria-hidden>
-                  {active}
-                </span>
-              )}
-            </button>
+      <section className={s.results} aria-labelledby="discover-results">
+        <h2 id="discover-results" className="sr-only">
+          {tab === 'saved' ? 'Saved for later' : tab === 'all' ? 'Every upcoming event' : 'Recommended for you'}
+        </h2>
+        <div className={s.toolbar}>
+          <div className={`seg ${s.seg}`} role="tablist" aria-label="Event lists">
+            {(
+              [
+                ['recommended', 'For you'],
+                ['all', 'Browse'],
+                ['saved', savedCount ? `Saved ${savedCount}` : 'Saved'],
+              ] as const
+            ).map(([k, label]) => (
+              <button key={k} type="button" role="tab" aria-selected={tab === k} className={`seg-item ${s.segBtn}`} onClick={() => setTab(k)}>
+                {tab === k && <motion.span layoutId="discover-tab" className="seg-pill" transition={spring} aria-hidden />}
+                <span className="seg-text">{label}</span>
+              </button>
+            ))}
           </div>
-          <p className="sr-only" role="status" aria-live="polite">
-            {items.length} {items.length === 1 ? 'event' : 'events'}, ranked by {modes[prefs.mode].toLowerCase()}
+          <button
+            type="button"
+            className={s.filterBtn}
+            aria-haspopup="dialog"
+            aria-expanded={sheetOpen}
+            aria-label={active ? `Preferences, ${active} set` : 'Preferences'}
+            onClick={() => setSheetOpen(true)}
+          >
+            <FilterGlyph />
+            <span className={s.filterText} aria-hidden>
+              Preferences
+            </span>
+            {active > 0 && (
+              <span className={s.filterCount} aria-hidden>
+                {active}
+              </span>
+            )}
+          </button>
+        </div>
+        <p className="sr-only" role="status" aria-live="polite">
+          {items.length} {items.length === 1 ? 'event' : 'events'}, ranked by {modes[prefs.mode].toLowerCase()}
+        </p>
+        {tab === 'recommended' && (excluded > 0 || hidden.size > 0) && (
+          <p className={s.note}>
+            {excluded > 0 && <>{excluded === 1 ? '1 event is' : `${excluded} events are`} outside your format or day; see Browse. </>}
+            {hidden.size > 0 && (
+              <button type="button" className={s.inlineLink} onClick={d.unhideAll}>
+                Show {hidden.size} hidden
+              </button>
+            )}
           </p>
-          {tab === 'recommended' && (excluded > 0 || hidden.size > 0) && (
-            <p className={s.note}>
-              {excluded > 0 && <>{excluded === 1 ? '1 event is' : `${excluded} events are`} outside your format or day; see Browse. </>}
-              {hidden.size > 0 && (
-                <button type="button" className={s.inlineLink} onClick={d.unhideAll}>
-                  Show {hidden.size} hidden
+        )}
+        {items.length ? (
+          <div className={s.grid}>
+            {/* Re-ranking slides cards to their new places instead of jumping. */}
+            <AnimatePresence initial={false} mode="popLayout">
+              {items.map((r, i) => (
+                <motion.div
+                  key={r.opportunity.id}
+                  layout={reduce ? false : 'position'}
+                  initial={reduce ? false : { opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={reduce ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
+                  transition={spring}
+                  className={s.cell}
+                >
+                  <OpportunityCard r={r} reason={reasons.get(r.opportunity.id) ?? null} priority={i < 3} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <div className="card">
+            <EmptyState
+              illo={tab === 'saved' ? 'seed-pod' : 'compass'}
+              title={tab === 'saved' ? 'Nothing saved yet.' : 'No events in this view.'}
+              action={
+                <button type="button" className="btn" onClick={() => setTab('all')}>
+                  Browse all events
                 </button>
-              )}
+              }
+            >
+              {tab === 'saved' ? 'Tap Save on any event. Your list is kept with your account.' : 'Change your day or format, or browse every upcoming event.'}
+            </EmptyState>
+          </div>
+        )}
+
+        <details className={s.how}>
+          <summary className={s.textlink}>How these recommendations work</summary>
+          <div className="card card-pad stack" style={{ marginTop: 10 }}>
+            <p className="small">
+              Each event gets fit points from nine rules with fixed weights. They compare the skills and cause the organization tagged on its event with the skills and cause you chose here, and your
+              reviewed role history if you add one. Other causes stay in the list; missing information is unknown, not a failing score.
             </p>
-          )}
-          {items.length ? (
-            <div className={s.grid}>
-              {/* Re-ranking slides cards to their new places instead of jumping. */}
-              <AnimatePresence initial={false} mode="popLayout">
-                {items.map((r, i) => (
-                  <motion.div
-                    key={r.opportunity.id}
-                    layout={reduce ? false : 'position'}
-                    initial={reduce ? false : { opacity: 0, scale: 0.97 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={reduce ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
-                    transition={spring}
-                    className={s.cell}
-                  >
-                    <OpportunityCard r={r} priority={i < 2} />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          ) : (
-            <div className="card">
-              <EmptyState
-                illo={tab === 'saved' ? 'seed-pod' : 'compass'}
-                title={tab === 'saved' ? 'Nothing saved yet.' : 'No events in this view.'}
-                action={
-                  <button type="button" className="btn" onClick={() => setTab('all')}>
-                    Browse all events
-                  </button>
-                }
-              >
-                {tab === 'saved' ? 'Tap Save on any event. Your list is kept with your account.' : 'Change your day or format, or browse every upcoming event.'}
-              </EmptyState>
-            </div>
-          )}
+            <p className="small muted">{criteria.map((c, i) => `${c}: ${weights[prefs.mode][i]}%`).join(' · ')}</p>
+            <p className="small muted">
+              Fit points are an unvalidated, rule-based comparison, not a probability that you’ll be accepted or enjoy it. No prestige, major, badge count or hours total is used. Events come from the
+              organizations’ own listings on SycaMore; anything they haven’t listed (journey time, cost, training) is shown as unknown.
+            </p>
+          </div>
+        </details>
+      </section>
 
-          <details className={s.how}>
-            <summary className={s.textlink}>How these recommendations work</summary>
-            <div className="card card-pad stack" style={{ marginTop: 10 }}>
-              <p className="small">
-                Each event gets fit points from nine rules with fixed weights. They compare the skills and cause the organization tagged on its event with the skills and cause you chose here, and your reviewed role
-                history if you add one. Other causes stay in the list; missing information is unknown, not a failing score.
-              </p>
-              <p className="small muted">{criteria.map((c, i) => `${c}: ${weights[prefs.mode][i]}%`).join(' · ')}</p>
-              <p className="small muted">
-                Fit points are an unvalidated, rule-based comparison, not a probability that you’ll be accepted or enjoy it. No prestige, major, badge count or hours total is used. Events come from the organizations’ own
-                listings on SycaMore; anything they haven’t listed (journey time, cost, training) is shown as unknown.
-              </p>
-            </div>
-          </details>
-        </section>
-      </div>
-
-      {/* Phones: the preferences as a bottom sheet (a native modal dialog:
-          focus moves in, Escape or a tap on the backdrop closes it). */}
+      {/* The preferences as a sheet: from the bottom on phones, from the right
+          on desktop (a native modal dialog: focus moves in, Escape or a tap
+          on the backdrop closes it). */}
       <dialog
         ref={sheet}
         className={s.sheet}
@@ -307,9 +315,16 @@ export function DiscoverHome() {
               <h2 id="discover-sheet-title" className={s.sheetTitle}>
                 Preferences
               </h2>
-              <button type="button" className={`btn btn-quiet btn-sm`} onClick={d.resetPrefs}>
-                Reset
-              </button>
+              <span className={s.sheetTools}>
+                {active > 0 && (
+                  <button type="button" className="btn btn-quiet btn-sm" onClick={d.resetPrefs}>
+                    Reset
+                  </button>
+                )}
+                <button type="button" className={s.sheetClose} onClick={() => setSheetOpen(false)} aria-label="Close preferences">
+                  <Icon name="x" size={20} />
+                </button>
+              </span>
             </div>
             <Preferences />
             <RoleHistory />

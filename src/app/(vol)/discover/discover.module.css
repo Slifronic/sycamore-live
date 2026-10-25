@@ -5,20 +5,24 @@
 summary.textlink { display: list-item; padding: 12px 0; }
 .left { justify-self: start; }
 
-/* The header is just the title; the phone bar already says "Discover". */
+/* The header is just the title; the phone bar stays empty until it scrolls under (VolNav). */
 .head :global(h1) { font-size: clamp(26px, 5vw, 34px); }
 
-/* One row of controls: the list switcher and (phones) the filter button. */
+/* One row of controls: the list switcher and the preferences button (an icon
+   on phones, icon + label on desktop). */
 .toolbar { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .seg { flex: 0 1 auto; min-width: 0; }
 .filterBtn {
-  position: relative; display: none; place-items: center; flex: none; width: 44px; height: 44px; margin-left: auto; border: 0; border-radius: 50%;
-  background: var(--paper); color: var(--ink); box-shadow: var(--shadow); cursor: pointer;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: none; height: 44px; min-width: 44px; margin-left: auto; padding: 0 16px 0 14px;
+  border: 0; border-radius: 999px; background: var(--paper); color: var(--ink); box-shadow: var(--shadow); cursor: pointer; font: 600 14px var(--font-sans), system-ui, sans-serif;
+  transition: box-shadow var(--dur-1) var(--ease-out);
 }
+.filterBtn:hover { box-shadow: var(--shadow-hi); }
 .filterBtn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.filterText { line-height: 1; }
 .filterCount {
-  position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center;
-  background: var(--ink); color: var(--on-ink); font: 800 10.5px/1 var(--font-sans), system-ui, sans-serif; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--parchment);
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center;
+  background: var(--ink); color: var(--on-ink); font: 800 11px/1 var(--font-sans), system-ui, sans-serif; font-variant-numeric: tabular-nums;
 }
 .note { font-size: 13px; color: var(--ink-3); }
 .inlineLink { border: 0; background: none; padding: 0; font: inherit; font-weight: 700; color: var(--primary); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
@@ -41,12 +45,11 @@ summary.textlink { display: list-item; padding: 12px 0; }
 .modeCopy b { font-size: 14px; font-weight: 700; }
 .modeCopy span { font-size: 13px; color: var(--ink-3); }
 .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.reset { margin-top: 10px; justify-self: start; }
 .roles { display: grid; gap: 8px; padding: 16px; border-radius: var(--radius); background: var(--primary-soft); }
 .rolesTitle { font-size: 15px; }
 .roles .textlink { gap: 4px; }
 
-/* The phone sheet. */
+/* The preferences sheet: from the bottom on phones, from the right on desktop. */
 .sheet {
   width: 100%; max-width: 560px; max-height: 88dvh; margin: auto auto 0; padding: 0; border: 0; border-radius: 22px 22px 0 0;
   background: var(--paper); color: var(--ink); box-shadow: var(--pop); overflow: auto; overscroll-behavior: contain;
@@ -54,14 +57,55 @@ summary.textlink { display: list-item; padding: 12px 0; }
 .sheet::backdrop { background: var(--scrim); }
 .sheet[open] { animation: sheet-up var(--dur-3) var(--ease-out); }
 @keyframes sheet-up { from { transform: translateY(24px); opacity: 0; } }
-.sheetInner { display: grid; gap: 18px; padding: 16px 20px 0; }
+@keyframes sheet-in { from { transform: translateX(32px); opacity: 0; } }
+.sheetInner { display: grid; gap: 20px; padding: 16px 20px 0; }
 .sheetHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .sheetTitle { font-size: 20px; }
-.sheetFoot { position: sticky; bottom: 0; margin: 0 -20px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); background: var(--paper); box-shadow: 0 -1px 0 var(--line); }
+.sheetTools { display: inline-flex; align-items: center; gap: 4px; margin-right: -8px; }
+.sheetClose { width: 44px; height: 44px; border: 0; border-radius: 50%; display: grid; place-items: center; background: transparent; color: var(--ink-2); cursor: pointer; }
+.sheetClose:hover { background: var(--wash); }
+.sheetClose:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.sheetFoot { position: sticky; bottom: 0; z-index: 2; margin: 0 -20px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); background: var(--paper); box-shadow: 0 -1px 0 var(--line); }
 .sheetFoot :global(.btn) { width: 100%; }
+@media (min-width: 861px) {
+  .sheet { width: 440px; max-width: 440px; height: 100dvh; max-height: 100dvh; margin: 0 0 0 auto; border-radius: 22px 0 0 22px; }
+  .sheet[open] { animation-name: sheet-in; }
+  .sheetInner { min-height: 100%; grid-template-rows: auto 1fr auto auto; padding: 20px 24px 0; }
+  .sheetFoot { margin: 0 -24px; padding: 14px 24px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .sheet[open] { animation: none; }
 }
+
+/* Single choices (cause, area, format, day): a field-shaped Menu trigger. */
+.choiceLabel { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.choice { display: flex; width: 100%; }
+.choiceBtn {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; height: 44px; padding: 0 12px 0 14px; border-radius: 12px;
+  border: 1px solid var(--line-2); background: var(--paper); color: var(--ink); font: 500 15px var(--font-sans), system-ui, sans-serif; text-align: left; cursor: pointer;
+}
+.choiceBtn:hover { border-color: var(--field); }
+.choiceBtn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.choiceBtn[aria-expanded='true'] { border-color: var(--primary); }
+.choiceBtn > svg { flex: none; color: var(--ink-3); }
+.choiceValue { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.choicePanel { right: 0; min-width: 200px; max-width: none; max-height: 300px; overflow-y: auto; }
+
+/* Skills: a combobox with a listbox under it. */
+.combo { position: relative; }
+.comboIcon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; display: grid; }
+.comboInput { padding-left: 36px; }
+.comboList {
+  position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 6px); max-height: 240px; overflow-y: auto; margin: 0; padding: 6px; list-style: none;
+  border-radius: 14px; background: var(--paper); box-shadow: var(--pop);
+}
+.comboOption { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 6px 10px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.comboOption[aria-selected='true'] { background: var(--wash); box-shadow: inset 0 0 0 1px var(--line); }
+.comboGroup { font-size: 12px; font-weight: 500; color: var(--ink-3); white-space: nowrap; }
+.comboEmpty { padding: 10px; font-size: 13px; color: var(--ink-3); }
+.chosen { gap: 6px; background: var(--primary-soft); border-color: transparent; color: var(--canopy); }
+.chosen > svg { color: var(--ink-3); }
+@media (pointer: coarse) { .comboOption { min-height: 44px; } }
 
 .preset { gap: 0; color: var(--ink-2); transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.16s var(--ease); }
 .preset:active { transform: scale(0.96); }
@@ -74,12 +118,10 @@ summary.textlink { display: list-item; padding: 12px 0; }
 .skill { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 7px; background: var(--primary-soft); color: var(--canopy); font-size: 12px; font-weight: 600; white-space: nowrap; }
 .cause { display: inline-flex; align-items: center; justify-self: start; height: 24px; padding: 0 10px; border-radius: 999px; background: var(--mist); color: var(--mist-ink); font-size: 12px; font-weight: 700; white-space: nowrap; }
 
-.body { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 24px; align-items: start; }
-.rail { display: grid; gap: 14px; min-width: 0; }
 .results { display: grid; gap: 14px; min-width: 0; }
 .segBtn { border: 0; background: transparent; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; }
 .segBtn[aria-selected='true'] { color: var(--ink); }
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .card { display: grid; gap: 8px; align-content: start; padding: 18px; min-width: 0; overflow: hidden; }
 .cardCover { display: block; margin: -18px -18px 6px; }
 .card:hover .cardCover img { transform: scale(1.035); }
@@ -91,8 +133,8 @@ summary.textlink { display: list-item; padding: 12px 0; }
 .cardActions :global(.btn) { gap: 6px; }
 .savedBtn { background: var(--primary-soft); border-color: transparent; color: var(--canopy); }
 .skillLine { display: grid; gap: 6px; }
-.fitLine { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
-.fitLine strong { font-variant-numeric: tabular-nums; }
+.reason { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.reasonIcon { flex: none; margin-top: 1px; color: var(--sap); }
 .empty { padding: 26px 22px; display: grid; gap: 10px; justify-items: start; }
 .how { display: grid; }
 
@@ -136,17 +178,14 @@ summary.textlink { display: list-item; padding: 12px 0; }
 .toast:empty { padding: 0; }
 .toastOn { opacity: 1; transform: translate(-50%, 0); }
 
-@media (max-width: 1100px) {
-  .grid { grid-template-columns: minmax(0, 1fr); }
-}
 @media (max-width: 1000px) {
   .detail { grid-template-columns: minmax(0, 1fr); }
   .fitCard { position: static; }
 }
 @media (max-width: 860px) {
-  .body { grid-template-columns: minmax(0, 1fr); }
-  .rail { display: none; }
-  .filterBtn { display: grid; }
+  .filterBtn { width: 44px; padding: 0; }
+  .filterText { display: none; }
+  .filterCount { position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 5px; font-size: 10.5px; box-shadow: 0 0 0 2px var(--parchment); }
   .seg { flex: 1 1 auto; }
   .seg :global(.seg-item) { flex: 1 0 auto; justify-content: center; }
   .toast { bottom: calc(88px + env(safe-area-inset-bottom)); }

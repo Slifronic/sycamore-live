@@ -5,7 +5,7 @@ import { useMemo, useState, useTransition } from 'react';
 import { ROLE_LABEL, type AttendanceRow, type Role } from '@/lib/types';
 import { verifyEvent } from '../../../../actions';
 import { Icon } from '@/components/shell/icons';
-import { Menu } from '@/components/ui/Popover';
+import { Menu, type MenuItem } from '@/components/ui/Popover';
 import s from './verify.module.css';
 
 type Row = Pick<AttendanceRow, 'id' | 'display_name' | 'method'> & {
@@ -127,6 +127,35 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
   const steps = present.length + 1;
   const readyShare = Math.max(0, Math.min(1, (steps - blockers.length) / steps));
 
+  // Bulk changes for the ticked rows (and the phone's way to set roles for many at once).
+  const bulk = (patch: (r: Row) => Partial<Row>) => setRows((rs) => rs.map((r) => (r.selected ? { ...r, ...patch(r), selected: false } : r)));
+  const selectionItems: MenuItem[] = selected
+    ? [
+        { heading: `Set role for ${selected}` },
+        ...ROLES.map((x) => ({ label: ROLE_LABEL[x], onSelect: () => bulk((r) => (r.no_show ? {} : { role: x })) })),
+        'separator',
+        { label: 'Mark as standout', icon: 'star' as const, onSelect: () => bulk((r) => (r.no_show ? {} : { standout: true })) },
+        { label: 'Mark as no-show', icon: 'x' as const, onSelect: () => bulk(() => ({ no_show: true, standout: false })) },
+        { label: 'Mark as here', icon: 'check' as const, onSelect: () => bulk(() => ({ no_show: false })) },
+        'separator',
+        { label: 'Clear selection', onSelect: () => setRows((rs) => rs.map((r) => ({ ...r, selected: false }))) },
+      ]
+    : [
+        { label: `Select all ${rows.length}`, icon: 'check' as const, onSelect: () => setRows((rs) => rs.map((r) => ({ ...r, selected: true }))) },
+        ...(missing.length ? [{ label: `Select the ${missing.length} who didn’t scan out`, onSelect: () => setRows((rs) => rs.map((r) => ({ ...r, selected: missing.some((m) => m.id === r.id) }))) }] : []),
+      ];
+  // Phones: role, standout and no-show live in a per-row menu so each row stays one line.
+  const rowItems = (r: Row): MenuItem[] =>
+    r.no_show
+      ? [{ label: 'Was here (undo no-show)', icon: 'check', onSelect: () => set(r.id, { no_show: false }) }]
+      : [
+          { heading: 'Role' },
+          ...ROLES.map((x) => ({ label: ROLE_LABEL[x], current: x === r.role, onSelect: () => set(r.id, { role: x }) })),
+          'separator',
+          { label: r.standout ? 'Remove standout' : 'Mark as standout', icon: 'star', onSelect: () => set(r.id, { standout: !r.standout }) },
+          { label: 'Mark as no-show', icon: 'x', tone: 'danger', onSelect: () => set(r.id, { no_show: true, standout: false }) },
+        ];
+
   function submit() {
     setError(null);
     start(async () => {
@@ -203,27 +232,24 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
               Everyone was here
             </button>
             {missing.length > 0 && (
-              <button className={`btn btn-primary ${s.tool}`} onClick={fillMissing}>
-                Fill in {missing.length} who didn’t scan out
+              <button className={`btn btn-secondary ${s.tool}`} onClick={fillMissing}>
+                Fill in <span className={s.toolCount}>{missing.length}</span> who didn’t scan out
               </button>
             )}
             <Menu
-              label="Set role for selected"
+              label={selected ? `Change ${selected} selected` : 'Select people'}
               placement="bottom-start"
-              items={ROLES.map((x) => ({
-                label: ROLE_LABEL[x],
-                onSelect: () => setRows((rs) => rs.map((r) => (r.selected ? { ...r, role: x, selected: false } : r))),
-              }))}
+              items={selectionItems}
               trigger={(p) => (
-                <button {...p} type="button" className={`btn ${s.tool}`} disabled={!selected} title={selected ? undefined : 'Tick people first'}>
-                  {selected ? `Set role for ${selected}` : 'Set role'} <Icon name="chevron-down" size={16} />
+                <button {...p} type="button" className={`btn ${s.tool}`}>
+                  {selected ? `${selected} selected` : 'Select'} <Icon name="chevron-down" size={16} />
                 </button>
               )}
             />
           </div>
           {rows.length > 10 && <input className={`input ${s.find}`} placeholder="Find a name" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Find a name" />}
         </div>
-        <div style={{ overflowX: 'auto', position: 'relative' }}>
+        <div className={s.scroll}>
           <table className={`t ${s.table}`}>
             <thead>
               <tr>
@@ -236,6 +262,9 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                 <th scope="col">Standout</th>
                 <th scope="col">
                   <span className="sr-only">Attendance</span>
+                </th>
+                <th scope="col" className={s.cMore}>
+                  <span className="sr-only">More</span>
                 </th>
               </tr>
             </thead>
@@ -256,6 +285,18 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                           <strong className={r.no_show ? s.struck : ''}>{r.display_name}</strong>
                           {r.method === 'paper_import' && <span className="small muted"> · from paper sheet</span>}
                           {r.method === 'walk_in' && <span className="small muted"> · signed up at the door</span>}
+                          {!r.no_show && (r.role !== 'general' || r.standout) && (
+                            <span className={`small ${s.rowMeta}`}>
+                              {r.role !== 'general' && ROLE_LABEL[r.role]}
+                              {r.role !== 'general' && r.standout && ' · '}
+                              {r.standout && (
+                                <span className={s.metaStar}>
+                                  <Icon name="star" size={12} fill="currentColor" style={{ verticalAlign: '-1px' }} /> Standout
+                                </span>
+                              )}
+                            </span>
+                          )}
+                          {r.no_show && <span className={`small ${s.rowMeta}`}>No-show</span>}
                           {needsHours && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>No check-out recorded</span>}
                           {needsHours && r.left_area_at && r.checked_in_at && (
                             <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>
@@ -338,6 +379,18 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                         </span>
                       </button>
                     </td>
+                    <td className={s.cMore}>
+                      <Menu
+                        label={`Options for ${r.display_name}`}
+                        placement="bottom-end"
+                        items={rowItems(r)}
+                        trigger={(p) => (
+                          <button {...p} type="button" className={s.moreBtn} aria-label={`Role, standout or no-show for ${r.display_name}`}>
+                            <Icon name="more" size={20} />
+                          </button>
+                        )}
+                      />
+                    </td>
                   </tr>
                 );
               })}
@@ -350,7 +403,12 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
         <span className={s.meter} aria-hidden>
           <span style={{ transform: `scaleX(${readyShare})` }} />
         </span>
-        <div>
+        {error && (
+          <p className={`small ${s.barError}`} role="alert">
+            {error}
+          </p>
+        )}
+        <div className={s.barFull}>
           <p className={s.totals}>
             <span className="figure" style={{ fontSize: 28 }}>{present.length}</span>
             <span className="figure-unit">people</span>
@@ -367,13 +425,19 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
               <span className={s.readyLine}>Ready. Records are issued the moment you verify.</span>
             )}
           </p>
-          {error && (
-            <p className="small" role="alert" style={{ color: 'var(--red)' }}>
-              {error}
-            </p>
-          )}
         </div>
-        <button className="btn btn-primary btn-big" disabled={blockers.length > 0 || pending} aria-describedby="blockers" onClick={submit}>
+        {/* Phones: one line. Tapping it jumps to the first thing to fix. */}
+        {blockers.length ? (
+          <button type="button" className={s.barLine} onClick={() => goTo(blockers[0].target)} aria-label={`${present.length} people, ${totalHours} hours. ${blockers.length} to fix. Next: ${blockers[0].text}`}>
+            <b className="num">{present.length}</b> · <b className="num">{totalHours.toLocaleString()}</b> h · <span className={s.barFix}>{blockers.length} to fix</span>
+            <Icon name="arrow-right" size={16} />
+          </button>
+        ) : (
+          <p className={s.barLine}>
+            <b className="num">{present.length}</b> · <b className="num">{totalHours.toLocaleString()}</b> h · <span className={s.barOk}>Ready</span>
+          </p>
+        )}
+        <button className={`btn btn-primary btn-big ${s.verifyBtn}`} disabled={blockers.length > 0 || pending} aria-describedby="blockers" onClick={submit}>
           {pending ? (
             'Verifying…'
           ) : (

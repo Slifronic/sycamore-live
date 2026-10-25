@@ -101,23 +101,30 @@ export default async function BadgesPage() {
         <h2 id="all-h" className={s.h2}>
           The badges
         </h2>
-        <div className={s.catalog}>
-          {BADGES.map((b) => {
-            const n = earnedCount(b.key);
-            return (
-              <Card key={b.key} pad className={s.def}>
-                <div className="row between" style={{ gap: 8 }}>
-                  <h3>{b.name}</h3>
-                  <Chip tone={n ? 'green' : 'ink'}>{n} signed</Chip>
-                </div>
-                <p className={s.defRule}>
-                  {b.rule}
-                  {b.needsNote ? `, plus your note: ${b.needsNote.toLowerCase()}` : ''}
-                </p>
-              </Card>
-            );
-          })}
-        </div>
+        <Card>
+          <ul className={s.readyList}>
+            {BADGES.map((b) => {
+              const n = earnedCount(b.key);
+              return (
+                <li key={b.key} className={s.defRow}>
+                  <span className={s.defIcon} aria-hidden>
+                    <Icon name="award" size={16} />
+                  </span>
+                  <span className={s.defText}>
+                    <strong>{b.name}</strong>
+                    <span className={s.defRule}>
+                      {b.rule}
+                      {b.needsNote ? `, plus your note: ${b.needsNote.toLowerCase()}` : ''}
+                    </span>
+                  </span>
+                  <Chip tone={n ? 'green' : 'ink'} className={s.defCount}>
+                    <span className="num">{n}</span> signed
+                  </Chip>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
       </section>
     </Stagger>
   );

@@ -2,7 +2,7 @@
 .rail {
   grid-column: 1; grid-row: 2; z-index: 30;
   position: sticky; top: calc(var(--topbar-h, 64px) + 4px); align-self: start;
-  height: calc(100dvh - var(--topbar-h, 64px) - 44px);
+  height: calc(100dvh - var(--demo-h, 0px) - var(--topbar-h, 64px) - 44px);
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   width: 60px; margin: 4px 0 16px 12px; padding: 8px 0;
   border-radius: 20px; background: var(--paper); box-shadow: var(--shadow);
@@ -32,6 +32,7 @@
   .rail { display: none; }
   .tabs {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;
+    box-sizing: border-box; height: calc(var(--tabbar-h, 67px) + env(safe-area-inset-bottom)); align-items: start;
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--parchment) 94%, transparent); backdrop-filter: saturate(1.4) blur(14px);
     border-top: 1px solid var(--line);
   }

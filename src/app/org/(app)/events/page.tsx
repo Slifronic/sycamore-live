@@ -173,8 +173,9 @@ export default async function EventsPage({ searchParams }: PageProps<'/org/event
                         Verified
                       </Chip>
                     ) : state === 'waiting' ? (
-                      <Chip tone="amber" icon="clock">
-                        Needs verification
+                      <Chip tone="amber" icon="clock" className={l.waitChip}>
+                        <span className={l.longLabel}>Needs verification</span>
+                        <span className={l.shortLabel}>To verify</span>
                       </Chip>
                     ) : live ? (
                       <span className={`chip chip-green ${l.live}`}>

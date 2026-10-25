@@ -10,10 +10,23 @@ import s from './record.module.css';
 // show its QR, or hand it to the phone's share sheet. Use this record: a
 // resume line or a scholarship sentence written from the record's facts.
 // Each opens a sheet (a native modal <dialog>: focus moves in, Escape closes,
-// a bottom sheet on phones). Volunteers under 18 see why sharing is off; the
-// API refuses them too.
+// a bottom sheet on phones). Volunteers under 18 can't share yet (there's no
+// guardian sign-off flow), so for them Share is a locked secondary button with
+// the reason under its label, Use this record is the primary, and the locked
+// sheet gives the real next steps: an hour letter from the coordinator, or a
+// printed copy. The API refuses minors too.
 
 type Sheet = 'share' | 'use' | null;
+
+/** lucide "lock" at the shared 1.5 stroke; the icon set has no lock. */
+function LockGlyph({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={s.actionIcon}>
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  );
+}
 
 async function copy(text: string, what: string) {
   try {
@@ -24,10 +37,13 @@ async function copy(text: string, what: string) {
   }
 }
 
-export function RecordActions(props: { recordId: string; url: string | null; qrSvg: string | null; isMinor: boolean; revoked: boolean; orgName: string }) {
+type Props = { recordId: string; url: string | null; qrSvg: string | null; isMinor: boolean; revoked: boolean; orgName: string; orgPhone: string };
+
+export function RecordActions(props: Props) {
   const [sheet, setSheet] = useState<Sheet>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const locked = props.isMinor && !props.revoked;
 
   useEffect(() => {
     const d = dialog.current;
@@ -36,25 +52,39 @@ export function RecordActions(props: { recordId: string; url: string | null; qrS
     if (!sheet && d.open) d.close();
   }, [sheet]);
 
+  const title = sheet === 'use' ? 'Use this record' : locked ? 'Sharing needs a parent or guardian’s OK' : 'Share this record';
+
   return (
     <>
-      {/* The two actions ride in a bar that sticks 8px above the tab bar, so
-          they're always in reach however long the certificate is. */}
-      <div className={`${s.actionBar} no-print`} data-single={props.revoked || undefined}>
-        <button type="button" className={`btn btn-primary ${s.action}`} onClick={() => setSheet('share')} aria-haspopup="dialog">
-          <Icon name={props.isMinor ? 'shield' : 'share'} size={20} className={s.actionIcon} /> Share
-        </button>
-        {!props.revoked && (
-          <button type="button" className={`btn ${s.action}`} onClick={() => setSheet('use')} aria-haspopup="dialog">
-            <Icon name="copy" size={20} className={s.actionIcon} /> Use this record
-          </button>
-        )}
-      </div>
       <div className={`${s.below} no-print`}>
-        {props.isMinor && !props.revoked && <p className={s.minorNote}>Sharing is off until a parent or guardian OKs it, because you’re under 18.</p>}
         <button type="button" className={`btn btn-quiet ${s.print}`} onClick={() => window.print()}>
           Print or save as PDF
         </button>
+      </div>
+
+      {/* The tray: opaque paper, flush on the phone tab bar (sticky at
+          --tabbar-h), so the certificate never shows through or under it. */}
+      <div className={`${s.actionBar} no-print`} data-single={props.revoked || undefined}>
+        {locked ? (
+          <button type="button" className={`btn ${s.action} ${s.lockedAction}`} onClick={() => setSheet('share')} aria-haspopup="dialog" aria-describedby={`${titleId}-why`}>
+            <LockGlyph />
+            <span className={s.actionText}>
+              Share
+              <span id={`${titleId}-why`} className={s.actionWhy}>
+                Needs a guardian’s OK
+              </span>
+            </span>
+          </button>
+        ) : (
+          <button type="button" className={`btn btn-primary ${s.action}`} onClick={() => setSheet('share')} aria-haspopup="dialog">
+            <Icon name="share" size={20} className={s.actionIcon} /> Share
+          </button>
+        )}
+        {!props.revoked && (
+          <button type="button" className={`btn ${locked ? 'btn-primary' : ''} ${s.action}`} onClick={() => setSheet('use')} aria-haspopup="dialog">
+            <Icon name="copy" size={20} className={s.actionIcon} /> Use this record
+          </button>
+        )}
       </div>
 
       <dialog
@@ -68,14 +98,19 @@ export function RecordActions(props: { recordId: string; url: string | null; qrS
       >
         <div className={s.sheetInner}>
           <div className={s.sheetHead}>
+            {locked && sheet === 'share' && (
+              <span className={s.lockedIcon} aria-hidden>
+                <LockGlyph />
+              </span>
+            )}
             <h2 id={titleId} className={s.sheetTitle}>
-              {sheet === 'use' ? 'Use this record' : 'Share this record'}
+              {title}
             </h2>
             <button type="button" className={s.close} onClick={() => setSheet(null)} aria-label="Close">
               <Icon name="x" size={20} />
             </button>
           </div>
-          {sheet === 'share' && <SharePane {...props} />}
+          {sheet === 'share' && (locked ? <LockedPane orgName={props.orgName} orgPhone={props.orgPhone} onUse={() => setSheet('use')} /> : <SharePane {...props} />)}
           {sheet === 'use' && <UsePane recordId={props.recordId} orgName={props.orgName} />}
         </div>
       </dialog>
@@ -83,24 +118,48 @@ export function RecordActions(props: { recordId: string; url: string | null; qrS
   );
 }
 
-function SharePane({ recordId, url, qrSvg, isMinor, revoked }: { recordId: string; url: string | null; qrSvg: string | null; isMinor: boolean; revoked: boolean }) {
+// Under 18: the reason sits right under the sheet's title, then what they can
+// actually do today. No guardian-consent flow is promised; it doesn't exist.
+function LockedPane({ orgName, orgPhone, onUse }: { orgName: string; orgPhone: string; onUse: () => void }) {
+  return (
+    <div className={s.paneStack}>
+      <p className={s.lockedWhy}>You’re under 18, so a public link to your record stays off for now. The record itself is safe here.</p>
+      <ol className={s.steps}>
+        <li>
+          <b>Ask your coordinator for an hour letter.</b>
+          <span>
+            {orgName} can print a letter of your attested hours to hand to a school or scholarship committee.
+            {orgPhone && (
+              <>
+                {' '}
+                Call <span className={s.nowrap}>{orgPhone}</span>.
+              </>
+            )}
+          </span>
+        </li>
+        <li>
+          <b>Or print this record yourself.</b>
+          <span>It prints as the certificate above, with the organization’s contact details.</span>
+        </li>
+      </ol>
+      <div className={s.kinds}>
+        <button type="button" className="btn" onClick={() => window.print()}>
+          Print or save as PDF
+        </button>
+        <button type="button" className="btn" onClick={onUse}>
+          Use this record
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SharePane({ recordId, url, qrSvg, revoked }: { recordId: string; url: string | null; qrSvg: string | null; revoked: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   if (revoked) return <p className="notice notice-red">The organization revoked this record, so it can’t be shared. Ask them why.</p>;
-  if (isMinor)
-    return (
-      <div className={s.locked}>
-        <span className={s.lockedIcon} aria-hidden>
-          <Icon name="shield" size={20} />
-        </span>
-        <p>
-          <b>Sharing needs a parent or guardian’s OK.</b> You’re under 18, so your records stay private to you for now. You can still print a copy or use the record in an application.
-        </p>
-      </div>
-    );
-
   if (!url)
     return (
       <div className={s.paneStack}>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, useReducedMotion } from 'motion/react';
 import { Icon, type IconName } from '../shell/icons';
@@ -23,8 +24,11 @@ export const VOL_TABS: Tab[] = [
   { href: '/me/account', label: 'Me', icon: 'user', match: (p) => p.startsWith('/me/account') || p.startsWith('/me/badges') || p.startsWith('/me/journey') },
 ];
 
-// The phone bar's title: the greeting on Home only; elsewhere the page's name,
-// so Account doesn't say "Good morning, Lucia" right above "Lucia Kim".
+// The phone bar's title. Home shows the greeting. Every other page has its
+// own h1, so the bar works like an iOS large title: empty while the page's h1
+// is on screen, then the h1's text fades into the bar once it scrolls under
+// it. No page says "Discover" right above "Find your next event". The static
+// names below are only the fallback for a screen with no h1 (a loading state).
 function barTitle(p: string): string | null {
   if (p === '/me') return null;
   if (p.startsWith('/me/records')) return 'Record';
@@ -36,6 +40,49 @@ function barTitle(p: string): string | null {
   if (p.startsWith('/discover/profile')) return 'Your experience';
   if (p.startsWith('/discover')) return 'Discover';
   return null;
+}
+
+type Collapse = { path: string; text: string; show: boolean };
+
+/** Watches the page's first h1 under the top bar (re-finding it as the route
+ *  streams in) and reports whether it has scrolled up under the bar. */
+function useLargeTitle(path: string, fallback: string | null): Collapse {
+  const [st, setSt] = useState<Collapse>({ path: '', text: '', show: false });
+  useEffect(() => {
+    if (!fallback) return;
+    const main = document.getElementById('main');
+    if (!main) return;
+    let io: IntersectionObserver | null = null;
+    let watched: Element | null = null;
+    const attach = () => {
+      const h1 = main.querySelector('h1');
+      if (!h1) {
+        if (watched !== main) {
+          watched = main;
+          io?.disconnect();
+          setSt({ path, text: fallback, show: true });
+        }
+        return;
+      }
+      if (h1 === watched) return;
+      watched = h1;
+      io?.disconnect();
+      const barBottom = Math.round(document.querySelector('[data-voltop]')?.getBoundingClientRect().bottom ?? 60);
+      io = new IntersectionObserver(([e]) => setSt({ path, text: (h1.textContent ?? '').trim() || fallback, show: !e.isIntersecting && e.boundingClientRect.top < barBottom }), {
+        rootMargin: `-${barBottom}px 0px 0px 0px`,
+      });
+      io.observe(h1);
+    };
+    const raf = requestAnimationFrame(attach);
+    const mo = new MutationObserver(attach);
+    mo.observe(main, { childList: true, subtree: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      mo.disconnect();
+      io?.disconnect();
+    };
+  }, [path, fallback]);
+  return st.path === path ? st : { path, text: fallback ?? '', show: false };
 }
 
 function Count({ n, className }: { n: number; className: string }) {
@@ -52,15 +99,19 @@ export function VolTopBar({ greeting, first, initials, unread }: { greeting: str
   const path = usePathname();
   const reduce = useReducedMotion();
   const meActive = VOL_TABS[3].match(path);
-  const title = barTitle(path);
+  const fallback = barTitle(path);
+  const large = useLargeTitle(path, fallback);
   return (
-    <header className={`${s.top} no-print`}>
+    <header className={`${s.top} no-print`} data-voltop>
       <Link href="/me" className={s.brand} aria-label="SycaMore, home">
         <Leaf size={22} color="var(--canopy)" />
         <span className={s.brandText}>SycaMore</span>
       </Link>
-      {title ? (
-        <p className={s.barTitle}>{title}</p>
+      {fallback ? (
+        // The page's own h1 carries the name for screen readers.
+        <p className={s.barTitle} data-show={large.show || undefined} aria-hidden>
+          {large.text}
+        </p>
       ) : (
         <p className={s.hello}>
           <span className={s.helloGreet}>{greeting},</span> <span className={s.helloName}>{first}</span>
@@ -80,7 +131,8 @@ export function VolTopBar({ greeting, first, initials, unread }: { greeting: str
         })}
       </nav>
       <div className={s.actions}>
-        <Link href="/checkin" className={`btn btn-primary btn-sm ${s.checkin}`}>
+        {/* Secondary on purpose: the page's own action is the one ink button. */}
+        <Link href="/checkin" className={`btn btn-sm ${s.checkin}`} aria-current={path.startsWith('/checkin') ? 'page' : undefined}>
           <Icon name="scan" size={16} />
           <span className={s.checkinText}>Check in</span>
         </Link>

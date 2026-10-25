@@ -9,11 +9,13 @@ import s from './folders.module.css';
 // "Your organizations": each organization is a folder, and its attested
 // records are the papers inside. Hover (or press and hold on a phone) lifts
 // the papers a few pixels. A tap opens the folder: the three newest papers fan
-// up out of it (each one links to its record) and any older records list
-// below that folder, in its own column. It's a disclosure: the folder front is
-// a button with aria-expanded, Escape closes it, and the papers are inert
-// while it's closed. CSS transforms only; reduced motion shows the open state
-// with no movement.
+// up out of it into headroom the stage always reserves, each linking to its
+// record, so opening moves nothing on the page (transforms only, no height
+// change). A folder with more than three records shows its two newest and a
+// "more" paper that opens Journey, where every record is listed. It's a
+// disclosure: the folder front is a button with aria-expanded, Escape closes
+// it, and the papers are inert while it's closed. Reduced motion shows the
+// open state with no movement.
 
 export type FolderRecord = {
   id: string;
@@ -78,8 +80,8 @@ export function OrgFolders({ folders }: { folders: Folder[] }) {
     <div className={s.grid}>
       {folders.map((f) => {
         const isOpen = open === f.orgId;
-        const papers = f.records.slice(0, 3);
-        const rest = f.records.slice(3);
+        const more = f.records.length > 3 ? f.records.length - 2 : 0;
+        const papers = f.records.slice(0, more ? 2 : 3);
         const regionId = `folder-${f.orgId}`;
         return (
           <div key={f.orgId} className={`${s.wrap} tag-${f.color}`} data-open={isOpen || undefined} data-peek={peek === f.orgId || undefined}>
@@ -143,42 +145,30 @@ export function OrgFolders({ folders }: { folders: Folder[] }) {
                   <li key={r.id} className={s.paper} data-i={i}>
                     <Link href={`/me/records/${r.id}`} className={s.paperLink} aria-label={recordLabel(r)}>
                       <span className={s.paperTitle}>{r.title}</span>
-                      <span className={s.paperMeta}>
-                        {r.month} {r.day} · {r.hours} h
+                      <span className={s.paperRole}>
+                        <span className={s.paperMeta}>
+                          {r.month} {r.day} · {r.hours} h
+                        </span>{' '}
+                        · {roleLine(r)}
                       </span>
-                      <span className={s.paperRole}>{roleLine(r)}</span>
                       <span className={s.paperLines} aria-hidden />
                     </Link>
                   </li>
                 ))}
-              </ul>
-            </div>
-
-            {isOpen && rest.length > 0 && (
-              <ul className={s.rest} aria-label={`Older records from ${f.name}`}>
-                {rest.map((r) => (
-                  <li key={r.id}>
-                    <Link href={`/me/records/${r.id}`} className={s.rec}>
-                      <span className={s.date} aria-hidden>
-                        <span>{r.month}</span>
-                        <b>{r.day}</b>
+                {more > 0 && (
+                  <li className={`${s.paper} ${s.morePaper}`} data-i={2}>
+                    <Link href="/me/journey" className={s.paperLink} aria-label={`${more} more records from ${f.name}, in Journey`}>
+                      <span className={s.paperTitle}>
+                        {more} more {more === 1 ? 'record' : 'records'}
                       </span>
-                      <span className={s.recBody}>
-                        <span className={s.recTitle}>{r.title}</span>
-                        <span className={s.recMeta}>
-                          <span className="sr-only">{r.when} · </span>
-                          {roleLine(r)}
-                        </span>
-                      </span>
-                      <span className={s.recHours}>
-                        {r.hours}
-                        <span className={s.unit}>h</span>
+                      <span className={s.paperRole}>
+                        Every record is in Journey <Icon name="arrow-right" size={14} />
                       </span>
                     </Link>
                   </li>
-                ))}
+                )}
               </ul>
-            )}
+            </div>
           </div>
         );
       })}

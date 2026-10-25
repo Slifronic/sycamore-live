@@ -6,12 +6,19 @@
 .qrHint { font-size: 12.5px; color: var(--ink-3); text-align: center; line-height: 1.45; }
 .qrHint strong { color: var(--ink-2); font-weight: 600; }
 .issued { font-size: 44px; }
-/* Walk-in sign-up: the second, smaller code, for people with no account yet. */
-.walkin { padding: 16px 18px; display: grid; gap: 10px; }
-.walkinHint { font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
-.walkinTitle { margin: 2px 0 4px; font-size: 17px; font-weight: 700; color: var(--ink); }
-.walkinQr { width: 150px; height: 150px; justify-self: center; background: #fff; border-radius: 10px; padding: 6px; box-shadow: 0 0 0 1px var(--line); }
-.walkinQr :global(svg) { width: 100%; height: 100%; display: block; }
+/* One QR card: "Check in / New here" swaps the code; the ⋯ menu holds the rest. */
+.qrHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin: -6px -6px 4px 0; }
+.qrHead > :global(.eyebrow) { margin-left: 2px; }
+.modeSeg { flex: 1; max-width: 220px; }
+.modeBtn { flex: 1; justify-content: center; border: 0; background: none; font-family: inherit; cursor: pointer; }
+.qrMore {
+  display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 10px;
+  background: none; color: var(--ink-3); cursor: pointer;
+}
+.qrMore:hover, .qrMore[aria-expanded='true'] { background: var(--wash); color: var(--ink); }
+@media (pointer: coarse) { .qrMore { width: 44px; height: 44px; } }
+.paneTitle { font-weight: 700; font-size: 15px; color: var(--ink); text-align: center; }
+.paneEmpty { display: grid; gap: 8px; justify-items: center; padding: 28px 8px; text-align: center; }
 .qr { width: 204px; height: 204px; }
 .qr :global(svg), .fullQr :global(svg) { width: 100%; height: 100%; display: block; }
 .code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 30px; font-weight: 700; letter-spacing: 0.18em; color: var(--ink); padding-left: 0.18em; }
@@ -52,6 +59,7 @@
   .side { position: static; }
   /* Phones on the day: the full-screen button sits above the code, and the
      event's other links wait below the roster, so both are on the first screen. */
+  .qrHead { order: -2; }
   .fullBtn { order: -1; }
   .dayNav { order: 1; }
 }

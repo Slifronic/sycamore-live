@@ -13,6 +13,19 @@
 /* Desk rows: who · last six events · hours · last came · actions on hover. */
 .table td { vertical-align: middle; }
 .who { width: 40%; }
+/* Desk: the five columns share the full width (no dead band on the right);
+   the hover actions stay right-aligned in their own column. */
+@media (min-width: 721px) {
+  .table { width: 100%; }
+  .table thead th:nth-child(1) { width: 34%; }
+  .table thead th:nth-child(2) { width: 20%; }
+  .table thead th:nth-child(3) { width: 12%; padding-right: 32px; }
+  .table thead th:nth-child(4) { width: 18%; padding-left: 24px; }
+  .table thead th:nth-child(5) { width: 16%; }
+  .table tbody td:nth-child(3) { padding-right: 32px; }
+  .table tbody td:nth-child(4) { padding-left: 24px; }
+  .table td.who { width: 34%; }
+}
 .who, .whoText { min-width: 0; }
 td.who { display: table-cell; }
 .who > :global(.avatar) { vertical-align: middle; margin-right: 10px; }

@@ -4,7 +4,7 @@ import { volunteerThreads, type VolThread } from '@/lib/messages';
 import { chatForVolunteer, chatMembers, isMember, shortName, volunteerChats } from '@/lib/event-chat';
 import { isUuid } from '@/lib/ids';
 import { MINOR_CHAT_OFF, MINOR_MESSAGES_OFF } from '@/lib/minors';
-import { fmtDay, fmtTime } from '@/lib/format';
+import { fmtDate, fmtDay, fmtTime } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { Stagger } from '@/components/motion/Stagger';
 import { Composer, LiveThread } from './MessagesClient';
@@ -29,6 +29,12 @@ const dayLabel = (d: Date) => {
   return fmtDay(d);
 };
 
+/** The list's date column: short enough to right-align in 64px. */
+const listDate = (d: Date) => {
+  const l = dayLabel(d);
+  return l === 'Today' || l === 'Yesterday' ? l : fmtDate(d);
+};
+
 // Automatic messages point at screens; give them a button, never act on their own.
 function actionsFor(body: string) {
   const out: { href: string; label: string }[] = [];
@@ -46,8 +52,8 @@ export default async function MessagesPage({ searchParams }: PageProps<'/me/mess
   const vol = await requireVolunteer(orgId ? `/me/messages?org=${orgId}` : eventId ? `/me/messages?event=${eventId}` : '/me/messages');
   const [threads, chats] = await Promise.all([volunteerThreads(vol.id), volunteerChats(vol.id)]);
 
-  const thread = orgId ? threads.find((t) => t.org.id === orgId) ?? null : null;
-  const chatSummary = eventId ? chats.find((c) => c.event.id === eventId) ?? null : null;
+  const thread = orgId ? (threads.find((t) => t.org.id === orgId) ?? null) : null;
+  const chatSummary = eventId ? (chats.find((c) => c.event.id === eventId) ?? null) : null;
   const canChat = chatSummary && (await isMember(chatSummary.event.id, vol.id));
   const open = !!(thread || canChat);
 
@@ -62,38 +68,52 @@ export default async function MessagesPage({ searchParams }: PageProps<'/me/mess
         <nav className={`card ${s.list}`} aria-label="Conversations">
           <p className={s.listLabel}>Organizations</p>
           {threads.length === 0 && (
-            <p className="small muted" style={{ padding: '4px 14px 12px' }}>{vol.is_minor ? 'Announcements from an organization show up here.' : 'When a coordinator writes to you, it shows up here.'}</p>
+            <p className="small muted" style={{ padding: '4px 14px 12px' }}>
+              {vol.is_minor ? 'Announcements from an organization show up here.' : 'When a coordinator writes to you, it shows up here.'}
+            </p>
           )}
           {threads.map((t) => {
             const last = t.messages.at(-1)!;
             return (
               <Link key={t.org.id} href={`/me/messages?org=${t.org.id}`} className={s.row} aria-current={t.org.id === orgId ? 'page' : undefined}>
-                <span className={s.rowTop}>
-                  <b>{t.org.name}</b>
-                  <span className="small muted">{dayLabel(new Date(last.created_at))}</span>
-                </span>
+                <b className={s.rowName}>{t.org.name}</b>
+                <span className={s.rowDate}>{listDate(new Date(last.created_at))}</span>
                 <span className={`${s.preview} ${t.unread ? s.unread : ''}`}>
                   {last.direction === 'in' ? 'You: ' : ''}
                   {last.body}
                 </span>
-                {t.unread > 0 && <span className={s.badge}>{t.unread}</span>}
+                {t.unread > 0 && (
+                  <span className={`count-unread ${s.badge}`}>
+                    {t.unread}
+                    <span className="sr-only"> unread</span>
+                  </span>
+                )}
               </Link>
             );
           })}
           <p className={s.listLabel}>Event group chats</p>
           {vol.is_minor ? (
-            <p className="small muted" style={{ padding: '4px 14px 12px' }}>{MINOR_CHAT_OFF}</p>
+            <p className="small muted" style={{ padding: '4px 14px 12px' }}>
+              {MINOR_CHAT_OFF}
+            </p>
           ) : (
-            chats.length === 0 && <p className="small muted" style={{ padding: '4px 14px 12px' }}>Check in at an event to join its group chat.</p>
+            chats.length === 0 && (
+              <p className="small muted" style={{ padding: '4px 14px 12px' }}>
+                Check in at an event to join its group chat.
+              </p>
+            )
           )}
           {chats.map((c) => (
             <Link key={c.event.id} href={`/me/messages?event=${c.event.id}`} className={s.row} aria-current={c.event.id === eventId ? 'page' : undefined}>
-              <span className={s.rowTop}>
-                <b>{c.event.title}</b>
-                <span className="small muted">{fmtDay(c.event.starts_at)}</span>
-              </span>
+              <b className={s.rowName}>{c.event.title}</b>
+              <span className={s.rowDate}>{fmtDate(c.event.starts_at)}</span>
               <span className={`${s.preview} ${c.unread ? s.unread : ''}`}>{c.last ? `${c.last.author}: ${c.last.body}` : `${c.members} people · no posts yet`}</span>
-              {c.unread > 0 && <span className={s.badge}>{c.unread}</span>}
+              {c.unread > 0 && (
+                <span className={`count-unread ${s.badge}`}>
+                  {c.unread}
+                  <span className="sr-only"> unread</span>
+                </span>
+              )}
             </Link>
           ))}
         </nav>

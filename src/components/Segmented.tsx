@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useRef } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { INSTANT, SPRING } from './motion/tokens';
 
@@ -31,8 +32,31 @@ export function Segmented({
   className?: string;
 }) {
   const reduce = useReducedMotion();
+  const track = useRef<HTMLElement>(null);
+  // A track wider than its space scrolls sideways; a 24px fade marks whichever
+  // edge has more, and the chosen item starts in view.
+  useEffect(() => {
+    const el = track.current;
+    if (!el || vertical) return;
+    const on = el.querySelector<HTMLElement>('[aria-current="page"]');
+    if (on && (on.offsetLeft + on.offsetWidth > el.scrollLeft + el.clientWidth || on.offsetLeft < el.scrollLeft)) el.scrollLeft = on.offsetLeft - 24;
+    const update = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      const fade = [el.scrollLeft > 1 && 'start', el.scrollLeft < max - 1 && 'end'].filter(Boolean).join(' ');
+      if (fade) el.setAttribute('data-fade', fade);
+      else el.removeAttribute('data-fade');
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener('scroll', update);
+      ro.disconnect();
+    };
+  }, [vertical, items.length]);
   return (
-    <nav className={`seg ${vertical ? 'seg-col' : ''} ${size === 'sm' ? 'seg-sm' : ''} ${className}`} aria-label={label}>
+    <nav ref={track} className={`seg ${vertical ? 'seg-col' : ''} ${size === 'sm' ? 'seg-sm' : ''} ${className}`} aria-label={label}>
       {items.map((it) => (
         <Link key={it.href} href={it.href} className="seg-item" aria-current={it.on ? 'page' : undefined} scroll={false}>
           {it.on && <motion.span layoutId={`seg-${id}`} className="seg-pill" transition={reduce ? INSTANT : SPRING} aria-hidden />}

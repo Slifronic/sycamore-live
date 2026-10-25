@@ -8,6 +8,7 @@ import { WalkinFlow, type WalkinAttendance } from './WalkinFlow';
 import { Cover } from '@/components/media/Cover';
 import { EmptyState } from '@/components/media/EmptyState';
 import { coverFor } from '@/lib/covers';
+import { PublicFrame } from '@/components/site/PublicFrame';
 import s from './walkin.module.css';
 
 // Walk-in sign-up, the page behind an event's second QR code. Someone with no
@@ -36,40 +37,44 @@ export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
       : [];
     if (active) {
       return (
-        <main className={s.page}>
-          <header className={s.head}>
-            <Cover cover={coverFor({ title: active.title })} variant="band" priority className={s.hero}>
-              <p className={s.org}>{active.org_name}</p>
-              <h1 className={s.title}>
-                {active.title}
-              </h1>
-            </Cover>
-            <p className={s.lede}>
-              {fmtDay(active.starts_at)} · {fmtTime(active.starts_at)} to {fmtTime(active.ends_at)}
-              {active.location ? ` · ${active.location}` : ''}
-            </p>
-          </header>
-          <WalkinFlow
-            token={token}
-            open={false}
-            closedMessage=""
-            orgName={active.org_name}
-            coordinator={active.coordinator_name}
-            googleClientId={null}
-            returning={{ name: active.name, is_minor: ageOn(new Date(active.date_of_birth)) < 18 }}
-            attendance={{ id: active.id, status: active.status, checked_in_at: JSON.parse(JSON.stringify(active.checked_in_at)), checked_out_at: null }}
-          />
-        </main>
+        <PublicFrame width={440}>
+          <div className={s.page}>
+            <header className={s.head}>
+              <Cover cover={coverFor({ title: active.title })} variant="band" priority className={s.hero}>
+                <p className={s.org}>{active.org_name}</p>
+                <h1 className={s.title}>
+                  {active.title}
+                </h1>
+              </Cover>
+              <p className={s.lede}>
+                {fmtDay(active.starts_at)} · {fmtTime(active.starts_at)} to {fmtTime(active.ends_at)}
+                {active.location ? ` · ${active.location}` : ''}
+              </p>
+            </header>
+            <WalkinFlow
+              token={token}
+              open={false}
+              closedMessage=""
+              orgName={active.org_name}
+              coordinator={active.coordinator_name}
+              googleClientId={null}
+              returning={{ name: active.name, is_minor: ageOn(new Date(active.date_of_birth)) < 18 }}
+              attendance={{ id: active.id, status: active.status, checked_in_at: JSON.parse(JSON.stringify(active.checked_in_at)), checked_out_at: null }}
+            />
+          </div>
+        </PublicFrame>
       );
     }
     return (
-      <main className={s.page}>
-        <section className={s.card}>
-          <EmptyState compact illo="compass" title={<span className={s.badTitle}>This sign-up link doesn’t work</span>}>
-            It may have been replaced with a new one. Ask the coordinator at the sign-in table for the current QR code, or to add you by name. Your time still counts.
-          </EmptyState>
-        </section>
-      </main>
+      <PublicFrame width={440}>
+        <div className={s.page}>
+          <section className={s.card}>
+            <EmptyState compact illo="compass" title={<span className={s.badTitle}>This sign-up link doesn’t work</span>}>
+              It may have been replaced with a new one. Ask the coordinator at the sign-in table for the current QR code, or to add you by name. Your time still counts.
+            </EmptyState>
+          </section>
+        </div>
+      </PublicFrame>
     );
   }
   const { event, org } = found;
@@ -87,33 +92,35 @@ export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
     : [];
 
   return (
-    <main className={s.page}>
-      <header className={s.head}>
-        <Cover cover={coverFor(event)} variant="band" priority className={s.hero}>
-          <p className={s.org}>{org.name}</p>
-          <h1 className={s.title}>
-            {event.title}
-          </h1>
-        </Cover>
-        <p className={s.lede}>
-          {fmtDay(event.starts_at)} · {fmtTime(event.starts_at)} to {fmtTime(event.ends_at)}
-          {event.location ? ` · ${event.location}` : ''}
+    <PublicFrame width={440}>
+      <div className={s.page}>
+        <header className={s.head}>
+          <Cover cover={coverFor(event)} variant="band" priority className={s.hero}>
+            <p className={s.org}>{org.name}</p>
+            <h1 className={s.title}>
+              {event.title}
+            </h1>
+          </Cover>
+          <p className={s.lede}>
+            {fmtDay(event.starts_at)} · {fmtTime(event.starts_at)} to {fmtTime(event.ends_at)}
+            {event.location ? ` · ${event.location}` : ''}
+          </p>
+        </header>
+        <WalkinFlow
+          token={token}
+          open={state === 'open'}
+          closedMessage={state === 'open' ? '' : STATE_MESSAGE[state](org.coordinator_name)}
+          orgName={org.name}
+          coordinator={org.coordinator_name}
+          googleClientId={googleClientId()}
+          returning={vol ? { name: vol.name, is_minor: ageOn(new Date(vol.date_of_birth)) < 18 } : null}
+          attendance={att ? JSON.parse(JSON.stringify(att)) : null}
+        />
+        <p className={s.foot}>
+          SycaMore Live records your hours for {org.name}. {org.coordinator_name} confirms them when the event closes, and you get a record anyone can check.
         </p>
-      </header>
-      <WalkinFlow
-        token={token}
-        open={state === 'open'}
-        closedMessage={state === 'open' ? '' : STATE_MESSAGE[state](org.coordinator_name)}
-        orgName={org.name}
-        coordinator={org.coordinator_name}
-        googleClientId={googleClientId()}
-        returning={vol ? { name: vol.name, is_minor: ageOn(new Date(vol.date_of_birth)) < 18 } : null}
-        attendance={att ? JSON.parse(JSON.stringify(att)) : null}
-      />
-      <p className={s.foot}>
-        SycaMore Live records your hours for {org.name}. {org.coordinator_name} confirms them when the event closes, and you get a record anyone can check.
-      </p>
-    </main>
+      </div>
+    </PublicFrame>
   );
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode, type Ref, type RefObject } from 'react';
 import { Icon, type IconName } from '../shell/icons';
 import s from './ui.module.css';
 
@@ -53,6 +53,23 @@ function useDisclosure() {
   return { open, setOpen, close, wrap, trigger, panel, onBlur };
 }
 
+
+// A panel that would run under the bottom of the screen (or the phone tab bar)
+// opens upward instead, when there is room above. Measured before paint.
+function useFlip(open: boolean, placement: Placement, panel: RefObject<HTMLDivElement | null>, trigger: RefObject<HTMLButtonElement | null>) {
+  useLayoutEffect(() => {
+    const el = panel.current;
+    const t = trigger.current;
+    if (!open || !el || !t || !placement.startsWith('bottom') || getComputedStyle(el).position === 'fixed') return;
+    const tabbar = parseFloat(getComputedStyle(el).getPropertyValue('--tabbar-h')) || 0;
+    const limit = window.innerHeight - tabbar - 8;
+    const r = el.getBoundingClientRect();
+    const room = t.getBoundingClientRect().top - 8;
+    // The panel is a fresh element each time it opens, so this never needs undoing.
+    if (r.bottom > limit && room > r.height + 8) el.setAttribute('data-placement', placement.replace('bottom', 'top'));
+  }, [open, placement, panel, trigger]);
+}
+
 /**
  * A small floating panel anchored to a trigger (account details, a help
  * note, the notifications list). role="dialog"; focus moves into it on open.
@@ -80,6 +97,7 @@ export function Popover({
 }) {
   const id = useId();
   const { open, setOpen, close, wrap, trigger: triggerRef, panel, onBlur } = useDisclosure();
+  useFlip(open, placement, panel, triggerRef);
   useEffect(() => {
     if (!open) return;
     const first = panel.current?.querySelector<HTMLElement>('a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])');
@@ -118,7 +136,7 @@ export function Popover({
 
 export type MenuItem =
   | { label: ReactNode; href: string; icon?: IconName; hint?: ReactNode; meta?: ReactNode; current?: boolean; tone?: 'danger' }
-  | { label: ReactNode; onSelect: () => void; icon?: IconName; hint?: ReactNode; meta?: ReactNode; tone?: 'danger' }
+  | { label: ReactNode; onSelect: () => void; icon?: IconName; hint?: ReactNode; meta?: ReactNode; current?: boolean; tone?: 'danger' }
   | { heading: string }
   | 'separator';
 
@@ -152,6 +170,7 @@ export function Menu({
   const id = useId();
   const { open, setOpen, close, wrap, trigger: triggerRef, panel, onBlur } = useDisclosure();
   const [focusAt, setFocusAt] = useState<'first' | 'last'>('first');
+  useFlip(open, placement, panel, triggerRef);
 
   const itemsEls = () => Array.from(panel.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
   useEffect(() => {
@@ -238,6 +257,7 @@ export function Menu({
                   tabIndex={-1}
                   className={s.menuItem}
                   data-tone={it.tone}
+                  data-current={it.current || undefined}
                   onClick={() => {
                     close();
                     it.onSelect();

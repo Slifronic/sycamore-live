@@ -22,7 +22,10 @@
 .star:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 1px; }
 .star:hover { background: var(--wash); }
 .starLit { color: var(--gold); }
-.bar { overflow: hidden; position: sticky; bottom: 12px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-radius: 14px; background: var(--paper); box-shadow: var(--shadow-hi); }
+.bar { overflow: hidden; position: sticky; bottom: calc(var(--tabbar-h, 0px) + 12px); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 14px 18px; border-radius: 14px; background: var(--paper); box-shadow: var(--shadow-hi); }
+.barFull { flex: 1; min-width: 0; }
+.barError { flex-basis: 100%; order: -1; margin: 0; color: var(--red); }
+.barLine { display: none; }
 .done { padding: 40px 24px; display: grid; gap: 12px; justify-items: center; text-align: center; }
 .check { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--verified-soft); color: var(--verified); }
 .celebrate { display: flex; align-items: center; gap: 24px; padding: 18px 22px; border-radius: 18px; background: var(--primary-soft); text-align: left; margin: 6px 0; }
@@ -30,11 +33,22 @@
 .factList { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--ink-2); }
 .factList b { color: var(--canopy); }
 @media (max-width: 600px) { .celebrate { padding: 14px 16px; } }
-/* Phones: the sticky bar stacks and stays short, so the roster above it stays usable. */
+/* Phones: the sticky bar is one 72px line, parked above the fixed tab bar so
+   Verify & close is always tappable: "58 · 162 h · 5 to fix →" and the button. */
 @media (max-width: 600px) {
-  .bar { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 14px; }
-  .bar .totals :global(.figure) { font-size: 22px !important; }
+  .bar { flex-wrap: wrap; gap: 6px 10px; padding: 12px 12px 12px 14px; bottom: calc(var(--tabbar-h, 0px) + 8px + env(safe-area-inset-bottom)); }
+  .barFull { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .barLine {
+    display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0; min-height: 48px; margin: 0; padding: 0; border: 0; background: none;
+    font: 500 14px var(--font-sans), system-ui, sans-serif; color: var(--ink-2); text-align: left; white-space: nowrap; cursor: pointer;
+  }
+  p.barLine { cursor: default; }
+  .barLine b { font: 600 18px/1 var(--font-display), Georgia, serif; color: var(--canopy); }
+  .barLine > svg { color: var(--amber); flex: none; }
+  .verifyBtn.verifyBtn { height: 48px; padding: 0 16px; font-size: 15px; flex: none; }
 }
+.barFix { color: var(--amber); font-weight: 700; }
+.barOk { color: var(--verified); font-weight: 700; }
 /* Fingers: Yes / Partly / No and the blocker link at least 44px tall. */
 @media (pointer: coarse) { .segBtn, .blocker { min-height: 44px; } }
 
@@ -55,18 +69,19 @@
 @media (max-width: 600px) {
   .table, .table tbody { display: block; }
   .table thead { display: none; }
-  .table tr { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto auto; grid-template-areas: 'sel name name hours' 'why why why why' 'role role star no'; gap: 8px; align-items: center; padding: 12px; border-bottom: 1px solid var(--rule-soft); }
+  .table tr { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 44px; grid-template-areas: 'sel name hours more' 'why why why why'; gap: 0 8px; align-items: center; min-height: 64px; padding: 10px 4px 9px 2px; border-bottom: 1px solid var(--rule-soft); }
   .table:global(.t) td { display: block; padding: 0; border: 0; background: transparent; }
   .table:global(.t) tbody tr:hover td { background: transparent; }
   .table tr.warn { background: var(--amber-soft); }
   .cSel { grid-area: sel; }
   .cName { grid-area: name; min-width: 0; }
-  .cRole { grid-area: role; min-width: 0; }
-  .cStar { grid-area: star; }
-  .cNo { grid-area: no; }
+  .table:global(.t) td.cRole, .table:global(.t) td.cStar, .table:global(.t) td.cNo { display: none; }
+  .table:global(.t) td.cMore { display: block; grid-area: more; }
+  .table .rowMeta { display: block; }
+  .table .hours input.hIn { width: 72px; height: 44px; }
   .table:global(.t) .cHours, .cHours .hours { display: contents; }
   .hIn { grid-area: hours; justify-self: end; }
-  .hours input.why { grid-area: why; min-width: 0; width: 100%; }
+  .table .hours input.why { grid-area: why; min-width: 0; width: 100%; height: 44px; margin-top: 8px; }
   .cRole :global(.select) { width: 100%; min-width: 0 !important; }
   .sel { display: grid; place-items: center; width: 44px; height: 44px; }
   /* No hover on a phone: keep the boxes visible so it's clear they can be changed. */
@@ -108,3 +123,24 @@
 }
 /* A toolbar button waiting on a selection stays paper, just quieter. */
 .tool.tool:disabled { background: var(--paper); border-color: var(--line-2); color: var(--ink-3); opacity: 0.7; }
+
+/* The per-row ⋯ menu (phones) and the meta line it summarises. */
+.cMore { display: none; }
+.table :global(th).cMore { display: none; }
+.moreBtn {
+  display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px;
+  background: none; color: var(--ink-3); cursor: pointer;
+}
+.moreBtn:hover, .moreBtn[aria-expanded='true'] { background: var(--wash); color: var(--ink); }
+.moreBtn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.rowMeta { display: none; color: var(--ink-3); }
+.metaStar { color: var(--amber); font-weight: 700; }
+/* "Fill in N who didn't scan out": a secondary button whose count carries the amber. */
+.toolCount {
+  display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px;
+  background: var(--amber-soft); color: var(--amber); font-weight: 800; font-size: 12px; font-variant-numeric: tabular-nums;
+}
+/* The roster scrolls sideways only where the table can't fit; elsewhere the
+   row menus may overhang it (an overflow box would clip them). */
+.scroll { position: relative; }
+@media (min-width: 601px) and (max-width: 1099px) { .scroll { overflow-x: auto; } }

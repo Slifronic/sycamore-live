@@ -2,23 +2,24 @@
    comes from a .tag-* class on the wrapper (--tag-bg / --tag-fg / --tag-dot),
    which globals.css tunes for both themes.
 
-   Geometry (the "stage" is one folder): closed it is 140px tall, the folder
-   front covers 44px to the bottom, and three papers peek out above it. Open,
-   the stage grows by 120px; the folder is anchored to the bottom so it slides
-   down while the papers stay up and fan out (±4°), each showing its title. */
+   Geometry (the "stage" is one folder): a fixed height of the 140px folder
+   plus --head of headroom above it, open or closed, so opening a folder never
+   moves anything on the page. The folder sits at the bottom; its front covers
+   the lower 96px. The papers are the folder's width less 16px (so titles fit
+   on one line) and every state change is a
+   transform. Closed, they peek out under the tab; open, they fan
+   up into the headroom 46px apart, each showing its
+   title and date line. */
 
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; align-items: start; }
+.grid { --head: 96px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px 20px; align-items: start; margin-top: -8px; }
 @media (max-width: 640px) {
-  .grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  /* Stacked, the headroom is the space between folders. */
+  .grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
 
 .wrap { position: relative; min-width: 0; display: grid; gap: 12px; }
 
-.stage {
-  position: relative; isolation: isolate; height: 140px;
-  transition: height var(--dur-3) var(--ease-out);
-}
-.wrap[data-open] .stage { height: 260px; }
+.stage { position: relative; isolation: isolate; height: calc(140px + var(--head)); }
 
 .folder {
   position: absolute; left: 0; right: 0; bottom: 0; height: 140px; display: block; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left;
@@ -71,70 +72,63 @@
 .wrap[data-open] .chev { transform: rotate(180deg); }
 
 /* The papers: between the back (z 0) and the front (z 2). data-i 0 is the
-   newest and sits in front. */
+   newest and sits in front. All three rest at the same spot (18px into the
+   folder) and differ only by transform. */
 .papers { position: absolute; z-index: 1; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; }
 .paper {
-  position: absolute; height: 100px; border-radius: 10px; transform-origin: 50% 100%;
+  position: absolute; top: calc(var(--head) + 18px); left: 8px; right: 8px; height: 80px; border-radius: 10px; transform-origin: 50% 100%;
   transition: transform var(--dur-3) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
   background: var(--paper); box-shadow: 0 1px 2px rgba(15, 38, 27, 0.16), 0 6px 14px -8px rgba(15, 38, 27, 0.3);
 }
 :root[data-theme='dark'] .paper { background: var(--surface-2); box-shadow: 0 0 0 1px rgba(232, 239, 233, 0.06), 0 8px 18px -10px rgba(0, 0, 0, 0.8); }
-.paper[data-i='2'] { z-index: 1; top: 20px; left: 30px; right: 30px; }
-.paper[data-i='1'] { z-index: 2; top: 26px; left: 21px; right: 21px; }
-.paper[data-i='0'] { z-index: 3; top: 32px; left: 12px; right: 12px; }
+.paper[data-i='2'] { z-index: 1; transform: translate(-3px, -14px) rotate(-1.2deg); }
+.paper[data-i='1'] { z-index: 2; transform: translate(3px, -8px) rotate(0.8deg); }
+.paper[data-i='0'] { z-index: 3; transform: translateY(-2px); }
+/* Closed, only the front paper's title shows; the ones behind are blank edges
+   (no half-cut lines of text). */
+.paperLink > * { transition: opacity var(--dur-2) var(--ease-out); }
+.wrap:not([data-open]) .paper:not([data-i='0']) .paperLink > * { opacity: 0; }
 .paperLink {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: start; gap: 2px 10px; height: 100%; padding: 8px 12px; border-radius: inherit;
+  display: grid; align-content: start; gap: 3px; height: 100%; padding: 9px 12px; border-radius: inherit;
   color: var(--ink); text-decoration: none;
 }
 .paperLink:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.paperTitle { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.paperMeta { font-size: 11.5px; font-weight: 600; color: var(--field); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.paperRole { grid-column: 1 / -1; font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.paperLines { grid-column: 1 / -1; display: block; height: 22px; margin-top: 6px; width: 64%; background: repeating-linear-gradient(var(--line) 0 2px, transparent 2px 10px); opacity: 0.8; border-radius: 2px; }
+.paperTitle { font-size: 13.5px; font-weight: 700; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.paperMeta { font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.paperRole { display: flex; align-items: center; gap: 4px; min-width: 0; font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.paperLines { display: block; height: 22px; margin-top: 6px; width: 64%; background: repeating-linear-gradient(var(--line) 0 2px, transparent 2px 10px); opacity: 0.8; border-radius: 2px; }
+.morePaper { background: var(--surface-2); }
+.morePaper .paperTitle { color: var(--canopy); }
 
-/* Hover (pointer) or press-and-hold (touch): the papers lift a little. */
+/* Hover (pointer), press-and-hold (touch) or keyboard focus: the papers lift. */
 @media (hover: hover) {
-  .wrap:not([data-open]) .stage:hover .paper[data-i='2'] { transform: translate(-6px, -12px) rotate(-3deg); }
-  .wrap:not([data-open]) .stage:hover .paper[data-i='1'] { transform: translate(0, -10px) rotate(1.5deg); }
-  .wrap:not([data-open]) .stage:hover .paper[data-i='0'] { transform: translate(5px, -7px) rotate(-1deg); }
+  .wrap:not([data-open]) .folder:hover ~ .papers .paper[data-i='2'] { transform: translate(-5px, -34px) rotate(-2deg); }
+  .wrap:not([data-open]) .folder:hover ~ .papers .paper[data-i='1'] { transform: translate(4px, -26px) rotate(1.5deg); }
+  .wrap:not([data-open]) .folder:hover ~ .papers .paper[data-i='0'] { transform: translate(0, -18px) rotate(-0.5deg); }
 }
-.wrap[data-peek]:not([data-open]) .paper[data-i='2'], .wrap:not([data-open]) .folder:focus-visible ~ .papers .paper[data-i='2'] { transform: translate(-6px, -12px) rotate(-3deg); }
-.wrap[data-peek]:not([data-open]) .paper[data-i='1'], .wrap:not([data-open]) .folder:focus-visible ~ .papers .paper[data-i='1'] { transform: translate(0, -10px) rotate(1.5deg); }
-.wrap[data-peek]:not([data-open]) .paper[data-i='0'], .wrap:not([data-open]) .folder:focus-visible ~ .papers .paper[data-i='0'] { transform: translate(5px, -7px) rotate(-1deg); }
+.wrap[data-peek]:not([data-open]) .paper[data-i='2'], .wrap:not([data-open]) .folder:focus-visible ~ .papers .paper[data-i='2'] { transform: translate(-5px, -34px) rotate(-2deg); }
+.wrap[data-peek]:not([data-open]) .paper[data-i='1'], .wrap:not([data-open]) .folder:focus-visible ~ .papers .paper[data-i='1'] { transform: translate(4px, -26px) rotate(1.5deg); }
+.wrap[data-peek]:not([data-open]) .paper[data-i='0'], .wrap:not([data-open]) .folder:focus-visible ~ .papers .paper[data-i='0'] { transform: translate(0, -18px) rotate(-0.5deg); }
 
-/* Open: the folder slides down 120px and the papers fan out above it, each
-   far enough apart to show its title. */
+/* Open: the papers fan up into the headroom, 46px apart (tops at 2, 48 and
+   94px), so each shows its title and its date line above the next. */
 .wrap[data-open] .paper { pointer-events: auto; }
-.wrap[data-open] .paper[data-i='2'] { transform: translate(-8px, -8px) rotate(4deg); }
-.wrap[data-open] .paper[data-i='1'] { transform: translate(0, 32px) rotate(-1deg); }
-.wrap[data-open] .paper[data-i='0'] { transform: translate(8px, 72px) rotate(-4deg); }
+.wrap[data-open] .paper[data-i='2'] { transform: translate(-3px, -112px) rotate(-0.8deg); }
+.wrap[data-open] .paper[data-i='1'] { transform: translate(3px, -66px) rotate(0.6deg); }
+.wrap[data-open] .paper[data-i='0'] { transform: translate(0, -20px) rotate(-0.4deg); }
 @media (hover: hover) {
   .wrap[data-open] .paper:hover { box-shadow: 0 2px 4px rgba(15, 38, 27, 0.16), 0 14px 26px -12px rgba(15, 38, 27, 0.4); }
-  .wrap[data-open] .paper[data-i='2']:hover { transform: translate(-8px, -14px) rotate(4deg); }
-  .wrap[data-open] .paper[data-i='1']:hover { transform: translate(0, 26px) rotate(-1deg); }
-  .wrap[data-open] .paper[data-i='0']:hover { transform: translate(8px, 66px) rotate(-4deg); }
+  .wrap[data-open] .paper[data-i='2']:hover { transform: translate(-3px, -116px) rotate(-0.8deg); }
+  .wrap[data-open] .paper[data-i='1']:hover { transform: translate(3px, -70px) rotate(0.6deg); }
+  .wrap[data-open] .paper[data-i='0']:hover { transform: translate(0, -24px) rotate(-0.4deg); }
 }
-
-/* Older records, under their own folder. */
-.rest { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.rec {
-  display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 60px; padding: 10px 14px 10px 10px;
-  border-radius: 14px; background: var(--paper); box-shadow: var(--shadow); color: inherit; text-decoration: none;
-}
-.rec:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.date { display: grid; justify-items: center; align-content: center; height: 40px; border-radius: 10px; background: var(--tag-bg); color: var(--tag-fg); font-size: 9.5px; font-weight: 800; letter-spacing: 0.08em; line-height: 1.1; }
-.date b { font: 600 16px var(--font-display), Georgia, serif; letter-spacing: 0; }
-.recBody { display: grid; gap: 2px; min-width: 0; }
-.recTitle { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.recMeta { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.recHours { font: 600 20px/1 var(--font-display), Georgia, serif; color: var(--canopy); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .stage, .paper, .chev { transition: none; }
+  .paper, .chev, .paperLink > * { transition: none; }
 }
 @media print {
   .papers, .back { display: none; }
-  .stage, .wrap[data-open] .stage { height: auto; }
+  .stage { height: auto; }
   .folder { position: static; height: auto; }
   .front { position: static; backdrop-filter: none; box-shadow: none; border: 1px solid #ccc; }
 }

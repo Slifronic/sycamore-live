@@ -31,10 +31,18 @@
 .closeBar :global(.bar) { display: block; height: 8px; }
 .closePct { text-align: right; font-size: 13px; font-weight: 700; color: var(--ink-2); }
 
-.catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-.def { display: grid; gap: 6px; align-content: start; }
-.def h3 { font-size: 15px; }
-.defRule { font-size: 13px; color: var(--ink-3); line-height: 1.5; }
+.closeBar :global(.bar) > span { background: var(--verified); } /* flat, no gradient */
+/* The badges: a list like the sign-off rows (icon · name and rule · count). */
+.defRow {
+  display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 14px; align-items: center;
+  padding: 12px 20px; border-top: 1px solid var(--rule-soft);
+}
+.defRow:first-child { border-top: 0; }
+.defIcon { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--ink-3); }
+.defText { display: grid; gap: 1px; min-width: 0; }
+.defText strong { font-size: 14.5px; }
+.defRule { font-size: 13px; color: var(--ink-3); line-height: 1.45; }
+.defCount { justify-self: end; }
 
 @media (max-width: 640px) {
   .readyRow { grid-template-columns: 32px minmax(0, 1fr) auto; padding: 12px 16px; row-gap: 4px; }
@@ -46,4 +54,5 @@
   .closeBadge { grid-column: 1; }
   .closeBar { grid-column: 1 / -1; }
   .cardHint { display: none; }
+  .defRow { padding: 12px 16px; gap: 12px; }
 }

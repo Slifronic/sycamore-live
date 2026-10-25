@@ -2,12 +2,13 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import { eventLinks, publicEvent } from '@/lib/event-public';
-import { mapEmbed, osmLink } from '@/lib/place-links';
+import { osmLink } from '@/lib/place-links';
 import { fmtTime, requestNow } from '@/lib/format';
 import { ShareButton } from '@/components/events/ShareButton';
 import { Cover } from '@/components/media/Cover';
 import { coverFor } from '@/lib/covers';
 import { PublicFrame } from '@/components/site/PublicFrame';
+import { StaticMap } from './StaticMap';
 import s from './event-page.module.css';
 
 // Public event page: the one link a coordinator drops in a group chat.
@@ -71,7 +72,7 @@ export default async function PublicEventPage({ params }: PageProps<'/e/[slug]'>
 
       {(pin || l.location) && (
         <section className={`card ${s.where}`} aria-labelledby="where">
-          {pin && <iframe className={s.map} title={`Map of ${e.place_name ?? e.location}`} src={mapEmbed(e.place_lat!, e.place_lng!, 0.008)} loading="lazy" />}
+          {pin && <StaticMap lat={e.place_lat!} lng={e.place_lng!} label={e.place_name ?? e.location ?? 'the meeting point'} href={osmLink(e.place_lat!, e.place_lng!)} />}
           <div className={s.whereBody}>
             <h2 id="where" className={s.h2}>
               {e.place_name ?? e.location}

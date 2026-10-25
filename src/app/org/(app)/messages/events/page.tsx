@@ -61,7 +61,7 @@ export default async function EventChatsPage() {
                   {c.last_at ? ` · ${ago(c.last_at) === 'today' ? fmtTime(c.last_at) : ago(c.last_at)}` : ''}
                 </span>
                 {c.unread > 0 && (
-                  <span className={s.badge}>
+                  <span className="count-unread">
                     {c.unread}
                     <span className="sr-only"> unread</span>
                   </span>

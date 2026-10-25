@@ -6,7 +6,10 @@ import { addByName, addPracticeVolunteer, checkOutEveryone, checkOutNow } from '
 import Link from 'next/link';
 import { SheetImport } from './SheetImport';
 import { SiteSetup } from './SiteSetup';
-import { WalkinCard } from './WalkinCard';
+import { WalkinPane, useWalkinControls, walkinMenuItems } from './WalkinCard';
+import { motion, useReducedMotion } from 'motion/react';
+import { INSTANT, SPRING } from '@/components/motion/tokens';
+import { Menu } from '@/components/ui/Popover';
 import type { WalkinPanel } from '@/lib/walkin-panel';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/shell/icons';
@@ -49,15 +52,25 @@ export function EventDay(props: {
   const walkins = rows.filter((r) => r.method === 'walk_in').length;
   const [fresh, setFresh] = useState<Set<string>>(new Set());
   const [full, setFull] = useState(false);
-  // Full screen shows one code at a time, so a camera can't pick up the wrong one.
-  // While walk-in sign-up is open it starts on the walk-in code.
-  const [which, setWhich] = useState<'walkin' | 'checkin'>('walkin');
+  // One QR card, one code at a time, so a camera can't pick up the wrong one:
+  // "Check in" for people with an account, "New here" for walk-in sign-up.
+  // Full screen opens on whichever the card shows.
+  const hasWalkin = !!walkin && !!walkinLive && walkinLive !== 'verified' && !props.verified && !props.practice;
+  const [mode, setMode] = useState<'checkin' | 'walkin'>('checkin');
+  const cardMode = hasWalkin ? mode : 'checkin';
+  const [which, setWhich] = useState<'walkin' | 'checkin'>('checkin');
   const pairOk = walkinLive === 'open' && !!walkin?.qrSvg && !props.practice;
   const showing = pairOk ? which : 'checkin';
   const openFull = (w: 'walkin' | 'checkin') => {
     setWhich(w);
     setFull(true);
   };
+  const reduce = useReducedMotion();
+  const wc = useWalkinControls(props.eventId, (p) => {
+    setWalkin(p);
+    setNow(Date.now());
+  });
+  const canFull = cardMode === 'checkin' || walkinLive === 'open';
   const [pending, start] = useTransition();
   const known = useRef(new Set(props.initial.map((r) => r.id)));
   const [arrived, setArrived] = useState('');
@@ -115,34 +128,58 @@ export function EventDay(props: {
       <div className={`${s.grid} ${s.still} ${props.verified ? s.solo : ''}`}>
         {!props.verified && (
           <div className={s.side}>
-            <section className={`card ${s.qrCard}`} aria-label="Check-in code">
-              <div className={`${s.qrTile} force-light`}>
-                <div className={s.qr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
+            <section className={`card ${s.qrCard}`} aria-label="Event-day QR code">
+              <div className={s.qrHead}>
+                {hasWalkin ? (
+                  <div className={`seg seg-sm ${s.modeSeg}`} role="group" aria-label="Which code to show">
+                    {(['checkin', 'walkin'] as const).map((m) => (
+                      <button key={m} type="button" className={`seg-item ${s.modeBtn}`} aria-pressed={cardMode === m} onClick={() => setMode(m)}>
+                        {cardMode === m && <motion.span layoutId={`qr-mode-${props.eventId}`} className="seg-pill" transition={reduce ? INSTANT : SPRING} aria-hidden />}
+                        <span className="seg-text">{m === 'checkin' ? 'Check in' : 'New here'}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="eyebrow">Check in</p>
+                )}
+                <Menu
+                  label="QR code options"
+                  placement="bottom-end"
+                  items={[
+                    { label: 'Print a sign for the table', icon: 'report', href: `/org/events/${props.eventId}/sign` },
+                    ...(hasWalkin && walkinLive ? walkinMenuItems(walkinLive, wc.send) : []),
+                  ]}
+                  trigger={(p) => (
+                    <button {...p} type="button" className={s.qrMore} aria-label="QR code options">
+                      <Icon name="more" size={20} />
+                    </button>
+                  )}
+                />
               </div>
-              <p className={s.code}>{props.code}</p>
-              <p className={s.qrHint}>
-                Scan, or type the code at <strong>{props.url.replace(/^https?:\/\//, '').split('/checkin')[0]}/checkin</strong>
-              </p>
-              <button className={`btn btn-primary ${s.fullBtn}`} onClick={() => openFull('walkin')}>
-                <Icon name="scan" size={16} /> Show QR full screen
-              </button>
-              <Link className="btn btn-sm btn-quiet" href={`/org/events/${props.eventId}/sign`} target="_blank">
-                Print a sign for the table
-              </Link>
+              {cardMode === 'checkin' ? (
+                <>
+                  <div className={`${s.qrTile} force-light`}>
+                    <div className={s.qr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
+                  </div>
+                  <p className={s.code}>{props.code}</p>
+                  <p className={s.qrHint}>
+                    Scan, or type the code at <strong>{props.url.replace(/^https?:\/\//, '').split('/checkin')[0]}/checkin</strong>
+                  </p>
+                </>
+              ) : (
+                walkin && walkinLive && <WalkinPane panel={walkin} state={walkinLive} count={walkins} pending={wc.pending} onTurnOn={() => wc.send({ open: true })} />
+              )}
+              {canFull && (
+                <button className={`btn btn-primary ${s.fullBtn}`} onClick={() => openFull(cardMode)}>
+                  <Icon name="scan" size={16} /> Show QR full screen
+                </button>
+              )}
+              {wc.error && (
+                <p className="notice notice-red" role="alert">
+                  {wc.error}
+                </p>
+              )}
             </section>
-            {walkin && walkinLive && walkinLive !== 'verified' && !props.verified && !props.practice && (
-              <WalkinCard
-                eventId={props.eventId}
-                panel={walkin}
-                state={walkinLive}
-                count={walkins}
-                onChange={(p) => {
-                  setWalkin(p);
-                  setNow(Date.now());
-                }}
-                onFull={() => openFull('walkin')}
-              />
-            )}
           </div>
         )}
 
@@ -286,15 +323,15 @@ export function EventDay(props: {
       {!props.verified && <SiteSetup eventId={props.eventId} initial={props.site} />}
 
       {full && (
-        <dialog ref={dialog} className={s.full} aria-label="Check-in QR code" onClose={() => setFull(false)}>
+        <dialog ref={dialog} className={s.full} aria-label={showing === 'walkin' ? 'Walk-in sign-up QR code' : 'Check-in QR code'} onClose={() => setFull(false)}>
           <button className={`btn ${s.close}`} onClick={() => dialog.current?.close()} autoFocus>
             <Icon name="x" size={16} /> Close <span className={`kbd ${s.esc}`}>Esc</span>
           </button>
           {pairOk && (
             <div className="seg" role="group" aria-label="Which code to show">
-              {(['walkin', 'checkin'] as const).map((w) => (
+              {(['checkin', 'walkin'] as const).map((w) => (
                 <button key={w} type="button" className={`seg-item ${s.segBtn} ${s.fullSeg} ${showing === w ? s.segOn : ''}`} aria-pressed={showing === w} onClick={() => setWhich(w)}>
-                  {w === 'walkin' ? 'Walk-in sign-up' : 'Check in'}
+                  {w === 'walkin' ? 'New here' : 'Check in'}
                 </button>
               ))}
             </div>

@@ -1,20 +1,27 @@
 /* Volunteer messages: a list of conversations beside the open one on desktop;
    one or the other on a phone. Bubble language matches the coordinator inbox. */
 .page { display: grid; gap: 20px; max-width: var(--page-max); }
-.inbox { display: grid; grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); gap: 16px; align-items: start; }
-.list { padding: 8px 0; display: grid; align-content: start; }
+/* Desktop: both panes share one height (the window less the header), and
+   the list scrolls inside its card. */
+.inbox { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); gap: 16px; align-items: stretch; height: max(520px, calc(100dvh - 260px)); }
+.list { padding: 8px 0; display: grid; align-content: start; overflow-y: auto; min-height: 0; }
 .listLabel { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--field); padding: 12px 16px 6px; }
-.row { position: relative; min-width: 0; display: grid; gap: 2px; padding: 10px 44px 10px 16px; text-decoration: none; color: inherit; min-height: 56px; }
+/* A row: name and preview on the left; a fixed right column holds the date
+   (right-aligned, so dates line up) and the unread count under it. */
+.row {
+  min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 64px; grid-template-areas: 'name date' 'preview badge'; gap: 2px 10px; align-items: baseline;
+  padding: 10px 16px; text-decoration: none; color: inherit; min-height: 56px;
+}
 .row:hover { background: var(--hover); }
 .row[aria-current='page'] { background: var(--primary-soft); box-shadow: inset 3px 0 0 var(--primary); }
-.rowTop { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
-.rowTop b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rowTop span { white-space: nowrap; }
-.preview { font-size: 13px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rowName { grid-area: name; min-width: 0; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rowDate { grid-area: date; justify-self: end; font-size: 12.5px; color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.preview { grid-area: preview; min-width: 0; font-size: 13px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .unread { color: var(--ink); font-weight: 600; }
-.badge { position: absolute; right: 14px; bottom: 12px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; background: var(--amber-soft); color: var(--amber); font-size: 11px; font-weight: 800; }
+/* Unread is red everywhere: the global .count-unread chip; this only places it. */
+.badge { grid-area: badge; justify-self: end; align-self: center; }
 
-.convo { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 520px; max-height: calc(100vh - 200px); overflow: hidden; }
+.convo { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; overflow: hidden; }
 .head { padding: 14px 18px; border-bottom: 1px solid var(--rule-soft); display: grid; gap: 4px; }
 .h2 { font-size: 19px; }
 .backLink { display: none; font-size: 14px; font-weight: 600; color: var(--primary); text-decoration: none; padding: 8px 0; }
@@ -40,7 +47,8 @@
 .emptyConvo { display: grid; place-items: center; padding: 40px; grid-row: 1 / -1; }
 
 @media (max-width: 860px) {
-  .inbox { grid-template-columns: minmax(0, 1fr); }
+  .inbox { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .list { overflow: visible; }
   .isOpen .list { display: none; }
   .inbox:not(.isOpen) .convo { display: none; }
   .hideOnPhone { display: none; }

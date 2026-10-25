@@ -2,7 +2,11 @@
    rail live in components/shell/shell.module.css and components/shell/rail.module.css. */
 .shell {
   --topbar-h: 64px;
-  display: grid; grid-template-columns: 84px minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100vh;
+  --tabbar-h: 0px; /* the phone tab bar's height; sticky bars sit above it */
+  display: grid; grid-template-columns: 84px minmax(0, 1fr); grid-template-rows: auto 1fr;
+  /* The demo strip sits above the shell, so subtract it: no 24px page scroll. */
+  min-height: calc(100vh - var(--demo-h, 0px));
+  min-height: calc(100dvh - var(--demo-h, 0px));
 }
 /* The page column is fluid with a 32px gutter on both sides (the rail's edge
    on the left, the top bar's right edge on the right), capped and centred on
@@ -13,7 +17,7 @@
 .main:focus { outline: none; }
 
 @media (max-width: 860px) {
-  .shell { grid-template-columns: minmax(0, 1fr); }
+  .shell { grid-template-columns: minmax(0, 1fr); --tabbar-h: 67px; }
   .main { grid-column: 1; padding: 16px 16px calc(96px + env(safe-area-inset-bottom)); }
 }
 @media print {

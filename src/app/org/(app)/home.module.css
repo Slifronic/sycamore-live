@@ -154,3 +154,9 @@ a.nowMain:hover .nowCta svg, a.nowCta:hover svg { transform: translateX(3px); }
 /* Trend line (13 weekly points), bottom-right of the stat card. */
 .trend { flex: none; margin-left: auto; display: block; color: var(--sap); }
 .trendSvg { display: block; overflow: visible; }
+/* Volunteers card: weekly bars rise in once (scaleY from the baseline). */
+.weekBars rect { fill: var(--sap); opacity: 0.85; transform-box: fill-box; transform-origin: bottom; animation: bar-rise var(--dur-3) var(--ease-out) both; animation-delay: calc(var(--i) * 30ms + 120ms); }
+.weekBars rect[data-empty] { fill: var(--rule-soft); opacity: 1; }
+@keyframes bar-rise { from { transform: scaleY(0); } }
+@media (prefers-reduced-motion: reduce) { .weekBars rect { animation: none; } }
+@media print { .weekBars rect { animation: none; } }

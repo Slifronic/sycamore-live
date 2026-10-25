@@ -250,8 +250,17 @@ export type OrgInsights = Awaited<ReturnType<typeof loadOrgInsights>>;
 export function weeklyTrend(ins: Pick<OrgInsights, 'series' | 'volunteers'>, now: number, weeks = 13) {
   const WEEK = 7 * DAY;
   const ends = Array.from({ length: weeks }, (_, i) => now - (weeks - 1 - i) * WEEK);
+  const start = now - weeks * WEEK;
+  // The verified events of each week, so `active` counts distinct people per
+  // week (someone at two events that week counts once).
+  const weekOf = new Map(ins.series.map((p) => [p.id, Math.floor((p.date.getTime() - start) / WEEK)] as const));
+  const active = ends.map((_, w) => ins.volunteers.filter((v) => v.eventIds.some((id) => weekOf.get(id) === w)).length);
   return {
     hours: ends.map((t) => ins.series.filter((p) => p.date.getTime() <= t).reduce((n, p) => n + p.hours, 0)),
     people: ends.map((t) => ins.volunteers.filter((v) => v.first_seen.getTime() <= t).length),
+    /** Distinct volunteers at verified events in each week (not a running total). */
+    active,
+    /** When the window starts: deltas over the same span agree with the lines. */
+    since: start,
   };
 }

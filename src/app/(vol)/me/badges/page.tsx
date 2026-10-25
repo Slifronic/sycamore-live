@@ -46,8 +46,11 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
   const badges = await volunteerBadges(vol.id);
   const signed = badges.filter((b) => b.state === 'signed').length;
   const inState = (b: VolBadge) => show === 'all' || (show === 'progress' ? b.state === 'progress' || b.state === 'ready' : b.state === show);
-  const list = badges.filter(inState);
   const next = [...badges].filter((b) => b.state === 'ready' || b.state === 'progress').sort((a, b) => (b.best?.progress ?? 0) - (a.best?.progress ?? 0))[0];
+  // The featured badge isn't repeated as the first tile under it.
+  const featured = next && next.best ? next : null;
+  const list = badges.filter((b) => inState(b) && b !== featured);
+  const onlyFeatured = list.length === 0 && !!featured && inState(featured);
 
   return (
     <Stagger className={s.page}>
@@ -58,7 +61,7 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
         action={<span className={`chip ${signed ? 'chip-green' : 'chip-ink'}`}>{plural(signed, 'signed badge')}</span>}
       />
 
-      {next && next.best && (
+      {featured && next.best && (
         <Link href={`/me/badges/${next.def.key}`} className={`card lift ${s.feature}`}>
           <BadgeEmblem badge={next.def.key} state={next.state} size="lg" />
           <div className={s.featureBody}>
@@ -78,7 +81,7 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
 
       <Segmented id="badge-filter" label="Show badges" items={FILTERS.map((f) => ({ href: f.key === 'all' ? '/me/badges' : `/me/badges?show=${f.key}`, label: f.label, on: show === f.key }))} />
 
-      {list.length === 0 ? (
+      {onlyFeatured ? null : list.length === 0 ? (
         <div className="card">
           <EmptyState
             illo="leaf-badge"

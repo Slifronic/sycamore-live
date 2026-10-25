@@ -160,7 +160,7 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                   <span className={s.tMeta}>
                     {dayLabel(t.last_at, now) === 'Today' ? fmtTime(t.last_at) : dayLabel(t.last_at, now) === 'Yesterday' ? 'yesterday' : ago(t.last_at)}
                     {t.unread > 0 && (
-                      <span className={s.badge}>
+                      <span className="count-unread">
                         {t.unread}
                         <span className="sr-only"> unread</span>
                       </span>

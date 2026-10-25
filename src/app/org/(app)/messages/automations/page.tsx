@@ -27,7 +27,7 @@ export default async function AutomationsPage() {
               <strong>Each person gets each message once,</strong> and every number in it comes from your verified records.
             </p>
             <p>For the demo they run when you press “Run now”. Deployed, they run every 15 minutes. “Due” is who would get one right now.</p>
-            <p>Reminders, invites and thank-yous only reach volunteers who opted in to announcements. “Forgot to check out” and “Hours verified” reach everyone they concern.</p>
+            <p>Invites and thank-yous only reach volunteers who opted in to announcements. Notices about an event they signed up for or attended (the day-before reminder, “Forgot to check out”, “Hours verified”) reach everyone they concern.</p>
           </Help>
         }
       />

@@ -23,3 +23,8 @@
 @media (prefers-reduced-motion: reduce) {
   .reveal, .reveal.in { opacity: 1; transform: none; transition: none; }
 }
+/* Paper never scrolls: print and "Save as PDF" get every section, still. */
+@media print {
+  .reveal, .reveal.in { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .lift { animation: none !important; transform: none !important; }
+}

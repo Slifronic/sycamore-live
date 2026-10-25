@@ -2,105 +2,92 @@
 
 import { useState, useTransition } from 'react';
 import type { WalkinPanel } from '@/lib/walkin-panel';
+import type { MenuItem } from '@/components/ui/Popover';
 import s from './event.module.css';
 
 const time = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
 
-// The second QR code on event day: for people who have never signed up. It
-// works only while the event is on, and the coordinator can switch it off or
-// replace it (which kills every photo of the old one).
-export function WalkinCard(props: {
-  eventId: string;
-  panel: WalkinPanel;
-  state: WalkinPanel['state'];   // re-computed by the parent as time passes
-  count: number;                 // walk-ins on the live roster
-  onChange: (p: WalkinPanel) => void;
-  onFull: () => void;
-}) {
-  const { panel, state } = props;
+// Walk-in sign-up: the "New here" side of the event-day QR card, for people who
+// have never signed up. It works only while the event is on, and the
+// coordinator can switch it off or replace it (which kills every photo of the old one).
+
+/** Turn the walk-in link on or off, or replace it. */
+export function useWalkinControls(eventId: string, onChange: (p: WalkinPanel) => void) {
   const [pending, start] = useTransition();
   const [error, setError] = useState('');
-
   const send = (body: { open?: boolean; rotate?: boolean }) =>
     start(async () => {
       setError('');
-      const res = await fetch(`/api/org/events/${props.eventId}/walkin`, {
+      const res = await fetch(`/api/org/events/${eventId}/walkin`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return setError(data.error ?? 'That didn’t work. Try again.');
-      props.onChange(data.walkin);
+      onChange(data.walkin);
     });
+  return { send, pending, error };
+}
 
+/** The walk-in items for the QR card's ⋯ menu. */
+export function walkinMenuItems(state: WalkinPanel['state'], send: (b: { open?: boolean; rotate?: boolean }) => void): MenuItem[] {
+  if (state === 'off') return [{ label: 'Turn on walk-in sign-up', icon: 'check', onSelect: () => send({ open: true }) }];
+  if (state !== 'open' && state !== 'not_yet') return [];
+  return [
+    {
+      label: 'New walk-in link',
+      hint: 'The current code, and any photo of it, stops working',
+      icon: 'key',
+      onSelect: () => {
+        if (window.confirm('Make a new walk-in link? The current QR code, and any photo or print of it, stops working.')) send({ rotate: true });
+      },
+    },
+    { label: 'Turn off walk-in sign-up', icon: 'x', tone: 'danger', onSelect: () => send({ open: false }) },
+  ];
+}
+
+/** The "New here" pane: the walk-in code, or why there isn't one right now. */
+export function WalkinPane({ panel, state, count, pending, onTurnOn }: { panel: WalkinPanel; state: WalkinPanel['state']; count: number; pending: boolean; onTurnOn: () => void }) {
   const showQr = (state === 'open' || state === 'not_yet') && panel.qrSvg;
-
-  return (
-    <section className={`card ${s.walkin}`} aria-labelledby="walkin-title">
-      <div>
-        <p className="eyebrow">New here?</p>
-        <h2 id="walkin-title" className={s.walkinTitle}>Walk-in sign-up</h2>
-        <p className={s.walkinHint}>For first-timers: they scan, sign up{panel.google ? ' with Google or email' : ''}, and they’re checked in.</p>
-      </div>
-
-      {showQr ? (
-        <>
-          <div className={`${s.walkinQr} force-light`} role="img" aria-label="Walk-in sign-up QR code" dangerouslySetInnerHTML={{ __html: panel.qrSvg! }} />
-          <p className={s.walkinHint} style={{ textAlign: 'center' }}>
-            {state === 'open' ? (
-              <>Works until <strong>{time(panel.closes)}</strong>, or until you verify.</>
-            ) : (
-              <>Starts working at <strong>{time(panel.opens)}</strong>, 2 hours before the event.</>
-            )}
-          </p>
-          {props.count > 0 && (
-            <p className="chip chip-green" style={{ justifySelf: 'center' }}>
-              {props.count} signed up at the door
-            </p>
-          )}
-          <div className="row wrap" style={{ gap: 6, justifyContent: 'center' }}>
-            {state === 'open' && (
-              <button className="btn btn-sm" onClick={props.onFull}>
-                Full screen
-              </button>
-            )}
-            <button className="btn btn-sm btn-quiet" disabled={pending} onClick={() => send({ open: false })}>
-              Turn off
-            </button>
-            <button
-              className="btn btn-sm btn-quiet"
-              disabled={pending}
-              onClick={() => {
-                if (window.confirm('Make a new walk-in link? The current QR code, and any photo or print of it, stops working.')) send({ rotate: true });
-              }}
-            >
-              New link
-            </button>
-          </div>
-        </>
-      ) : state === 'off' ? (
-        <div className="stack" style={{ gap: 8 }}>
-          <p className="small">Sign-up at the door is off. People without an account can still be added by name.</p>
-          <button className="btn btn-sm" disabled={pending} onClick={() => send({ open: true })}>
-            Turn on
-          </button>
+  if (showQr)
+    return (
+      <>
+        <div className={`${s.qrTile} force-light`}>
+          <div className={s.qr} role="img" aria-label="Walk-in sign-up QR code" dangerouslySetInnerHTML={{ __html: panel.qrSvg! }} />
         </div>
-      ) : state === 'expired' ? (
-        <p className="small">
-          Closed at {time(panel.closes)}. The QR code no longer works. Add late arrivals by name.
-          {props.count > 0 && <> {props.count} people signed up at the door.</>}
+        <p className={s.paneTitle}>First time here?</p>
+        <p className={s.qrHint}>
+          {state === 'open' ? (
+            <>
+              They scan, sign up{panel.google ? ' with Google or email' : ''}, and they’re checked in. Works until <strong>{time(panel.closes)}</strong>.
+            </>
+          ) : (
+            <>
+              Starts working at <strong>{time(panel.opens)}</strong>, 2 hours before the event.
+            </>
+          )}
         </p>
-      ) : null}
-
-      {!panel.google && showQr && (
-        <p className={s.walkinHint}>Google sign-in is off on this server; the short form works without it.</p>
-      )}
-      {error && (
-        <p className="notice notice-red" role="alert">
-          {error}
-        </p>
-      )}
-    </section>
+        {count > 0 && <p className="chip chip-green">{count} signed up at the door</p>}
+      </>
+    );
+  if (state === 'off')
+    return (
+      <div className={s.paneEmpty}>
+        <p className={s.paneTitle}>Sign-up at the door is off</p>
+        <p className={s.qrHint}>People without an account can still be added by name.</p>
+        <button className="btn btn-sm" disabled={pending} onClick={onTurnOn}>
+          Turn on
+        </button>
+      </div>
+    );
+  return (
+    <div className={s.paneEmpty}>
+      <p className={s.paneTitle}>Walk-in sign-up closed</p>
+      <p className={s.qrHint}>
+        Closed at {time(panel.closes)}. Add late arrivals by name.
+        {count > 0 && <> {count} people signed up at the door.</>}
+      </p>
+    </div>
   );
 }

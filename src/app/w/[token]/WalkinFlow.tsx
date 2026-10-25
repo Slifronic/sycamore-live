@@ -103,7 +103,7 @@ export function WalkinFlow(props: {
         <div className={s.stack}>
           <h2 className={s.h2}>Welcome back, {first(props.returning!.name)}</h2>
           <p className={s.muted}>You signed up on this phone before. One tap and you’re checked in.</p>
-          <button className={`${s.btn} ${s.primary}`} disabled={busy} onClick={() => submit({ mode: 'returning' })}>
+          <button className="btn btn-primary btn-big" disabled={busy} onClick={() => submit({ mode: 'returning' })}>
             {busy ? 'Checking you in…' : 'Check in'}
           </button>
           <button className={s.link} onClick={() => setSomeoneElse(true)}>
@@ -168,19 +168,19 @@ function EmailForm(props: {
     >
       <label className={s.field}>
         <span>Your name</span>
-        <input className={s.input} name="name" autoComplete="name" required minLength={2} maxLength={80} placeholder="As you want it on your record" />
+        <input className={`input ${s.input}`} name="name" autoComplete="name" required minLength={2} maxLength={80} placeholder="As you want it on your record" />
       </label>
       <label className={s.field}>
         <span>Email</span>
-        <input className={s.input} name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" required />
+        <input className={`input ${s.input}`} name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" required />
       </label>
       <label className={s.field}>
         <span>Date of birth</span>
-        <input className={s.input} name="dob" type="date" required max={new Date().toISOString().slice(0, 10)} value={props.dob} onChange={(e) => props.onDob(e.target.value)} />
+        <input className={`input ${s.input}`} name="dob" type="date" required max={new Date().toISOString().slice(0, 10)} value={props.dob} onChange={(e) => props.onDob(e.target.value)} />
       </label>
       {/* With Google on the page, the box sits above both ways in; otherwise here. */}
       {props.showConsent && <Consent dob={props.dob} checked={props.agreed} onChange={props.onAgree} big />}
-      <button className={`${s.btn} ${s.primary}`} disabled={busy}>
+      <button className="btn btn-primary btn-big" disabled={busy}>
         {busy ? 'Signing you up…' : 'Sign up and check in'}
       </button>
     </form>
@@ -201,10 +201,10 @@ function BirthDateStep(props: { greeting: string; busy: boolean; agreed: boolean
       <p className={s.muted}>Your date of birth. Google doesn’t share it, and volunteers have to be 13 or older.</p>
       <label className={s.field}>
         <span>Date of birth</span>
-        <input className={s.input} name="dob" type="date" required autoFocus max={new Date().toISOString().slice(0, 10)} value={dob} onChange={(e) => setDob(e.target.value)} />
+        <input className={`input ${s.input}`} name="dob" type="date" required autoFocus max={new Date().toISOString().slice(0, 10)} value={dob} onChange={(e) => setDob(e.target.value)} />
       </label>
       <Consent dob={dob} checked={props.agreed} onChange={props.onAgree} big />
-      <button className={`${s.btn} ${s.primary}`} disabled={props.busy}>
+      <button className="btn btn-primary btn-big" disabled={props.busy}>
         {props.busy ? 'Checking you in…' : 'Check in'}
       </button>
       <button type="button" className={s.link} onClick={props.onCancel}>

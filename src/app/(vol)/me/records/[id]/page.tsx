@@ -16,8 +16,10 @@ export const metadata = { title: 'Record' };
 
 // One record, as a certificate: the exact record wording, captured versus
 // adjusted when the coordinator changed it, then two actions: Share (link, QR,
-// copy) and Use this record (a resume line or scholarship sentence). Minors
-// see why sharing is off, and the API refuses them too. Prints as a
+// copy) and Use this record (a resume line or scholarship sentence). For
+// minors Share is locked (secondary, with the reason under it) and opens the
+// honest next step: an hour letter from the coordinator, or a printed copy.
+// The API refuses minors too. Prints as a
 // certificate; the certificate stays paper-coloured in the dark theme.
 
 const pacificDay = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'long', day: 'numeric', year: 'numeric' });
@@ -86,7 +88,7 @@ export default async function RecordPage({ params }: PageProps<'/me/records/[id]
         </footer>
       </article>
 
-      <RecordActions recordId={r.id} url={url} qrSvg={qr} isMinor={vol.is_minor} revoked={revoked} orgName={r.org.name} />
+      <RecordActions recordId={r.id} url={url} qrSvg={qr} isMinor={vol.is_minor} revoked={revoked} orgName={r.org.name} orgPhone={r.org.contact_phone} />
     </div>
   );
 }

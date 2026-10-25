@@ -21,11 +21,12 @@ import { MINOR_MESSAGES_OFF, isMinor, minorIds } from './minors';
 // database, never from the person writing it.
 //
 // Consent (volunteer.marketing_opt_in, off by default): announcements and other
-// marketing-type messages (broadcasts, invite-back, reminders, milestones) only
-// go to volunteers who opted in. Transactional messages still go to everyone
-// they concern: event-day logistics for an event they signed up for (a
-// broadcast to the people of an event that hasn't ended, about that event),
-// "you forgot to check out", and "your hours were verified".
+// marketing-type messages (broadcasts to a general audience, invitations to
+// events they haven't joined, invite-back, milestones) only go to volunteers
+// who opted in. Transactional messages still go to everyone they concern:
+// logistics for an event they signed up for or joined (the day-before
+// reminder, a broadcast to the people of an event that hasn't ended, about
+// that event), "you forgot to check out", and "your hours were verified".
 
 export const MAX_BODY = 1000;
 export class MessageError extends Error {
@@ -358,10 +359,11 @@ export const AUTOMATIONS: AutomationDef[] = [
   },
   {
     key: 'event_reminder',
-    transactional: false,
+    // Logistics for an event they signed up for: transactional, like a ticket reminder.
+    transactional: true,
     name: 'Day-before reminder',
-    trigger: 'An event starts within the next 36 hours',
-    wait: 'Sends to regulars (2+ events) once per event',
+    trigger: 'An event a volunteer signed up for starts within the next 36 hours',
+    wait: 'Once per event, to everyone who signed up for it',
     condition: 'If they check in, it counts as “showed up”. No reply needed.',
     defaultBody: 'Hi {first_name}, {event} is {date} at {time}, {location}. Scan the QR code at the sign-in table to check in. Hope to see you there!',
     allowed: ['{first_name}', '{org}', '{event}', '{date}', '{time}', '{location}'],
@@ -418,9 +420,20 @@ async function dueFor(org: Org, key: AutomationKey, ins: OrgInsights, now = new 
       out.push({ volunteer_id: r.volunteer_id!, dedupe: `record_ready:${r.id}`, ctx: { first_name: first(r.name), org: org.name, event: r.title, date: fmtDay(r.starts_at), hours: String(hoursTotal(r)), location: r.location ?? '' } });
   }
   if (key === 'event_reminder') {
+    // Only the people who signed up for that event (saved it on Discover) and
+    // haven't checked in yet. Inviting anyone else is marketing: that's Invite back.
     const soon = upcoming(ins, now).filter((e) => new Date(e.starts_at).getTime() - now.getTime() < 36 * 3_600_000);
-    const regulars = ins.volunteers.filter((v) => v.volunteer_id && v.status === 'active');
-    for (const e of soon) for (const v of regulars) out.push({ volunteer_id: v.volunteer_id!, dedupe: `event_reminder:${e.id}:${v.volunteer_id}`, ctx: { first_name: first(v.name), org: org.name, ...eventCtx(e) } });
+    if (soon.length) {
+      const signed = (await sql`
+        select s.event_id, v.id as volunteer_id, v.name from saved_event s join volunteer v on v.id = s.volunteer_id
+        where s.event_id = any(${soon.map((e) => e.id)})
+          and not exists (select 1 from attendance a where a.event_id = s.event_id and a.volunteer_id = s.volunteer_id)
+      `) as unknown as { event_id: string; volunteer_id: string; name: string }[];
+      for (const r of signed) {
+        const e = soon.find((x) => x.id === r.event_id)!;
+        out.push({ volunteer_id: r.volunteer_id, dedupe: `event_reminder:${e.id}:${r.volunteer_id}`, ctx: { first_name: first(r.name), org: org.name, ...eventCtx(e) } });
+      }
+    }
   }
   if (key === 'invite_back') {
     const next = upcoming(ins, now)[0];

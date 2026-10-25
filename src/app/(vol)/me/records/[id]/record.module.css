@@ -33,21 +33,28 @@
 .orgText { display: grid; gap: 2px; min-width: 0; font-size: 13px; color: var(--ink-3); overflow-wrap: anywhere; }
 .orgText b { font-size: 15px; color: var(--ink); }
 
-/* Two actions in a bar that sticks 8px above the phone tab bar (--tabbar-h
-   comes from the shell; 0 on desktop), or 16px off the bottom on desktop. */
+/* The two actions ride in an opaque tray. Phones: full-bleed paper with a
+   1px rule on top, sticky flush on the tab bar (--tabbar-h comes from the
+   shell), so nothing scrolls through a gap under it. Its negative bottom
+   margin eats the shell's bottom padding down to the tab bar, so at the end of
+   the page it still sits flush. Desktop: a paper card 16px off the bottom. */
 .actionBar {
-  position: sticky; bottom: calc(var(--tabbar-h, 0px) + 8px); z-index: 5;
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 8px; border-radius: 20px;
-  background: var(--glass); -webkit-backdrop-filter: saturate(1.4) blur(14px); backdrop-filter: saturate(1.4) blur(14px); box-shadow: var(--pop);
+  position: sticky; bottom: var(--tabbar-h, 0px); z-index: 5;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+  margin: 0 -16px calc(var(--tabbar-h, 0px) - 100px - env(safe-area-inset-bottom)); padding: 10px 16px;
+  background: var(--paper); border-top: 1px solid var(--line);
 }
 .actionBar[data-single] { grid-template-columns: minmax(0, 1fr); }
 .action { width: 100%; gap: 8px; height: 52px; border-radius: 14px; font-size: 15px; }
 .actionIcon { flex: none; }
+.actionText { display: grid; justify-items: start; line-height: 1.15; text-align: left; }
+.actionWhy { font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
+.lockedAction { color: var(--ink-2); }
+.lockedAction .actionIcon { color: var(--ink-3); }
 .below { display: grid; justify-items: center; gap: 4px; }
 .print { color: var(--ink-2); font-weight: 600; }
-.minorNote { text-align: center; font-size: 13px; color: var(--ink-3); }
 @media (min-width: 861px) {
-  .actionBar { bottom: 16px; }
+  .actionBar { bottom: 16px; margin: 0; padding: 8px; border: 0; border-radius: 20px; box-shadow: var(--pop); }
 }
 
 /* The sheet: bottom sheet on phones, a centred card on wider screens. */
@@ -75,10 +82,15 @@
 .qr { width: 176px; height: 176px; }
 .qr svg { width: 100%; height: 100%; display: block; }
 .qrCaption { font-size: 13px; color: var(--ink-3); }
-.locked { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border-radius: 14px; background: var(--amber-soft); color: var(--amber); font-size: 15px; line-height: 1.5; }
-.locked p { color: var(--ink); }
-.lockedIcon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--amber) 14%, transparent); }
-
+.lockedIcon { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--surface-2); color: var(--ink-2); }
+.sheetHead .sheetTitle { flex: 1; min-width: 0; }
+.lockedWhy { font-size: 15px; line-height: 1.5; color: var(--ink-2); margin-top: -8px; }
+.steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; counter-reset: step; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line); }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 2px 12px; padding: 14px; font-size: 14px; line-height: 1.45; color: var(--ink-3); }
+.steps li + li { border-top: 1px solid var(--line); }
+.steps li::before { content: counter(step); grid-row: span 2; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--primary-soft); color: var(--canopy); font: 700 13px var(--font-sans), system-ui, sans-serif; }
+.steps b { color: var(--ink); font-size: 15px; }
+.nowrap { white-space: nowrap; }
 @media (min-width: 641px) {
   .sheet { margin: auto; border-radius: 20px; }
   .sheetInner { padding: 22px 24px 24px; }

@@ -62,10 +62,13 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
 
   // Stat cards. Trend lines are weekly running totals over the last 13 weeks
   // (real rows, so the last point is the headline number).
-  const since = now - 30 * DAY;
-  const hours30 = ins.series.filter((p) => p.date.getTime() >= since).reduce((n, p) => n + p.hours, 0);
   const trend = weeklyTrend(ins, now);
-  const new30 = ins.volunteers.filter((v) => v.first_seen.getTime() >= since).length;
+  // Deltas cover the same 13 weeks as the trend under them.
+  const hoursGain = trend.hours.at(-1)! - ins.series.filter((p) => p.date.getTime() <= trend.since).reduce((n, p) => n + p.hours, 0);
+  const newPeople = ins.volunteers.filter((v) => v.first_seen.getTime() > trend.since).length;
+  // A young org's whole history fits in the window: a "+489" beside 489 says nothing, so say since when instead.
+  const allInWindow = ins.series.length > 0 && ins.series[0].date.getTime() > trend.since;
+  const firstDay = ins.series[0] ? fmtDay(ins.series[0].date).replace(/^\w+, /, '') : null;
   const verifiedByDate = [...ins.verified].sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at));
   const pips = verifiedByDate.slice(-8).map((e) => new Date(e.attested_at!).getTime() - new Date(e.ends_at).getTime() <= DAY);
   const chart = ins.series.slice(-8).map((p) => ({ ...p, date: p.date.toISOString() }));
@@ -148,9 +151,9 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
         decimals={ins.totals.verifiedHours % 1 ? 1 : 0}
         unit="hrs"
         icon="clock"
-        delta={hours30 > 0 ? { value: `+${fmtH(hours30)} in 30d`, dir: 'up', label: 'in the last 30 days' } : undefined}
-        foot="Last 13 weeks"
-        sparkSlot={<Trend points={trend.hours} label="Verified hours, week by week" />}
+        delta={hoursGain > 0 && !allInWindow ? { value: `+${fmtH(hoursGain)}`, dir: 'up', label: 'in the last 13 weeks' } : undefined}
+        foot={allInWindow && firstDay ? `All since ${firstDay}` : 'Last 13 weeks'}
+        sparkSlot={<Trend points={trend.hours} label="Verified hours, running total by week" />}
         href="/org/reports"
       />
       <StatCard
@@ -159,9 +162,9 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
         value={ins.totals.uniqueVolunteers}
         icon="users"
         iconTone="mist"
-        delta={new30 > 0 ? { value: `+${new30} new in 30d`, dir: 'up', label: 'new in the last 30 days' } : undefined}
-        foot="Last 13 weeks"
-        sparkSlot={<Trend points={trend.people} label="Unique volunteers, week by week" delay={0.08} />}
+        delta={newPeople > 0 && !allInWindow ? { value: `+${newPeople} new`, dir: 'up', label: 'new in the last 13 weeks' } : undefined}
+        foot="Active per week, last 13 weeks"
+        sparkSlot={<WeekBars counts={trend.active} label="Volunteers at verified events, week by week" />}
         href="/org/volunteers"
       />
       <StatCard
@@ -297,6 +300,27 @@ function Trend({ points, label, delay = 0 }: { points: number[]; label: string; 
   return (
     <span className={s.trend} role="img" aria-label={`${label}: ${fmt(points[0])} to ${fmt(points.at(-1)!)}`}>
       <Sparkline points={points} width={132} height={36} area delay={delay} className={s.trendSvg} />
+    </span>
+  );
+}
+
+// The volunteers card's mini-chart: one bar per week (people at verified
+// events that week), so it reads differently from the hours line beside it.
+function WeekBars({ counts, label }: { counts: number[]; label: string }) {
+  const max = Math.max(...counts);
+  if (max === 0) return null;
+  const W = 132,
+    H = 36,
+    gap = 3;
+  const bw = (W - gap * (counts.length - 1)) / counts.length;
+  return (
+    <span className={s.trend} role="img" aria-label={`${label}: ${counts.filter(Boolean).length} of ${counts.length} weeks had volunteers, most in one week ${max}`}>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className={`${s.trendSvg} ${s.weekBars}`} aria-hidden>
+        {counts.map((n, i) => {
+          const h = n ? Math.max(3, (n / max) * H) : 2;
+          return <rect key={i} x={i * (bw + gap)} y={H - h} width={bw} height={h} rx={1.5} data-empty={n ? undefined : ''} style={{ ['--i' as string]: i }} />;
+        })}
+      </svg>
     </span>
   );
 }

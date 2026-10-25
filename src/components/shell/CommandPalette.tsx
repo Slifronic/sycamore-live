@@ -34,7 +34,7 @@ const initialsOf = (name: string) =>
     .map((w) => w[0]!.toUpperCase())
     .join('');
 
-const STATE_TEXT = { live: 'Live now', waiting: 'Needs verifying', verified: 'Verified', upcoming: 'Upcoming' } as const;
+const STATE_TEXT = { live: 'Live now', waiting: 'Needs verification', verified: 'Verified', upcoming: 'Upcoming' } as const;
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
 /** Fuzzy score: substring beats subsequence; word starts and runs score higher. null = no match. */

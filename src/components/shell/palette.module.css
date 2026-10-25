@@ -34,7 +34,7 @@
 .optLabel { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
 .optSub { font-size: 12.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 10 auto; }
 .optMeta { flex: none; margin-left: auto; font-size: 12px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; text-align: right; }
-.optMeta[data-state='Needs verifying'] { color: var(--amber); }
+.optMeta[data-state='Needs verification'] { color: var(--amber); }
 .optMeta[data-state='Live now'] { color: var(--sap); }
 .optMeta[data-state='Verified'] { color: var(--verified); }
 .optEnter { flex: none; color: var(--ink-3); opacity: 0; width: 16px; }
