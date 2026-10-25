@@ -7,7 +7,9 @@ export const metadata = { title: 'Set up your organization' };
 
 export default function StartPage() {
   return (
-    <main className={s.page}>
+    // Not a <main> element: after sign-in the app keeps this page mounted (hidden) for back
+    // navigation, and the org shell has its own <main>. The role keeps the landmark here.
+    <div className={s.page} role="main">
       <div className={s.split}>
         <AuthArt line="A QR code on the table, two minutes to verify, a record every volunteer can share." />
         <div className={`${s.box} rise`}>
@@ -19,6 +21,6 @@ export default function StartPage() {
           <StartForm />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

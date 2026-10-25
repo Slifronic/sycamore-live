@@ -7,7 +7,9 @@ export const metadata = { title: 'Coordinator sign in' };
 
 export default function LoginPage() {
   return (
-    <main className={s.page}>
+    // Not a <main> element: after sign-in the app keeps this page mounted (hidden) for back
+    // navigation, and the org shell has its own <main>. The role keeps the landmark here.
+    <div className={s.page} role="main">
       <div className={s.split}>
         <AuthArt line="Your events, your roster, your verified hours." />
         <div className={`${s.box} rise`}>
@@ -26,6 +28,6 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
