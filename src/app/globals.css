@@ -264,3 +264,15 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 @media print {
   .paper-sheet { background: #fff; box-shadow: none; animation: none; }
 }
+
+/* The not-found page. Global, not a CSS module: the root not-found boundary
+   is preloaded on every page, and a module made each page preload an unused
+   stylesheet (console warning in production). */
+.nf-page { min-height: 100dvh; display: grid; place-items: center; padding: 32px 16px; }
+.nf-inner { max-width: 520px; display: grid; justify-items: center; gap: 14px; text-align: center; }
+.nf-brand { display: inline-flex; align-items: center; min-height: 44px; gap: 8px; font-family: var(--font-display), Georgia, serif; font-weight: 600; font-size: 17px; color: var(--canopy); text-decoration: none; margin-bottom: 8px; }
+.nf-illo { position: relative; width: 180px; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 60%, #efece2 0 62%, transparent 63%); }
+.nf-img { object-fit: contain; mix-blend-mode: multiply; }
+.nf-title { font-size: clamp(28px, 6vw, 38px); line-height: 1.1; text-wrap: balance; }
+.nf-lede { color: var(--ink-3); font-size: 16px; }
+.nf-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 6px; }

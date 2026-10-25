@@ -22,7 +22,7 @@ export default function HowItWorks() {
         art={
           <div className={p.heroStack}>
             <Laptop name="org-dashboard" sizes="(min-width: 960px) 560px, 92vw" priority />
-            <Phone name="checkin-phone" className={p.heroPhone} sizes="(min-width: 960px) 180px, 34vw" priority />
+            <Phone name="checkin-phone" className={p.heroPhone} sizes="(min-width: 960px) 180px, 34vw" />
           </div>
         }
       />
