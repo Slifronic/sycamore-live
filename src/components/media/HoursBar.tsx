@@ -25,7 +25,7 @@ export function HoursBar({ captured, attested, adjustedBy, reason }: { captured:
       </div>
       <p className={s.note}>
         {changed
-          ? `Adjusted from ${fmtHours(captured)} to ${fmtHours(attested)} hours${adjustedBy ? ` by ${adjustedBy}` : ''}${reason ? `: “${reason}”` : ''}.`
+          ? `Adjusted from ${fmtHours(captured)} to ${fmtHours(attested)} hours${adjustedBy ? ` by ${adjustedBy}` : ''}${reason ? `: “${reason.trim()}”${/[.!?]$/.test(reason.trim()) ? '' : '.'}` : '.'}`
           : 'Captured by check-in and check-out; the coordinator made no change.'}
       </p>
     </div>

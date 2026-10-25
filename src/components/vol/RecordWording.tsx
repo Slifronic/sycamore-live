@@ -18,10 +18,11 @@ export function RecordWording({ r, className, fineClassName }: { r: RecordView; 
         {fmtHours(r.hours_captured)} captured by check-in and check-out
         {r.hours_adjusted != null && (
           <>
-            , adjusted to {fmtHours(r.hours_adjusted)} by {r.adjusted_by}: “{r.adjustment_reason}”
+            , adjusted to {fmtHours(r.hours_adjusted)} by {r.adjusted_by}: “{r.adjustment_reason?.trim()}”
           </>
         )}
-        . The organization confirmed this when it closed the event.
+        {/* A reason that already ends a sentence ("…by the team lead.") doesn't get a second period. */}
+        {r.hours_adjusted != null && /[.!?]$/.test(r.adjustment_reason?.trim() ?? '') ? '' : '.'} The organization confirmed this when it closed the event.
       </p>
       <p className={fineClassName}>
         SycaMore Live recorded these hours and did not observe the work itself. Questions about this service go to {r.org.name} at {r.org.contact_phone}.
