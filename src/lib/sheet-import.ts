@@ -23,7 +23,7 @@ const INSTRUCTIONS = `You are transcribing a paper volunteer sign-in sheet for t
 For each signed row, return:
 - display_name: the name exactly as written. If part is unreadable, give what you can read and explain in notes.
 - name_unclear: true if any part of the name is unreadable or a guess, false if you can read all of it.
-- time_in and time_out: 24-hour "HH:MM". Times on paper rarely say AM or PM: the event was scheduled from {START} to {END}, so a bare "1:30" written during it means 13:30. Use the schedule only to choose AM or PM. Don't compare times against it or mention it in notes; people arrive early and stay late. If a time is missing, smudged or ambiguous, return null and say why in notes. Never guess a time-out; a missing time-out stays null.
+- time_in and time_out: 24-hour "HH:MM". Times on paper rarely say AM or PM. If the sheet's header shows the event's hours, read the times by it; otherwise read them as one shift, with the time out after the time in, so "9:05" in and "1:30" out means 09:05 and 13:30. Don't write notes about the event's schedule or whether times fit it. If a time is missing, smudged or ambiguous, return null and say why in notes. Never guess a time-out; a missing time-out stays null.
 - confidence: 0 to 1, how sure you are the whole row is transcribed correctly.
 - notes: what the coordinator should check against the photo, such as "time could be 7:30 or 7:50". Empty string if nothing.
 
@@ -41,7 +41,6 @@ export async function draftFromSheet(
   event: { starts_at: Date; ends_at: Date },
 ): Promise<SheetDraft[]> {
   if (!sheetImportEnabled()) throw new SheetImportError('Sheet import needs ANTHROPIC_API_KEY in .env.local.');
-  const local = (d: Date) => d.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hour12: false });
 
   let response;
   try {
@@ -54,7 +53,8 @@ export async function draftFromSheet(
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: image.mediaType, data: image.base64 } },
-            { type: 'text', text: INSTRUCTIONS.replace('{START}', local(event.starts_at)).replace('{END}', local(event.ends_at)) },
+            // The event's scheduled hours are not sent: the model compared times against them in its notes.
+            { type: 'text', text: INSTRUCTIONS },
           ],
         },
       ],
