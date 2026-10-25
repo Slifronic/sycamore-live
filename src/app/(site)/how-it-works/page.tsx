@@ -21,8 +21,8 @@ export default function HowItWorks() {
         lede="Everything below is what SycaMore Live does today, in the order it happens: first from the coordinator’s side of the sign-in table, then from the volunteer’s."
         art={
           <div className={p.heroStack}>
-            <Laptop name="org-dashboard" sizes="(min-width: 960px) 560px, 92vw" />
-            <Phone name="checkin-phone" className={p.heroPhone} />
+            <Laptop name="org-dashboard" sizes="(min-width: 960px) 560px, 92vw" priority />
+            <Phone name="checkin-phone" className={p.heroPhone} sizes="(min-width: 960px) 180px, 34vw" priority />
           </div>
         }
       />

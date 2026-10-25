@@ -76,26 +76,26 @@ function Placeholder({ kind }: { kind: 'laptop' | 'phone' }) {
   );
 }
 
-export function Laptop({ name, className, sizes = '(min-width: 1024px) 640px, 92vw', src }: { name: ScreenName; className?: string; sizes?: string; src?: string }) {
+export function Laptop({ name, className, sizes = '(min-width: 1024px) 640px, 92vw', src, priority }: { name: ScreenName; className?: string; sizes?: string; src?: string; priority?: boolean }) {
   const img = src ?? screen(name);
   return (
     <figure className={`${s.laptop} ${className ?? ''}`} role="img" aria-label={SCREEN_ALT[name]}>
       <div className={s.lid}>
         <span className={s.cam} aria-hidden="true" />
-        <div className={s.screen}>{img ? <Image src={img} alt="" fill sizes={sizes} className={s.img} /> : <Placeholder kind="laptop" />}</div>
+        <div className={s.screen}>{img ? <Image src={img} alt="" fill sizes={sizes} priority={priority} className={s.img} /> : <Placeholder kind="laptop" />}</div>
       </div>
       <div className={s.base} aria-hidden="true" />
     </figure>
   );
 }
 
-export function Phone({ name, className, sizes = '(min-width: 1024px) 280px, 60vw', src }: { name: ScreenName; className?: string; sizes?: string; src?: string }) {
+export function Phone({ name, className, sizes = '(min-width: 1024px) 280px, 60vw', src, priority }: { name: ScreenName; className?: string; sizes?: string; src?: string; priority?: boolean }) {
   const img = src ?? screen(name);
   return (
     <figure className={`${s.phone} ${className ?? ''}`} role="img" aria-label={SCREEN_ALT[name]}>
       <div className={s.phoneScreen}>
         <span className={s.island} aria-hidden="true" />
-        {img ? <Image src={img} alt="" fill sizes={sizes} className={s.img} /> : <Placeholder kind="phone" />}
+        {img ? <Image src={img} alt="" fill sizes={sizes} priority={priority} className={s.img} /> : <Placeholder kind="phone" />}
       </div>
     </figure>
   );
