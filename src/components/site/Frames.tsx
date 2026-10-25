@@ -28,14 +28,14 @@ export function Photo({
 }
 
 const SCREEN_ALT: Record<ScreenName, string> = {
-  'org-dashboard': 'The coordinator dashboard: what needs you, then verified hours, attendances and volunteers',
-  'event-day': 'Event day: a full-screen check-in QR code beside the live roster',
-  verify: 'The verify screen: each volunteer’s hours pre-filled from their scans, with reasons for any change',
-  'sheet-import': 'Paper sheet import: rows drafted from a photo, low-confidence rows in amber, each waiting to be confirmed',
-  'record-public': 'A public record page marked VERIFIED, with the organization’s statement and contact',
-  'me-phone': 'My hours on a phone: attested hours, events and organizations',
-  'checkin-phone': 'Checking in on a phone: a running timer and a Check out button',
-  'hour-letter': 'A printable hour letter with each event’s date, role, hours and the coordinator’s signature line',
+  'org-dashboard': 'The coordinator dashboard: verified hours, volunteers, events verified and the value of volunteer time, then what needs you and the event happening now',
+  'event-day': 'Event day: the check-in QR code and six-character code beside the live roster of who is here now',
+  verify: 'The verify screen: every volunteer with hours pre-filled from their scans, a role and standout star, and a running total above Verify & close',
+  'sheet-import': 'Paper sheet import: rows drafted from a photo of the sign-in sheet, unclear rows in amber, each confirmed by the coordinator before it counts',
+  'record-public': 'A public record page on a phone marked Verified, with the organization’s statement, the hours and role, and who to contact',
+  'me-phone': 'My hours on a phone: attested hours, events and organizations, with one event waiting for confirmation',
+  'checkin-phone': 'Checked in on a phone: a running timer and a Check out button',
+  'hour-letter': 'A printable hour letter with each event’s date, role and hours, signed by the coordinator',
 };
 
 function Placeholder({ kind }: { kind: 'laptop' | 'phone' }) {

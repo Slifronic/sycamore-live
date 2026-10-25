@@ -1,7 +1,7 @@
 // Every image the marketing site uses, in one place. Photos and illustrations
 // are AI-generated (the footer says so). Product screens are captured from the
-// running app into /media/screens; until they exist the device frames draw a
-// quiet placeholder of the right shape (flip SCREENS_READY when they land).
+// running app into /media/screens (demo data, DPR 2: laptops 1440x900, phones
+// 390x844). Set SCREENS_READY to false to fall back to the drawn placeholders.
 
 export const photo = (name: PhotoName, small = false) => `/media/photo/${name}${small ? '-sm' : ''}.webp`;
 export const illo = (name: IlloName) => `/media/illo/${name}.webp`;
@@ -31,7 +31,7 @@ export type ScreenName =
   | 'checkin-phone'
   | 'hour-letter';
 
-export const SCREENS_READY = false;
+export const SCREENS_READY = true;
 
 export const screen = (name: ScreenName): string | undefined => (SCREENS_READY ? `/media/screens/${name}.webp` : undefined);
 

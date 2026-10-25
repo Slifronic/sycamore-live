@@ -99,25 +99,26 @@ export function QrCard({ className }: { className?: string }) {
         ))}
       </svg>
       <p className={s.qrCode}>
-        or type <b>K7Q2MP</b>
+        or type <b>PLANT2</b>
       </p>
     </div>
   );
 }
 
 export function RosterMock({ className }: { className?: string }) {
-  const people = [
-    ['Maya Lin', '9:02 AM', 'in'],
-    ['Devon Ruiz', '9:10 AM', 'in'],
-    ['Priya Shah', '9:00 AM', 'in'],
-    ['Sam Torres', '9:31 AM', 'new'],
-    ['Lee Park', '9:04 AM', 'out'],
-  ] as const;
+  // Mirrors the event-day screenshot it sits on (same people, same times).
+  const people: [string, string, 'in' | 'new' | 'out'][] = [
+    ['Jonah Patel', '1:54 PM', 'in'],
+    ['Grace Reyes', '1:56 PM', 'in'],
+    ['Mateo Haddad', '2:06 PM', 'in'],
+    ['Maya Flores', '2:09 PM', 'in'],
+    ['Mina Rossi', '2:13 PM', 'in'],
+  ];
   return (
     <div className={`${s.roster} ${className ?? ''}`} aria-hidden="true">
       <div className={s.rHead}>
         <span className={s.liveDot} /> Live roster
-        <b className={s.rCount}>4 here</b>
+        <b className={s.rCount}>5 here</b>
       </div>
       <ul>
         {people.map(([n, t, st]) => (
