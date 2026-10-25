@@ -1,7 +1,17 @@
 import Link from 'next/link';
 import { FOOTER_GROUPS } from './nav';
 import { Wordmark } from './Wordmark';
+import { ThemeToggle } from '../shell/ThemeToggle';
 import s from './footer.module.css';
+
+// Legal pages (created by the marketing agent, round 1). Listed here so every
+// public page links to them.
+const LEGAL = [
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/terms', label: 'Terms' },
+  { href: '/data', label: 'Your data' },
+  { href: '/licenses', label: 'Licenses' },
+] as const;
 
 // Port of vengeance-ui footer/five (link groups over a rule) with the
 // animated-footer's oversized wordmark rising at the bottom.
@@ -43,6 +53,17 @@ export function SiteFooter() {
           <p>
             <Link href="/trust">How the record works</Link>
           </p>
+        </div>
+        <div className={s.legal}>
+          <nav aria-label="Legal" className={s.legalLinks}>
+            {LEGAL.map((l) => (
+              <Link key={l.href} href={l.href}>
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          <p className={s.cookies}>Essential cookies only, to keep you signed in. No tracking or ads.</p>
+          <ThemeToggle variant="inline" className={s.theme} />
         </div>
       </div>
       <Wordmark />

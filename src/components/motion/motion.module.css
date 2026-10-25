@@ -1,0 +1,29 @@
+/* ── Sparkline: drawn in once on screen. Hidden-before-draw only applies when
+   scripts run, so the line is always there without JavaScript. ── */
+.spark { display: block; }
+@media (scripting: enabled) {
+  .sparkLine { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .sparkArea, .sparkDot { opacity: 0; }
+  .spark[data-in] .sparkLine { animation: spark-draw 1.1s var(--ease-out) var(--spark-delay, 0s) forwards; }
+  .spark[data-in] .sparkArea { animation: spark-fade 0.6s var(--ease-out) calc(var(--spark-delay, 0s) + 0.4s) forwards; }
+  .spark[data-in] .sparkDot { animation: spark-dot 0.4s var(--ease-out) calc(var(--spark-delay, 0s) + 0.9s) forwards; transform-box: fill-box; transform-origin: center; }
+}
+@keyframes spark-draw { to { stroke-dashoffset: 0; } }
+@keyframes spark-fade { to { opacity: 1; } }
+@keyframes spark-dot { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .sparkLine { stroke-dashoffset: 0 !important; }
+  .sparkArea, .sparkDot { opacity: 1 !important; }
+}
+@media print {
+  .sparkLine { stroke-dashoffset: 0 !important; }
+  .sparkArea, .sparkDot { opacity: 1 !important; }
+}
+
+/* ── NumberRoll: each digit is a 0–9 strip in a 1-line window. ── */
+.roll { display: inline-block; }
+.rollTrack { display: inline-flex; align-items: flex-start; line-height: 1.15em; }
+.rollCol { position: relative; display: inline-block; height: 1.15em; overflow: hidden; }
+.rollStrip { display: flex; flex-direction: column; transition: transform var(--dur-3) var(--ease-out); }
+.rollStrip > span { display: block; height: 1.15em; text-align: center; }
+.rollSym { display: inline-block; height: 1.15em; white-space: pre; }

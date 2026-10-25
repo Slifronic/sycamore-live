@@ -1,0 +1,117 @@
+/* Coordinator top bar (OrgTopBar.tsx). The tile sits centred over the rail. */
+.top {
+  position: sticky; top: 0; z-index: 45; grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 12px; height: var(--topbar-h, 64px); padding: 0 20px 0 22px;
+  background: var(--glass); backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid var(--rule-soft);
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; color: inherit; text-decoration: none; border-radius: 12px; flex: none; }
+.tile {
+  width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none;
+  background: var(--band); color: #fff; font-family: var(--font-display), Georgia, serif; font-weight: 600; font-size: 15px; letter-spacing: 0.02em;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.brandText { display: grid; min-width: 0; max-width: 220px; line-height: 1.25; }
+.orgName { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+.orgKind { font-size: 12px; color: var(--ink-3); }
+
+.views { display: flex; align-items: center; min-width: 0; margin-left: 14px; }
+.slot:empty { display: none; }
+.views:has(.slot > *) .configured { display: none; }
+.viewCount { color: var(--red); font-weight: 800; }
+
+.actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: none; }
+.search {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; min-width: 210px; padding: 0 8px 0 12px; border: 0; border-radius: 12px;
+  background: var(--paper); box-shadow: var(--shadow); color: var(--ink-3); font: 500 14px var(--font-sans), system-ui, sans-serif; cursor: pointer;
+  transition: box-shadow var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+}
+.search:hover { color: var(--ink-2); box-shadow: var(--shadow-hi); }
+.searchText { flex: 1; text-align: left; }
+.newBtn { height: 40px; padding: 0 14px 0 12px; gap: 6px; border-radius: 12px; }
+
+.me {
+  display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 8px 0 3px; border: 0; border-radius: 999px;
+  background: none; color: var(--ink); cursor: pointer; text-align: left; transition: background var(--dur-1) var(--ease-out);
+}
+.me:hover, .me[aria-expanded='true'] { background: var(--wash); }
+.avatar { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--primary-soft); color: var(--canopy); font-weight: 800; font-size: 13px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sap) 22%, transparent); }
+.meText { display: grid; line-height: 1.2; }
+.greet { font-size: 11.5px; color: var(--ink-3); }
+.meName { font-size: 13.5px; font-weight: 700; white-space: nowrap; }
+.meChev { color: var(--ink-3); }
+
+/* Bell panel: events waiting to be verified. */
+.bellPanel { width: 340px; padding: 8px; }
+.bellHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px 8px; }
+.bellTitle { font-weight: 700; font-size: 14px; }
+.bellEmpty { padding: 4px 8px 10px; font-size: 13.5px; color: var(--ink-3); }
+.bellList { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.bellItem { display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 10px; text-decoration: none; color: inherit; }
+.bellItem:hover, .bellItem:focus-visible { background: var(--wash); }
+.bellDot { width: 8px; height: 8px; border-radius: 50%; background: var(--star); flex: none; }
+.bellText { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.bellEvent { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bellMeta { font-size: 12.5px; color: var(--ink-3); }
+.bellGo { font-size: 12.5px; font-weight: 700; color: var(--primary); flex: none; }
+.bellMore { display: flex; align-items: center; min-height: 38px; padding: 0 8px; margin-top: 4px; border-top: 1px solid var(--rule-soft); font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: none; }
+.bellMore:hover { color: var(--ink); }
+
+/* Account panel. */
+.accountPanel { width: 300px; padding: 8px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.accountHead { display: flex; align-items: center; gap: 10px; padding: 6px 6px 10px; border-bottom: 1px solid var(--rule-soft); margin-bottom: 4px; }
+.accountText { flex: 1; min-width: 0; }
+.accountName { font-weight: 700; }
+.accountOrg { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.accountRow { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; }
+.accountIcon { color: var(--ink-3); flex: none; }
+.accountTheme { box-shadow: none; background: none; padding: 0 10px; }
+.accountTheme:hover { background: var(--wash); }
+.accountLink {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 0 10px; border: 0; border-radius: 10px;
+  background: none; color: var(--ink); font: 600 14px var(--font-sans), system-ui, sans-serif; text-decoration: none; cursor: pointer; text-align: left;
+}
+.accountLink > svg { color: var(--ink-3); }
+.accountLink:hover { background: var(--wash); }
+.accountLink[data-tone='danger'] { color: var(--red); }
+.accountLink[data-tone='danger'] > svg { color: var(--red); }
+
+@media (max-width: 1180px) {
+  .meText, .meChev { display: none; }
+  .me { padding: 0 3px; }
+  .search { min-width: 0; }
+  .searchText { display: none; }
+}
+@media (max-width: 1020px) {
+  .orgKind { display: none; }
+  .brandText { max-width: 150px; }
+}
+
+/* Phones: one compact row (tile, name, search, bell, new, avatar); the
+   sub-view switcher drops to a second, sideways-scrolling row. */
+@media (max-width: 860px) {
+  .top { flex-wrap: wrap; height: auto; min-height: 56px; padding: 8px 12px; row-gap: 8px; gap: 6px; }
+  .tile { width: 36px; height: 36px; border-radius: 11px; font-size: 13px; }
+  .brandText { max-width: 34vw; }
+  .views { order: 5; flex-basis: 100%; margin: 0 -12px; padding: 0 12px 2px; overflow-x: auto; scrollbar-width: none; }
+  .views::-webkit-scrollbar { display: none; }
+  .views:not(:has(.configured, .slot > *)) { display: none; }
+  .actions { gap: 2px; }
+  .search { width: 40px; height: 40px; padding: 0; justify-content: center; background: none; box-shadow: none; }
+  .searchKbd { display: none; }
+  .newBtn { width: 40px; padding: 0; justify-content: center; }
+  .newText { display: none; }
+  .me { height: 40px; }
+  .avatar { width: 34px; height: 34px; font-size: 12px; }
+  .bellPanel { width: min(340px, calc(100vw - 24px)); }
+  .accountPanel { width: min(300px, calc(100vw - 24px)); }
+}
+@media (pointer: coarse) {
+  .search, .newBtn { min-width: 44px; min-height: 44px; }
+}
+@media (max-width: 860px) {
+  /* Panels pin to the viewport edges on phones so they never run off-screen. */
+  .bellPanel.bellPanel, .accountPanel.accountPanel { position: fixed; top: 60px; left: 12px; right: 12px; width: auto; max-width: none; }
+}
+
+.newMenu.newMenu { width: 290px; }

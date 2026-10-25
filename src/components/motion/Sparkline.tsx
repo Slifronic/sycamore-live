@@ -1,13 +1,58 @@
 'use client';
 
-import { motion, useReducedMotion } from 'motion/react';
+import { useEffect, useId, useRef, useState } from 'react';
+import s from './motion.module.css';
 
-// A small trend line that draws itself in once. Decorative: the number next to
-// it carries the meaning, so it's hidden from screen readers.
-export function Sparkline({ points, width = 96, height = 32, color = 'currentColor', delay = 0 }: { points: number[]; width?: number; height?: number; color?: string; delay?: number }) {
-  // The server can't know the motion preference, so `initial` is the same on both
-  // sides (no hydration mismatch); reduced motion just makes the transition instant.
-  const reduce = useReducedMotion();
+/**
+ * A small trend line that draws itself in once, the first time it is on
+ * screen. Decorative: the number beside it carries the meaning, so it's
+ * hidden from screen readers.
+ *
+ * Visible without JavaScript: the "hidden until drawn" state only applies
+ * under `@media (scripting: enabled)`, and reduced motion skips the draw.
+ * `area` adds a soft gradient fill under the line (stat cards).
+ *
+ *   <Sparkline points={[3, 5, 4, 8, 12]} width={96} height={32} area />
+ */
+export function Sparkline({
+  points,
+  width = 96,
+  height = 32,
+  color = 'currentColor',
+  delay = 0,
+  area = false,
+  strokeWidth = 2,
+  className = '',
+}: {
+  points: number[];
+  width?: number;
+  height?: number;
+  color?: string;
+  delay?: number;
+  area?: boolean;
+  strokeWidth?: number;
+  className?: string;
+}) {
+  const ref = useRef<SVGSVGElement>(null);
+  const [inView, setInView] = useState(false);
+  const gid = useId().replace(/:/g, '');
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setInView(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   if (points.length < 2) return null;
   const max = Math.max(...points);
   const min = Math.min(...points);
@@ -17,27 +62,29 @@ export function Sparkline({ points, width = 96, height = 32, color = 'currentCol
   const d = xy.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
   const [lx, ly] = xy[xy.length - 1];
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden style={{ overflow: 'visible' }}>
-      <motion.path
-        d={d}
-        fill="none"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={reduce ? { duration: 0 } : { duration: 1.1, delay, ease: [0.16, 1, 0.3, 1] }}
-      />
-      <motion.circle
-        cx={lx}
-        cy={ly}
-        r={3}
-        fill={color}
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={reduce ? { duration: 0 } : { delay: delay + 1, type: 'spring', stiffness: 380, damping: 18 }}
-      />
+    <svg
+      ref={ref}
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      aria-hidden
+      className={`${s.spark} ${className}`}
+      data-in={inView || undefined}
+      style={{ overflow: 'visible', ['--spark-delay' as string]: `${delay}s` }}
+    >
+      {area && (
+        <>
+          <defs>
+            <linearGradient id={`sg${gid}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor={color} stopOpacity="0.22" />
+              <stop offset="1" stopColor={color} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path className={s.sparkArea} d={`${d} L${width} ${height} L0 ${height} Z`} fill={`url(#sg${gid})`} />
+        </>
+      )}
+      <path className={s.sparkLine} d={d} pathLength={1} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+      <circle className={s.sparkDot} cx={lx} cy={ly} r={3} fill={color} />
     </svg>
   );
 }

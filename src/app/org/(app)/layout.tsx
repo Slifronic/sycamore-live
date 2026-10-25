@@ -1,32 +1,52 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Suspense } from 'react';
 import { requireOrg } from '@/lib/session';
 import { loadOrgInsights } from '@/lib/insights';
 import { courseProgress } from '@/lib/course';
 import { unreadCount } from '@/lib/messages';
 import { orgChatUnread } from '@/lib/event-chat';
+import { ago, initials, requestNow } from '@/lib/format';
 import { signOut } from '../actions';
-import { NavLinks } from '@/components/NavLinks';
+import { OrgRail, OrgTabBar } from '@/components/NavLinks';
 import { CoachBar } from '@/components/CoachBar';
-import s from './shell.module.css';
-import { initials } from '@/lib/format';
-import { PinReveal } from '@/components/PinReveal';
 import { DemoRibbon } from '@/components/DemoRibbon';
-import { Leaf } from '@/components/media/Leaf';
 import { RouteTransition } from '@/components/motion/RouteTransition';
+import { OrgTopBar } from '@/components/shell/OrgTopBar';
+import { CommandPalette } from '@/components/shell/CommandPalette';
+import s from './shell.module.css';
 
 // Every org screen reads the coordinator's cookie, so it renders per request.
 export const instant = false;
 
 export const metadata: Metadata = { title: { default: 'Coordinator', template: '%s · SycaMore Live' }, robots: { index: false, follow: false } };
 
+// The coordinator shell (REDESIGN-2026-10-25, the "Vessa" layout): a top bar
+// across the page, a slim icon rail on the left, the page in the middle. On
+// phones the rail becomes a bottom tab bar. ⌘K opens the command palette.
 export default async function OrgShell({ children }: LayoutProps<'/org'>) {
   const org = await requireOrg();
-  const ins = await loadOrgInsights(org.id);
+  const [ins, inboxUnread, chatUnread] = await Promise.all([loadOrgInsights(org.id), unreadCount(org.id), orgChatUnread(org.id)]);
   const course = courseProgress(org.course);
-  // Unread one-to-one replies plus unread posts in event chats.
-  const unread = (await unreadCount(org.id)) + (await orgChatUnread(org.id));
+  const now = requestNow();
+
+  // Pacific time, like every date in the app.
+  const hour = Number(new Date(now).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', hour12: false })) % 24;
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
+  // The bell: events that ended and still need the coordinator's sign-off, oldest first.
+  const waiting = [...ins.awaiting]
+    .sort((a, b) => +new Date(a.ends_at) - +new Date(b.ends_at))
+    .slice(0, 5)
+    .map((e) => ({ id: e.id, title: e.title, ended: ago(e.ends_at, new Date(now)) }));
+
+  // "Import paper sheet" goes to the live event, else the most recent one not yet verified.
+  const started = ins.realEvents.filter((e) => new Date(e.starts_at).getTime() <= now);
+  const live = started.find((e) => !e.attested_at && new Date(e.ends_at).getTime() >= now);
+  const target = live ?? started.find((e) => !e.attested_at) ?? started[0];
+  const importHref = target ? `/org/events/${target.id}?import=1#import` : null;
+
+  const counts = { awaiting: ins.totals.awaiting, unread: inboxUnread + chatUnread, badges: ins.badgeReady.length };
+  const courseInfo = { done: course.done, total: course.total, complete: course.complete };
 
   return (
     <>
@@ -35,47 +55,26 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
         <a className="skip no-print" href="#main">
           Skip to content
         </a>
-        <aside className={`${s.side} no-print`}>
-          <Link href="/org" className={s.brand}>
-            <Leaf size={22} color="var(--canopy)" className={s.leaf} /> SycaMore
-          </Link>
-          <div className={s.org}>
-            <span className={s.tile} aria-hidden>
-              {initials(org.name)}
-            </span>
-            <div className={s.orgText}>
-              <p className={s.orgName}>{org.name}</p>
-              <p className="muted small">{org.kind === 'school' ? 'School' : 'Nonprofit'} · {org.coordinator_name}</p>
-            </div>
-            <div className={s.orgFact}>
-              <span className="chip chip-ink" title="Hours you have verified, from check-ins and your sign-offs">
-                {ins.totals.verifiedHours.toLocaleString()} verified hours
-              </span>
-            </div>
-          </div>
-          <NavLinks awaiting={ins.totals.awaiting} badgeReady={ins.badgeReady.length} unread={unread} />
-          {!course.complete && (
-            <Link href="/org/learn" className={s.course}>
-              <span className="small" style={{ fontWeight: 700 }}>Getting started</span>
-              <span className="small muted">
-                {course.done} of {course.total} lessons · about {course.minutesLeft} min left
-              </span>
-              <span className="bar" style={{ marginTop: 6 }}>
-                <span style={{ width: `${(100 * course.done) / course.total}%` }} />
-              </span>
-            </Link>
-          )}
-          <form action={signOut} className={s.signout}>
-            <PinReveal pin={org.coordinator_pin} />
-            <button className="btn btn-quiet btn-sm">Sign out</button>
-          </form>
-        </aside>
+        <OrgTopBar
+          org={{ name: org.name, initials: initials(org.name), kind: org.kind === 'school' ? 'School' : 'Nonprofit' }}
+          me={{ name: org.coordinator_name, first: org.coordinator_name.split(' ')[0], initials: initials(org.coordinator_name), pin: org.coordinator_pin }}
+          greeting={greeting}
+          waiting={waiting}
+          waitingCount={ins.totals.awaiting}
+          badgesReady={ins.badgeReady.length}
+          importHref={importHref}
+          viewCounts={{ unread: inboxUnread, chatUnread }}
+          signOut={signOut}
+        />
+        <OrgRail counts={counts} course={courseInfo} signOut={signOut} />
         <main className={s.main} id="main" tabIndex={-1}>
           <Suspense>
             <CoachBar />
           </Suspense>
           <RouteTransition>{children}</RouteTransition>
         </main>
+        <OrgTabBar counts={counts} course={courseInfo} signOut={signOut} />
+        <CommandPalette importHref={importHref} />
       </div>
     </>
   );

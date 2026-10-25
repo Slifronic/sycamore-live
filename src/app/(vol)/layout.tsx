@@ -3,17 +3,18 @@ import Link from 'next/link';
 import { currentVolunteer } from '@/lib/vol-data';
 import { volunteerThreads } from '@/lib/messages';
 import { volunteerChats } from '@/lib/event-chat';
-import { initials } from '@/lib/format';
-import { VolSideNav, VolTabBar } from '@/components/vol/VolNav';
-import { volSignOut } from './actions';
+import { initials, requestNow } from '@/lib/format';
+import { VolTabBar, VolTopBar } from '@/components/vol/VolNav';
 import { DemoRibbon } from '@/components/DemoRibbon';
 import { Leaf } from '@/components/media/Leaf';
 import { RouteTransition } from '@/components/motion/RouteTransition';
-import s from './vol.module.css';
+import { ThemeToggle } from '@/components/shell/ThemeToggle';
+import s from '@/components/vol/volnav.module.css';
 
-// The volunteer side's shell. Same look as the coordinator's (parchment,
-// sidebar, Fraunces headings) so it reads as one product: a sidebar on
-// desktop, a bottom tab bar on phones. Signed out (/join), it's just the brand.
+// The volunteer app's shell, mobile first: a greeting bar and a bottom tab
+// bar (Home, Discover, Messages, Me) on phones; one top bar with the same
+// tabs on desktop, over a centred column. Signed out (/join), it's just the
+// brand. Sign out and the theme live on the Me tab (/me/account).
 
 export const metadata: Metadata = { title: { default: 'Volunteer', template: '%s · SycaMore Live' }, robots: { index: false, follow: false } };
 
@@ -30,9 +31,12 @@ export default async function VolShell({ children }: LayoutProps<'/'>) {
             <Link href="/" className={s.brand}>
               <Leaf size={22} color="var(--canopy)" /> SycaMore
             </Link>
-            <Link href="/org/login" className={`small muted ${s.signin}`}>
-              Coordinator? Sign in
-            </Link>
+            <div className={s.bareRight}>
+              <Link href="/org/login" className={s.signin}>
+                Coordinator? Sign in
+              </Link>
+              <ThemeToggle tooltip="left" />
+            </div>
           </header>
           <main className={s.bareMain} id="main">
             {children}
@@ -44,6 +48,8 @@ export default async function VolShell({ children }: LayoutProps<'/'>) {
 
   const [threads, chats] = await Promise.all([volunteerThreads(vol.id), volunteerChats(vol.id)]);
   const unread = threads.reduce((n, t) => n + t.unread, 0) + chats.reduce((n, c) => n + c.unread, 0);
+  const hour = Number(new Date(requestNow()).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', hour12: false })) % 24;
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   return (
     <>
@@ -52,25 +58,7 @@ export default async function VolShell({ children }: LayoutProps<'/'>) {
         <a className="skip no-print" href="#main">
           Skip to content
         </a>
-        <aside className={`${s.side} no-print`}>
-          <Link href="/me" className={s.brand}>
-            <Leaf size={22} color="var(--canopy)" /> SycaMore
-          </Link>
-          <div className={s.who}>
-            <span className={s.tile} aria-hidden>
-              {initials(vol.name)}
-            </span>
-            <div className={s.whoText}>
-              <p className={s.whoName}>{vol.name}</p>
-              <p className="muted small">{vol.is_minor ? 'Volunteer · under 18' : 'Volunteer'}</p>
-            </div>
-          </div>
-          <VolSideNav unread={unread} />
-          <form action={volSignOut} className={s.signout}>
-            <span className="small muted">Not {vol.name.split(' ')[0]}?</span>
-            <button className="btn btn-quiet btn-sm">Sign out</button>
-          </form>
-        </aside>
+        <VolTopBar greeting={greeting} first={vol.name.split(' ')[0]} initials={initials(vol.name)} unread={unread} />
         <main className={s.main} id="main" tabIndex={-1}>
           <RouteTransition groups={['/discover']}>{children}</RouteTransition>
         </main>

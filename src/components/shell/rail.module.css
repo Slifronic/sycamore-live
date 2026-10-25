@@ -1,0 +1,54 @@
+/* Coordinator rail (desktop) and tab bar (phones). See NavLinks.tsx. */
+.rail {
+  grid-column: 1; grid-row: 2; z-index: 30;
+  position: sticky; top: calc(var(--topbar-h, 64px) + 4px); align-self: start;
+  height: calc(100dvh - var(--topbar-h, 64px) - 44px);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  width: 60px; margin: 4px 0 16px 12px; padding: 8px 0;
+  border-radius: 20px; background: var(--paper); box-shadow: var(--shadow);
+}
+.group { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; justify-items: center; }
+.foot { margin-top: auto; }
+.rule { width: 24px; height: 1px; background: var(--rule-soft); flex: none; }
+.item {
+  position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; border: 0; padding: 0;
+  background: none; color: var(--ink-3); cursor: pointer; text-decoration: none;
+  transition: color var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out);
+}
+.item:hover { color: var(--ink); background: var(--wash); }
+.item[aria-current='page'], .item[data-on] { color: var(--canopy); background: none; }
+.icon { position: relative; z-index: 1; }
+.pill { position: absolute; inset: 0; border-radius: 14px; background: var(--primary-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sap) 18%, transparent); z-index: 0; }
+.count {
+  position: absolute; z-index: 2; top: 3px; right: 2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
+  display: grid; place-items: center; font: 800 10px/1 var(--font-sans), system-ui, sans-serif; font-variant-numeric: tabular-nums;
+  background: var(--amber-soft); color: var(--amber); box-shadow: 0 0 0 2px var(--paper);
+}
+.count[data-tone='red'] { background: var(--red); color: var(--paper); }
+
+/* Phones: a bottom tab bar, thumb-reachable, clear of the home indicator. */
+.tabs { display: none; }
+@media (max-width: 860px) {
+  .rail { display: none; }
+  .tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--parchment) 94%, transparent); backdrop-filter: saturate(1.4) blur(14px);
+    border-top: 1px solid var(--line);
+  }
+}
+.tab {
+  position: relative; display: grid; justify-items: center; align-content: center; gap: 3px; width: 100%; min-height: 54px; padding: 6px 2px;
+  border: 0; border-radius: 14px; background: none; color: var(--ink-3); font: 700 11px/1.1 var(--font-sans), system-ui, sans-serif;
+  text-decoration: none; text-align: center; white-space: nowrap; cursor: pointer;
+}
+.tab[aria-current='page'], .tab[data-on] { color: var(--canopy); }
+.tabPill { position: absolute; inset: 0 4px; border-radius: 14px; background: var(--primary-soft); z-index: 0; }
+.tabIcon, .tabLabel { position: relative; z-index: 1; }
+.tabIcon { display: inline-grid; }
+.tabCount {
+  position: absolute; top: -5px; right: -12px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
+  display: grid; place-items: center; font: 800 10px/1 var(--font-sans), system-ui, sans-serif;
+  background: var(--amber-soft); color: var(--amber); box-shadow: 0 0 0 2px var(--parchment);
+}
+.tabCount[data-tone='red'] { background: var(--red); color: var(--paper); }
+.tabMore { display: grid; }

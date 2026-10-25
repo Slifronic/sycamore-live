@@ -1,144 +1,181 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { usePathname } from 'next/navigation';
+import { useRef, useSyncExternalStore, type KeyboardEvent } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import s from './nav.module.css';
+import { Icon } from './shell/icons';
+import { MORE, RAIL, TABS, TAB_MORE, isActive, type NavItem } from './shell/org-nav';
+import { ThemeToggle } from './shell/ThemeToggle';
+import { currentTheme, subscribeTheme, toggleTheme } from './shell/theme';
+import { Tooltip } from './ui/Tooltip';
+import { Menu, type MenuItem } from './ui/Popover';
+import { INSTANT, SPRING } from './motion/tokens';
+import s from './shell/rail.module.css';
 
-// Four primary items keep the demo focused; the rest sits under "More".
-// Desktop: More expands in place in the sidebar (already open on its pages).
-// Phones: the four tabs scroll sideways and More opens a small menu that sits
-// outside the scrolling strip, so it isn't clipped. Event story is reached
-// from each event's page, not from here.
+// The coordinator's navigation. Desktop: a slim icon rail (theme toggle on
+// top, the five sections, then More and Sign out at the foot). The active
+// item sits on a moss pill that slides between items (spring 380/32).
+// Keyboard: Tab reaches the rail; ↑/↓ (and Home/End) move within it.
+// Phones: a bottom tab bar of four sections plus More.
 
-type Item = { href: string; label: string; exact?: boolean };
+export type NavCounts = { awaiting: number; unread: number; badges: number };
+export type Course = { done: number; total: number; complete: boolean };
 
-const PRIMARY: Item[] = [
-  { href: '/org', label: 'Home', exact: true },
-  { href: '/org/events', label: 'Events' },
-  { href: '/org/volunteers', label: 'Volunteers' },
-  { href: '/org/reports', label: 'Funder report' },
-];
-
-const MORE: Item[] = [
-  { href: '/org/messages', label: 'Messages' },
-  { href: '/org/badges', label: 'Badges' },
-  { href: '/org/learn', label: 'Learn' },
-];
-
-const COUNT_LABEL: Record<string, [string, string]> = {
-  '/org/events': ['Events waiting for you to verify', 'waiting to verify'],
-  '/org/badges': ['Badges ready for your sign-off', 'ready to sign'],
-  '/org/messages': ['Unread replies from volunteers', 'unread'],
+const COUNT_TEXT: Record<NonNullable<NavItem['count']>, string> = {
+  awaiting: 'waiting to verify',
+  unread: 'unread',
+  badges: 'ready to sign',
 };
+const countOf = (it: NavItem, c: NavCounts) => (it.count ? c[it.count] : 0);
+const toneOf = (it: NavItem) => (it.count === 'unread' ? 'red' : 'amber');
 
-const isActive = (path: string, it: Item) => (it.exact ? path === it.href : path === it.href || path.startsWith(`${it.href}/`));
+function moreItems(path: string, counts: NavCounts, course: Course, list: NavItem[]): MenuItem[] {
+  return list.map((it) => ({
+    href: it.href,
+    label: it.label,
+    icon: it.icon,
+    current: isActive(path, it),
+    hint: it.href === '/org/learn' && !course.complete ? `${course.done} of ${course.total} lessons done` : undefined,
+    meta: countOf(it, counts) > 0 ? countOf(it, counts) : undefined,
+  }));
+}
 
-const WIDE = '(min-width: 861px)';
-const subscribeWide = (cb: () => void) => {
-  const mq = window.matchMedia(WIDE);
-  mq.addEventListener('change', cb);
-  return () => mq.removeEventListener('change', cb);
-};
-
-export function NavLinks({ awaiting, badgeReady, unread = 0 }: { awaiting: number; badgeReady: number; unread?: number }) {
+export function OrgRail({ counts, course, signOut }: { counts: NavCounts; course: Course; signOut: () => Promise<void> }) {
   const path = usePathname();
   const reduce = useReducedMotion();
-  const strip = useRef<HTMLDivElement>(null);
-  const moreRef = useRef<HTMLDivElement>(null);
-  const wide = useSyncExternalStore(subscribeWide, () => window.matchMedia(WIDE).matches, () => false);
+  const nav = useRef<HTMLElement>(null);
   const moreActive = MORE.some((it) => isActive(path, it));
-  // null = the default (open on desktop when you're on a More page, closed on phones);
-  // a tap overrides it until the next navigation.
-  const [toggled, setToggled] = useState<boolean | null>(null);
-  const [lastPath, setLastPath] = useState(path);
-  if (lastPath !== path) {
-    setLastPath(path);
-    setToggled(null);
-  }
-  const open = toggled ?? (wide && moreActive);
-  const count = (href: string) => (href === '/org/events' ? awaiting : href === '/org/badges' ? badgeReady : href === '/org/messages' ? unread : 0);
-  const moreCount = MORE.reduce((n, it) => n + count(it.href), 0);
+  const moreCount = MORE.reduce((n, it) => n + countOf(it, counts), 0);
 
-  // Phones: the tabs scroll sideways, so bring the current one into view.
-  useEffect(() => {
-    const el = strip.current;
-    if (!el || el.scrollWidth <= el.clientWidth) return;
-    el.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView({ inline: 'center', block: 'nearest' });
-  }, [path]);
-
-  // Phones: close the menu on Escape or a tap outside it.
-  useEffect(() => {
-    if (!open || wide) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setToggled(false);
-    };
-    const onDown = (e: PointerEvent) => {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setToggled(false);
-    };
-    document.addEventListener('keydown', onKey);
-    document.addEventListener('pointerdown', onDown);
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.removeEventListener('pointerdown', onDown);
-    };
-  }, [open, wide]);
-
-  const link = (it: Item) => {
-    const active = isActive(path, it);
-    const n = count(it.href);
-    return (
-      <Link key={it.href} href={it.href} className={`${s.link} ${active ? s.active : ''}`} aria-current={active ? 'page' : undefined}>
-        {active && (
-          <motion.span
-            layoutId="nav-pill"
-            className={s.pill}
-            transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 32 }}
-            aria-hidden
-          />
-        )}
-        <span className={s.text}>{it.label}</span>
-        {n > 0 && (
-          <span className={s.count} title={COUNT_LABEL[it.href]?.[0]}>
-            {n}
-            <span className="sr-only"> {COUNT_LABEL[it.href]?.[1]}</span>
-          </span>
-        )}
-      </Link>
-    );
+  const onKey = (e: KeyboardEvent) => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return;
+    if ((e.target as HTMLElement).closest('[role="menu"]')) return;
+    const els = Array.from(nav.current?.querySelectorAll<HTMLElement>('a[href], button') ?? []).filter((el) => !el.closest('[role="menu"]'));
+    const i = els.indexOf(document.activeElement as HTMLElement);
+    if (i < 0) return;
+    e.preventDefault();
+    const n = e.key === 'Home' ? 0 : e.key === 'End' ? els.length - 1 : (i + (e.key === 'ArrowDown' ? 1 : -1) + els.length) % els.length;
+    els[n]?.focus();
   };
 
+  const pill = <motion.span layoutId="rail-pill" className={s.pill} transition={reduce ? INSTANT : SPRING} aria-hidden />;
+
   return (
-    <nav className={s.nav} aria-label="Organization">
-      <div ref={strip} className={s.primary}>
-        {PRIMARY.map(link)}
+    <nav ref={nav} className={`${s.rail} no-print`} aria-label="Organization" onKeyDown={onKey}>
+      <div className={s.group}>
+        <ThemeToggle tooltip="right" className={s.item} />
       </div>
-      <div ref={moreRef} className={s.more}>
-        <button
-          type="button"
-          className={`${s.link} ${s.moreBtn} ${moreActive && !open ? s.moreBtnOn : ''}`}
-          aria-expanded={open}
-          aria-controls="nav-more"
-          onClick={() => setToggled(!open)}
-        >
-          <span className={s.text}>More</span>
-          <span className={s.moreRight}>
-            {moreCount > 0 && !open && (
-              <span className={s.count}>
-                {moreCount}
-                <span className="sr-only"> waiting under More</span>
-              </span>
-            )}
-            <span className={`${s.chev} ${open ? s.chevOpen : ''}`} aria-hidden>
-              ▾
+      <span className={s.rule} aria-hidden />
+      <ul className={s.group}>
+        {RAIL.map((it) => {
+          const active = isActive(path, it);
+          const n = countOf(it, counts);
+          return (
+            <li key={it.href}>
+              <Tooltip label={it.label} side="right">
+                <Link href={it.href} className={s.item} aria-label={n > 0 ? `${it.label}, ${n} ${COUNT_TEXT[it.count!]}` : it.label} aria-current={active ? 'page' : undefined}>
+                  {active && pill}
+                  <Icon name={it.icon} size={20} className={s.icon} />
+                  {n > 0 && (
+                    <span className={s.count} data-tone={toneOf(it)} aria-hidden>
+                      {n > 99 ? '99+' : n}
+                    </span>
+                  )}
+                </Link>
+              </Tooltip>
+            </li>
+          );
+        })}
+      </ul>
+      <div className={`${s.group} ${s.foot}`}>
+        <Menu
+          label="More pages"
+          placement="right-end"
+          items={moreItems(path, counts, course, MORE)}
+          trigger={(p) => (
+            <Tooltip label="More" side="right">
+              <button {...p} type="button" className={s.item} aria-label={moreCount > 0 ? `More, ${moreCount} waiting` : 'More'} data-on={moreActive || undefined}>
+                {moreActive && pill}
+                <Icon name="grid" size={20} className={s.icon} />
+                {moreCount > 0 && (
+                  <span className={s.count} data-tone="amber" aria-hidden>
+                    {moreCount}
+                  </span>
+                )}
+              </button>
+            </Tooltip>
+          )}
+        />
+        <form action={signOut}>
+          <Tooltip label="Sign out" side="right">
+            <button className={s.item} aria-label="Sign out">
+              <Icon name="logout" size={20} className={s.icon} />
+            </button>
+          </Tooltip>
+        </form>
+      </div>
+    </nav>
+  );
+}
+
+export function OrgTabBar({ counts, course, signOut }: { counts: NavCounts; course: Course; signOut: () => Promise<void> }) {
+  const path = usePathname();
+  const reduce = useReducedMotion();
+  const form = useRef<HTMLFormElement>(null);
+  const theme = useSyncExternalStore(subscribeTheme, currentTheme, () => 'light' as const);
+  const moreActive = TAB_MORE.some((it) => isActive(path, it));
+  const moreCount = TAB_MORE.reduce((n, it) => n + countOf(it, counts), 0);
+  const pill = <motion.span layoutId="tab-pill" className={s.tabPill} transition={reduce ? INSTANT : SPRING} aria-hidden />;
+
+  return (
+    <nav className={`${s.tabs} no-print`} aria-label="Organization" data-tabbar>
+      {TABS.map((it) => {
+        const active = isActive(path, it);
+        const n = countOf(it, counts);
+        return (
+          <Link key={it.href} href={it.href} className={s.tab} aria-current={active ? 'page' : undefined}>
+            {active && pill}
+            <span className={s.tabIcon}>
+              <Icon name={it.icon} size={20} />
+              {n > 0 && (
+                <span className={s.tabCount} data-tone={toneOf(it)}>
+                  {n}
+                  <span className="sr-only"> {COUNT_TEXT[it.count!]}</span>
+                </span>
+              )}
             </span>
-          </span>
-        </button>
-        <div id="nav-more" className={s.menu} hidden={!open}>
-          {MORE.map(link)}
-        </div>
-      </div>
+            <span className={s.tabLabel}>{it.label}</span>
+          </Link>
+        );
+      })}
+      <Menu
+        label="More"
+        placement="top-end"
+        className={s.tabMore}
+        items={[
+          ...moreItems(path, counts, course, TAB_MORE),
+          'separator',
+          { label: theme === 'dark' ? 'Light theme' : 'Dark theme', icon: theme === 'dark' ? 'sun' : 'moon', onSelect: () => toggleTheme(document.activeElement) },
+          { label: 'Sign out', icon: 'logout', onSelect: () => form.current?.requestSubmit() },
+        ]}
+        trigger={(p) => (
+          <button {...p} type="button" className={s.tab} data-on={moreActive || undefined}>
+            {moreActive && pill}
+            <span className={s.tabIcon}>
+              <Icon name="grid" size={20} />
+              {moreCount > 0 && (
+                <span className={s.tabCount} data-tone="amber">
+                  {moreCount}
+                  <span className="sr-only"> waiting</span>
+                </span>
+              )}
+            </span>
+            <span className={s.tabLabel}>More</span>
+          </button>
+        )}
+      />
+      <form ref={form} action={signOut} hidden />
     </nav>
   );
 }

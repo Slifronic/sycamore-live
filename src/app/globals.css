@@ -33,14 +33,95 @@
   --fill: linear-gradient(90deg, #6fbf90, #1b4632);
   --ease: cubic-bezier(0.25, 0.6, 0.3, 1);
   --out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Motion tokens (REDESIGN-2026-10-25). Durations: 1 = hover/press, 2 = small
+     state change (menus, pills), 3 = entrances. The spring for pills lives in
+     motion/tokens.ts (stiffness 380, damping 32). */
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Surface tokens added with the dark theme. Use these instead of hex values
+     so a component works in both themes. */
+  --on-ink: #ffffff;            /* text on an ink (primary) button */
+  --ink-panel: #0f261b;         /* a dark contrast panel ("Happening now"); stays dark in both themes */
+  --on-ink-panel: #ffffff;      /* text on that panel */
+  --surface-2: #f0eee4;         /* the rail, segmented tracks on paper, quiet wells */
+  --hover: #fbfaf6;             /* row and button hover on paper */
+  --wash: rgba(15, 38, 27, 0.045); /* a quiet tint for hovered ghost controls */
+  --chip-neutral: #edf0ec;      /* neutral chip background */
+  --glass: rgba(247, 246, 241, 0.82); /* sticky bars over scrolling content */
+  --scrim: rgba(15, 38, 27, 0.32);
+  --skel: #ebe8dd;
+  --skel-sheen: rgba(255, 255, 255, 0.55);
+  --pop: 0 0 0 1px rgba(15, 38, 27, 0.08), 0 16px 40px -12px rgba(15, 38, 27, 0.28), 0 4px 10px -4px rgba(15, 38, 27, 0.08); /* menus, popovers, palette */
+  --grain-opacity: 0.05;
+  --grain-blend: multiply;
+  --bg-glow-a: rgba(44, 138, 87, 0.07);
+  --bg-glow-b: rgba(201, 162, 79, 0.06);
+  color-scheme: light;
+}
+
+/* Dark theme: deep canopy-ink surfaces, paper cards a step lighter, the same
+   meanings (green verified, butter needs you, blush problem) re-tuned for
+   contrast. Shadows become hairline rings: a drop shadow is invisible on a dark
+   page. Set by the no-flash script in app/layout.tsx and the ThemeToggle. */
+:root[data-theme='dark'] {
+  --parchment: #0c1712;
+  --paper: #15241c;
+  --ink: #e8efe9;
+  --ink-2: #b3c2b8;
+  --ink-3: #a1b1a6;
+  --field: #8d9c92;
+  --line: #2a3d32;
+  --line-2: #374c40;
+  --rule-soft: #1e3027;
+  --canopy: #d3e8da;
+  --primary: #6fcf97;
+  --sap: #5cbf86;
+  --primary-soft: #183326;
+  --verified: #93ddb0;
+  --verified-soft: #17392a;
+  --amber: #f1cd74;
+  --amber-soft: #3a3014;
+  --red: #f4aba1;
+  --red-soft: #41201b;
+  --mist: #16303a;
+  --mist-ink: #a5d0e3;
+  --gold: #e3be5a;
+  --star: #e8b94a;
+  --shadow: 0 0 0 1px rgba(232, 239, 233, 0.07), 0 1px 0 0 rgba(255, 255, 255, 0.03) inset, 0 12px 28px -20px rgba(0, 0, 0, 0.7);
+  --shadow-hi: 0 0 0 1px rgba(232, 239, 233, 0.14), 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 24px 48px -24px rgba(0, 0, 0, 0.8);
+  --band: linear-gradient(150deg, #24583d, #10261b);
+  --fill: linear-gradient(90deg, #6fbf90, #2e8a5a);
+
+  --on-ink: #0c1712;
+  --ink-panel: #10261b;
+  --on-ink-panel: #e8efe9;
+  --surface-2: #111f18;
+  --hover: #1a2b22;
+  --wash: rgba(232, 239, 233, 0.06);
+  --chip-neutral: #1f3128;
+  --glass: rgba(12, 23, 18, 0.8);
+  --scrim: rgba(0, 0, 0, 0.55);
+  --skel: #1c2d24;
+  --skel-sheen: rgba(255, 255, 255, 0.05);
+  --pop: 0 0 0 1px rgba(232, 239, 233, 0.12), 0 20px 48px -12px rgba(0, 0, 0, 0.7);
+  --grain-opacity: 0.035;
+  --grain-blend: soft-light;
+  --bg-glow-a: rgba(111, 207, 151, 0.06);
+  --bg-glow-b: rgba(227, 190, 90, 0.035);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
   background:
-    radial-gradient(1200px 600px at 100% 0%, rgba(44, 138, 87, 0.07), transparent 60%),
-    radial-gradient(900px 500px at 0% 100%, rgba(201, 162, 79, 0.06), transparent 60%),
+    radial-gradient(1200px 600px at 100% 0%, var(--bg-glow-a), transparent 60%),
+    radial-gradient(900px 500px at 0% 100%, var(--bg-glow-b), transparent 60%),
     var(--parchment);
   background-attachment: fixed;
   color: var(--ink);
@@ -56,7 +137,7 @@ h2 { font-size: 21px; line-height: 1.2; letter-spacing: -0.015em; }
 h3 { font-size: 15px; font-family: var(--font-sans), system-ui, sans-serif; font-weight: 700; color: var(--ink); }
 /* Paper grain over everything, like the field journal it imitates. */
 body::after {
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.05; mix-blend-mode: multiply;
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: var(--grain-opacity); mix-blend-mode: var(--grain-blend);
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); }
@@ -69,7 +150,7 @@ p { margin: 0; }
 .num { font-variant-numeric: tabular-nums; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .sr-only { position: absolute; left: 0; top: 0; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.skip { position: absolute; left: 12px; top: -60px; z-index: 200; display: inline-flex; align-items: center; min-height: 44px; background: var(--ink); color: #fff; padding: 0 14px; border-radius: 10px; font-weight: 700; text-decoration: none; }
+.skip { position: absolute; left: 12px; top: -60px; z-index: 200; display: inline-flex; align-items: center; min-height: 44px; background: var(--ink); color: var(--on-ink); padding: 0 14px; border-radius: 10px; font-weight: 700; text-decoration: none; }
 .skip:focus { top: 12px; }
 html { scroll-padding-top: 120px; scroll-padding-bottom: 110px; }
 .eyebrow-sap { color: var(--primary); }
@@ -83,14 +164,14 @@ html { scroll-padding-top: 120px; scroll-padding-bottom: 110px; }
   text-decoration: none; cursor: pointer; white-space: nowrap;
   transition: transform 0.16s var(--ease), background 0.16s var(--ease), box-shadow 0.16s var(--ease);
 }
-.btn:hover { background: #fbfaf6; transform: translateY(-1px); }
+.btn:hover { background: var(--hover); transform: translateY(-1px); }
 .btn:active { transform: translateY(1px); }
 .btn[disabled], .btn[disabled]:hover { background: var(--rule-soft); border-color: transparent; color: var(--ink-3); cursor: not-allowed; transform: none; }
-.btn-primary { background: var(--ink); border-color: var(--ink); color: #fff; }
-.btn-primary:hover { background: var(--canopy); }
+.btn-primary { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+.btn-primary:hover { background: var(--canopy); border-color: var(--canopy); }
 .btn-big { height: 52px; padding: 0 22px; font-size: 16px; border-radius: 12px; }
 .btn-quiet { border-color: transparent; background: transparent; }
-.btn-quiet:hover { background: rgba(16, 40, 29, 0.05); }
+.btn-quiet:hover { background: var(--wash); }
 .btn-sm { height: 32px; padding: 0 12px; font-size: 13px; border-radius: 8px; }
 
 .card { background: var(--paper); border: 0; border-radius: var(--radius); box-shadow: var(--shadow); }
@@ -103,10 +184,10 @@ a.card:hover, .card.lift:hover { transform: translateY(-2px); box-shadow: var(--
 .chip-green { background: var(--verified-soft); color: var(--verified); }
 .chip-amber { background: var(--amber-soft); color: var(--amber); }
 .chip-red { background: var(--red-soft); color: var(--red); }
-.chip-ink { background: #edf0ec; color: var(--ink-2); }
+.chip-ink { background: var(--chip-neutral); color: var(--ink-2); }
 .chip-gold { background: var(--amber-soft); color: var(--amber); box-shadow: 0 0 0 1px rgba(107, 76, 7, 0.15); }
 /* Silver and Bronze are earned, but butter stays reserved for Gold and "needs you". */
-.chip-silver { background: #eef0ec; color: var(--ink-2); box-shadow: 0 0 0 1px rgba(15, 38, 27, 0.08); }
+.chip-silver { background: var(--chip-neutral); color: var(--ink-2); box-shadow: 0 0 0 1px var(--line); }
 
 .field { display: grid; gap: 6px; }
 .field label { font-weight: 600; font-size: 14px; }
@@ -129,7 +210,7 @@ table.t { width: 100%; border-collapse: collapse; }
 table.t th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-2); font-weight: 700; padding: 10px 16px; border-bottom: 1px solid var(--line); background: transparent; }
 table.t td { padding: 12px 16px; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
 table.t tr:last-child td { border-bottom: 0; }
-table.t tbody tr:hover td { background: #fbfaf6; }
+table.t tbody tr:hover td { background: var(--hover); }
 table.t .r { text-align: right; }
 /* Newly checked-in rows get a still marker, not an animation: the check-in path never moves. */
 table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
@@ -137,9 +218,9 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 .avatar { width: 32px; height: 32px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--primary-soft); color: var(--canopy); font-weight: 700; font-size: 12px; flex: none; }
 
 .notice { border-radius: 10px; padding: 12px 14px; font-size: 14px; }
-.notice-amber { background: var(--amber-soft); color: #6b4107; }
-.notice-red { background: var(--red-soft); color: #7d2219; }
-.notice-green { background: var(--verified-soft); color: #145230; }
+.notice-amber { background: var(--amber-soft); color: var(--amber); }
+.notice-red { background: var(--red-soft); color: var(--red); }
+.notice-green { background: var(--verified-soft); color: var(--verified); }
 
 .bar { height: 7px; border-radius: 999px; background: var(--rule-soft); overflow: hidden; }
 .bar > span { display: block; height: 100%; background: var(--fill); border-radius: 999px; }
@@ -155,7 +236,10 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 }
 
 /* Segmented control: one choice out of a few. The pill slides (see Segmented.tsx). */
-.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--rule-soft); flex-wrap: wrap; }
+/* One row that scrolls sideways when it runs out of room (a wrapped pill track looks broken). */
+.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--rule-soft); flex-wrap: nowrap; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.seg::-webkit-scrollbar { display: none; }
+.seg-item { flex: none; white-space: nowrap; }
 .seg-item { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: none; }
 .seg-item:hover { color: var(--ink); }
 .seg-item[aria-current='page'] { color: var(--ink); }
@@ -168,13 +252,18 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 .seg-tiles .seg-item { height: auto; padding: 10px 18px; }
 .seg-tiles .seg-text { display: grid; gap: 2px; justify-items: start; }
 .seg-text { position: relative; z-index: 1; display: inline-flex; align-items: baseline; gap: 6px; }
+.seg-sm .seg-item { height: 30px; padding: 0 12px; font-size: 13px; }
+.seg-sm { flex-wrap: nowrap; }
 
 /* Page header: eyebrow, title, one-line lede, action on the right. Same on every page. */
 .page { display: grid; gap: 24px; max-width: var(--page-max); }
 .page > * { min-width: 0; }
-.page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
-.page-head > div:first-child { display: grid; gap: 4px; }
-.page-lede { color: var(--ink-3); max-width: 62ch; }
+.page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 16px; flex-wrap: wrap; }
+.page-head > div:first-child { display: grid; gap: 4px; min-width: 0; }
+.page-head .eyebrow { margin-bottom: 2px; }
+.page-lede { color: var(--ink-3); max-width: 72ch; }
+.page-head-side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.page-head-action { gap: 10px; }
 @media print {
   .no-print { display: none !important; }
   body { background: #fff; }
@@ -227,8 +316,8 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 }
 
 /* Skeletons (loading.tsx): a still parchment block with a slow sheen. */
-.skel { position: relative; overflow: hidden; border-radius: 10px; background: #ebe8dd; }
-.skel::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent); animation: skel 1.4s var(--ease) infinite; }
+.skel { position: relative; overflow: hidden; border-radius: 10px; background: var(--skel); }
+.skel::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, var(--skel-sheen), transparent); animation: skel 1.4s var(--ease) infinite; }
 @keyframes skel { to { transform: translateX(100%); } }
 .skel-line { height: 12px; }
 .skel-title { height: 30px; width: min(340px, 70%); }
@@ -271,8 +360,87 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 .nf-page { min-height: 100dvh; display: grid; place-items: center; padding: 32px 16px; }
 .nf-inner { max-width: 520px; display: grid; justify-items: center; gap: 14px; text-align: center; }
 .nf-brand { display: inline-flex; align-items: center; min-height: 44px; gap: 8px; font-family: var(--font-display), Georgia, serif; font-weight: 600; font-size: 17px; color: var(--canopy); text-decoration: none; margin-bottom: 8px; }
-.nf-illo { position: relative; width: 180px; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 60%, #efece2 0 62%, transparent 63%); }
+.nf-illo { position: relative; width: 180px; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 60%, var(--surface-2) 0 62%, transparent 63%); }
 .nf-img { object-fit: contain; mix-blend-mode: multiply; }
 .nf-title { font-size: clamp(28px, 6vw, 38px); line-height: 1.1; text-wrap: balance; }
 .nf-lede { color: var(--ink-3); font-size: 16px; }
 .nf-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 6px; }
+
+/* Tags in dark: the same six hues, darker wells and lighter text. */
+:root[data-theme='dark'] .tag-sap { --tag-bg: #1a3428; --tag-fg: #a9dbbd; --tag-dot: #5cbf86; }
+:root[data-theme='dark'] .tag-sky { --tag-bg: #172d38; --tag-fg: #a5cde2; --tag-dot: #5d9cc4; }
+:root[data-theme='dark'] .tag-sun { --tag-bg: #33291a; --tag-fg: #ecd391; --tag-dot: #d6aa3f; }
+:root[data-theme='dark'] .tag-clay { --tag-bg: #3a231b; --tag-fg: #f0bba3; --tag-dot: #d07c56; }
+:root[data-theme='dark'] .tag-plum { --tag-bg: #2e2235; --tag-fg: #d6bde4; --tag-dot: #a479bd; }
+:root[data-theme='dark'] .tag-stone { --tag-bg: #25292a; --tag-fg: #c9cbc2; --tag-dot: #9a9c91; }
+
+/* Documents stay paper in the dark theme: the hour letter and funder report
+   are printed things, so their sheet keeps the light tokens. Add .force-light
+   to any surface that must read as paper (a certificate, a QR card). */
+:root[data-theme='dark'] .paper-sheet,
+:root[data-theme='dark'] .force-light {
+  --parchment: #f7f6f1; --paper: #ffffff; --ink: #0f261b; --ink-2: #55665b; --ink-3: #5f6d64; --field: #6f6d63;
+  --line: #e2e0d6; --line-2: #d6d3c7; --rule-soft: #edebe3; --canopy: #1b4632; --primary: #1f6e45; --sap: #2c8a57;
+  --primary-soft: #edf4ee; --verified: #155030; --verified-soft: #d9efe0; --amber: #6b4c07; --amber-soft: #f9eecd;
+  --red: #8a2b21; --red-soft: #f8e0dd; --mist: #e4edf1; --mist-ink: #1f4b60; --gold: #a07c1f;
+  --shadow: 0 1px 1px rgba(15, 38, 27, 0.03), 0 10px 24px -14px rgba(15, 38, 27, 0.16), 0 0 0 1px rgba(15, 38, 27, 0.055);
+  --on-ink: #ffffff; --surface-2: #f0eee4; --hover: #fbfaf6; --wash: rgba(15, 38, 27, 0.045); --chip-neutral: #edf0ec;
+  --skel: #ebe8dd; --skel-sheen: rgba(255, 255, 255, 0.55);
+  color-scheme: light;
+  color: var(--ink);
+}
+@media print {
+  :root[data-theme='dark'] {
+  --parchment: #f7f6f1; --paper: #ffffff; --ink: #0f261b; --ink-2: #55665b; --ink-3: #5f6d64; --field: #6f6d63;
+  --line: #e2e0d6; --line-2: #d6d3c7; --rule-soft: #edebe3; --canopy: #1b4632; --primary: #1f6e45; --sap: #2c8a57;
+  --primary-soft: #edf4ee; --verified: #155030; --verified-soft: #d9efe0; --amber: #6b4c07; --amber-soft: #f9eecd;
+  --red: #8a2b21; --red-soft: #f8e0dd; --mist: #e4edf1; --mist-ink: #1f4b60; --gold: #a07c1f;
+  --shadow: 0 1px 1px rgba(15, 38, 27, 0.03), 0 10px 24px -14px rgba(15, 38, 27, 0.16), 0 0 0 1px rgba(15, 38, 27, 0.055);
+  --on-ink: #ffffff; --surface-2: #f0eee4; --hover: #fbfaf6; --wash: rgba(15, 38, 27, 0.045); --chip-neutral: #edf0ec;
+  --skel: #ebe8dd; --skel-sheen: rgba(255, 255, 255, 0.55);
+  color-scheme: light;
+  }
+}
+
+/* ── Motion kit (see docs/UI-KIT.md) ──────────────────────────────────
+   .hover-lift — a card that is a link rises 2px and its shadow deepens.
+     Pointer devices only; touch gets no sticky hover state. */
+.hover-lift { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+@media (hover: hover) {
+  .hover-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-hi); }
+}
+.hover-lift:active { transform: translateY(0); }
+
+/* .stagger — page regions arrive 50ms apart: 6px rise and a fade, 320ms.
+   Pure CSS, so content is there without JavaScript and never waits on it
+   (the animation only runs from 0 to visible; nothing is hidden at rest).
+   Children past the 8th share the last delay. <Stagger> renders this class. */
+@keyframes stagger-in { from { opacity: 0; transform: translateY(6px); } }
+.stagger > *, .stagger-item { animation: stagger-in var(--dur-3) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 50ms); }
+.stagger > :nth-child(2) { --i: 1; }
+.stagger > :nth-child(3) { --i: 2; }
+.stagger > :nth-child(4) { --i: 3; }
+.stagger > :nth-child(5) { --i: 4; }
+.stagger > :nth-child(6) { --i: 5; }
+.stagger > :nth-child(7) { --i: 6; }
+.stagger > :nth-child(n + 8) { --i: 7; }
+@media print {
+  .stagger > *, .stagger-item { animation: none !important; }
+}
+
+/* Theme wipe (shell/theme.ts): the new theme grows as a circle from the
+   toggle. The root snapshots must not cross-fade, or the old theme bleeds
+   through the circle; the clip-path animation is set from JS. Scoped to
+   .theme-wipe so route transitions keep their own animation. */
+:root.theme-wipe::view-transition-old(root),
+:root.theme-wipe::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+:root.theme-wipe::view-transition-old(root) { z-index: 1; }
+:root.theme-wipe::view-transition-new(root) { z-index: 2; }
+
+/* Keyboard hint, e.g. ⌘K in the search button and the palette footer. */
+.kbd { display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 5px; border-radius: 6px; font: 600 11px/1 var(--font-sans), system-ui, sans-serif; color: var(--ink-3); background: var(--paper); box-shadow: 0 0 0 1px var(--line-2), 0 1px 0 var(--line-2); }
+
+/* Toasts (shell/Toast.tsx) lift above a phone tab bar when one is on the page. */
+@media (max-width: 860px) {
+  :root:has([data-tabbar]) { --toast-lift: 72px; }
+}
