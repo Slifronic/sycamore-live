@@ -243,10 +243,12 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                 const needsHours = !r.checked_out_at && !r.no_show;
                 return (
                   <tr key={r.id} className={r.no_show ? s.dim : needsHours ? s.warn : ''}>
-                    <td>
-                      <input type="checkbox" checked={r.selected} onChange={(e) => set(r.id, { selected: e.target.checked })} aria-label={`Select ${r.display_name}`} />
+                    <td className={s.cSel}>
+                      <label className={s.sel}>
+                        <input type="checkbox" checked={r.selected} onChange={(e) => set(r.id, { selected: e.target.checked })} aria-label={`Select ${r.display_name}`} />
+                      </label>
                     </td>
-                    <td>
+                    <td className={s.cName}>
                       <span className="row" style={{ gap: 10 }}>
                         <span className="avatar">{initials(r.display_name)}</span>
                         <span>
@@ -269,11 +271,11 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                         </span>
                       </span>
                     </td>
-                    <td>
+                    <td className={s.cHours}>
                       <div className={s.hours}>
                         <input
                           id={`hours-${r.id}`}
-                          className="input num"
+                          className={`input num ${s.hIn}`}
                           type="number"
                           step="0.25"
                           min="0"
@@ -287,7 +289,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                         {(changed(r) || (needsHours && r.hours !== '')) && (
                           <input
                             id={`reason-${r.id}`}
-                            className="input"
+                            className={`input ${s.why}`}
                             placeholder="Why? (prints on their record)"
                             value={r.reason}
                             onChange={(e) => set(r.id, { reason: e.target.value })}
@@ -296,7 +298,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                         )}
                       </div>
                     </td>
-                    <td>
+                    <td className={s.cRole}>
                       <select className="select" style={{ height: 36, minWidth: 170 }} value={r.role} disabled={r.no_show} onChange={(e) => set(r.id, { role: e.target.value as Role })} aria-label={`Role for ${r.display_name}`}>
                         {ROLES.map((x) => (
                           <option key={x} value={x}>
@@ -305,7 +307,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                         ))}
                       </select>
                     </td>
-                    <td>
+                    <td className={s.cStar}>
                       <button
                         className={`btn btn-sm ${r.standout ? s.starOn : ''}`}
                         disabled={r.no_show}
@@ -316,7 +318,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                         <span aria-hidden>{r.standout ? '★ Standout' : '☆'}</span>
                       </button>
                     </td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td className={s.cNo} style={{ textAlign: 'right' }}>
                       <button
                         type="button"
                         className={`btn btn-sm ${r.no_show ? s.noShowOn : 'btn-quiet'}`}

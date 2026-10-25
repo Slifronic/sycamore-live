@@ -35,8 +35,8 @@
   .bar { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 14px; }
   .bar .totals :global(.figure) { font-size: 22px !important; }
 }
-/* Fingers: Yes / Partly / No at least 44px tall. */
-@media (pointer: coarse) { .segBtn { min-height: 44px; } }
+/* Fingers: Yes / Partly / No and the blocker link at least 44px tall. */
+@media (pointer: coarse) { .segBtn, .blocker { min-height: 44px; } }
 
 /* Progress feel: a hairline meter along the top of the sticky bar fills as
    blockers clear, and turns verified green when the sheet is ready. */
@@ -48,3 +48,26 @@
 /* Done: the check lands with a small stamp. */
 .check { animation: checkIn 0.6s var(--out) 0.1s both; }
 @keyframes checkIn { 0% { opacity: 0; transform: scale(0.4) rotate(-20deg); } 60% { opacity: 1; transform: scale(1.08) rotate(4deg); } 100% { transform: none; } }
+
+/* Phones: one card per person instead of a table that scrolls sideways. Name and
+   hours on top, the reason under them, then role, standout and no-show. */
+@media (max-width: 600px) {
+  .table, .table tbody { display: block; }
+  .table thead { display: none; }
+  .table tr { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto auto; grid-template-areas: 'sel name name hours' 'why why why why' 'role role star no'; gap: 8px; align-items: center; padding: 12px; border-bottom: 1px solid var(--rule-soft); }
+  .table:global(.t) td { display: block; padding: 0; border: 0; background: transparent; }
+  .table:global(.t) tbody tr:hover td { background: transparent; }
+  .table tr.warn { background: var(--amber-soft); }
+  .cSel { grid-area: sel; }
+  .cName { grid-area: name; min-width: 0; }
+  .cRole { grid-area: role; min-width: 0; }
+  .cStar { grid-area: star; }
+  .cNo { grid-area: no; }
+  .table:global(.t) .cHours, .cHours .hours { display: contents; }
+  .hIn { grid-area: hours; justify-self: end; }
+  .hours input.why { grid-area: why; min-width: 0; width: 100%; }
+  .cRole :global(.select) { width: 100%; min-width: 0 !important; }
+  .sel { display: grid; place-items: center; width: 44px; height: 44px; }
+  /* No hover on a phone: keep the boxes visible so it's clear they can be changed. */
+  .table tr:not(.warn) :global(.input):not(:hover):not(:focus), .table tr:not(.warn) :global(.select):not(:hover):not(:focus) { border-color: var(--line); background: #fff; }
+}
