@@ -1,0 +1,12 @@
+/* BrandMark: leaf, name, and a quiet "Live". Inherits the font size of the
+   link it sits in, so the header, the footer and PublicFrame size it. */
+.mark { display: inline-flex; align-items: center; gap: 0.36em; font-family: var(--font-display), Georgia, serif; font-weight: 600; letter-spacing: -0.02em; color: var(--canopy); white-space: nowrap; }
+.leaf { flex: none; transition: transform var(--dur-3) var(--ease-out); }
+.name { line-height: 1; }
+.live { line-height: 1; font-weight: 400; color: var(--ink-3); letter-spacing: -0.01em; }
+.panel { color: #fff; }
+.panel .live { color: rgba(232, 236, 230, 0.62); }
+a:hover > .mark .leaf { transform: rotate(-10deg); }
+@media (prefers-reduced-motion: reduce) {
+  a:hover > .mark .leaf { transform: none; }
+}

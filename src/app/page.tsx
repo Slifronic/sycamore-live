@@ -95,15 +95,15 @@ export default async function Home() {
                 <Icon name="arrow-right" size={20} />
               </Link>
             </div>
-            <p className={s.heroMore}>
-              Already set up? <Link href="/org/login">Coordinator sign in</Link> · <Link href={recordHref}>See a verified record</Link>
-            </p>
           </div>
           <div className={s.heroArt}>
             <HeroStage>
               <ProductMock />
             </HeroStage>
-            <p className={s.heroCaption}>The coordinator home and a volunteer’s phone, drawn from the app. Demo data, made-up names.</p>
+            <p className={s.heroCaption}>
+              <span className={s.capWide}>The coordinator home and a volunteer’s phone, drawn from the app.</span>
+              <span className={s.capNarrow}>A volunteer’s phone.</span> Demo data, made-up names.
+            </p>
           </div>
         </div>
       </section>
@@ -202,7 +202,7 @@ export default async function Home() {
                 <Link href="/join" className="btn">
                   Join as a volunteer
                 </Link>
-                <TextLink href="/volunteers">For volunteers</TextLink>
+                <TextLink href={recordHref}>See a verified record</TextLink>
               </div>
             </div>
           </Reveal>

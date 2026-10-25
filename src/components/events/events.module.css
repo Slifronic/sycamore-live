@@ -66,3 +66,6 @@
 .previewButtons :global(.btn) { pointer-events: none; }
 .dim { opacity: 0.45; }
 .fieldLabel { font-weight: 600; font-size: 14px; }
+
+/* "Repeat a past event": a menu of recent events, newest first. */
+.repeatMenu.repeatMenu { width: 320px; max-height: 360px; overflow-y: auto; }

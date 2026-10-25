@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { BrandMark } from './BrandMark';
 import { ThemeToggle } from '../shell/ThemeToggle';
 import s from './public-frame.module.css';
 
@@ -16,10 +17,7 @@ export function PublicFrame({ children, note = 'Hours recorded with SycaMore Liv
       </a>
       <header className={s.bar}>
         <Link href="/" className={s.brand}>
-          <span className={s.mark} aria-hidden="true">
-            ❦
-          </span>
-          SycaMore Live
+          <BrandMark size={20} />
         </Link>
         <Link href="/how-it-works" className={s.what}>
           What is this?

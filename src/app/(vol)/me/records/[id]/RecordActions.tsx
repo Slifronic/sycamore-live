@@ -38,20 +38,24 @@ export function RecordActions(props: { recordId: string; url: string | null; qrS
 
   return (
     <>
-      <div className={`${s.actions} no-print`}>
-        <button type="button" className={`btn btn-primary btn-big ${s.action}`} onClick={() => setSheet('share')} aria-haspopup="dialog">
-          <Icon name={props.isMinor ? 'shield' : 'share'} size={20} /> Share
+      {/* The two actions ride in a bar that sticks 8px above the tab bar, so
+          they're always in reach however long the certificate is. */}
+      <div className={`${s.actionBar} no-print`} data-single={props.revoked || undefined}>
+        <button type="button" className={`btn btn-primary ${s.action}`} onClick={() => setSheet('share')} aria-haspopup="dialog">
+          <Icon name={props.isMinor ? 'shield' : 'share'} size={20} className={s.actionIcon} /> Share
         </button>
         {!props.revoked && (
-          <button type="button" className={`btn btn-big ${s.action}`} onClick={() => setSheet('use')} aria-haspopup="dialog">
-            <Icon name="copy" size={20} /> Use this record
+          <button type="button" className={`btn ${s.action}`} onClick={() => setSheet('use')} aria-haspopup="dialog">
+            <Icon name="copy" size={20} className={s.actionIcon} /> Use this record
           </button>
         )}
+      </div>
+      <div className={`${s.below} no-print`}>
+        {props.isMinor && !props.revoked && <p className={s.minorNote}>Sharing is off until a parent or guardian OKs it, because you’re under 18.</p>}
         <button type="button" className={`btn btn-quiet ${s.print}`} onClick={() => window.print()}>
           Print or save as PDF
         </button>
       </div>
-      {props.isMinor && !props.revoked && <p className={`${s.minorNote} no-print`}>Sharing is off until a parent or guardian OKs it, because you’re under 18.</p>}
 
       <dialog
         ref={dialog}
@@ -138,7 +142,7 @@ function SharePane({ recordId, url, qrSvg, isMinor, revoked }: { recordId: strin
       <div className={s.linkRow}>
         <input className="input" readOnly value={url} aria-label="Share link" onFocus={(e) => e.target.select()} />
         <button type="button" className="btn btn-primary" onClick={() => copy(url, 'Link')}>
-          <Icon name="copy" size={16} /> Copy
+          <Icon name="copy" size={16} className={s.actionIcon} /> Copy
         </button>
       </div>
       <div className="row wrap" style={{ gap: 8 }}>
@@ -197,7 +201,7 @@ function UsePane({ recordId, orgName }: { recordId: string; orgName: string }) {
             <textarea id={id} className="input" rows={4} value={text} onChange={(e) => setText(e.target.value)} />
           </div>
           <button type="button" className="btn btn-primary" onClick={() => copy(text, 'Text')}>
-            <Icon name="copy" size={16} /> Copy
+            <Icon name="copy" size={16} className={s.actionIcon} /> Copy
           </button>
           <p className={s.paneFine}>
             Hours from {orgName}’s attested record. {source === 'template' ? 'This is a plain template; edit it before you use it.' : 'The wording is AI-drafted; edit it before you use it.'}

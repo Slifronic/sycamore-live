@@ -1,7 +1,7 @@
 import { requireOrg } from '@/lib/session';
 import { loadOrgInsights } from '@/lib/insights';
 import { BADGES, badgeByKey } from '@/lib/badges';
-import { SignBadgeForm } from './SignBadgeForm';
+import { SignAllForm, SignBadgeForm } from './SignBadgeForm';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
@@ -18,22 +18,23 @@ export default async function BadgesPage() {
   const ins = await loadOrgInsights(org.id);
   const earnedCount = (key: string) => ins.awards.filter((a) => a.badge === key).length;
   const ready = ins.badgeReady.length;
+  // "Sign all" covers the badges whose rule needs no note; the rest need the coordinator's words.
+  const quick = ins.badgeReady.filter((r) => !badgeByKey[r.badge].needsNote).length;
 
   return (
     <Stagger className="page">
       <PageHeader
         className={s.head}
         eyebrow="Recognition"
-        title={
-          <span className={s.titleRow}>
-            Badges
-            <HelpTip label="How badges work" more={{ href: '/org/learn', label: 'Lesson: sign off a badge' }}>
-              <p>SycaMore finds who meets each badge’s rule in your verified hours and roles.</p>
-              <p>A badge only counts once you sign it, with your note where the badge asks for one. It says which rule was met, never a skill.</p>
-            </HelpTip>
-          </span>
-        }
+        title="Badges"
         lede={ready ? `${ready} waiting for your signature.` : 'Nobody is waiting for your signature.'}
+        help={
+          <HelpTip label="How badges work" placement="bottom-end" more={{ href: '/org/learn', label: 'Lesson: sign off a badge' }}>
+            <p>SycaMore finds who meets each badge’s rule in your verified hours and roles.</p>
+            <p>A badge only counts once you sign it, with your note where the badge asks for one. It says which rule was met, never a skill.</p>
+          </HelpTip>
+        }
+        action={quick >= 2 ? <SignAllForm count={quick} /> : undefined}
       />
 
       <section className="stack" aria-labelledby="ready-h">
@@ -45,31 +46,31 @@ export default async function BadgesPage() {
             <EmptyState icon="award" title="Nobody is waiting" hint="When someone meets a badge’s rule in your verified events, they show up here." compact />
           </Card>
         ) : (
-          <div className={s.readyGrid}>
-            {ins.badgeReady.map(({ v, badge }) => {
-              const def = badgeByKey[badge];
-              return (
-                <Card key={`${v.key}-${badge}`} className={s.ready}>
-                  <div className={s.readyTop}>
+          <Card>
+            <ul className={s.readyList}>
+              {ins.badgeReady.map(({ v, badge }) => {
+                const def = badgeByKey[badge];
+                return (
+                  <li key={`${v.key}-${badge}`} className={s.readyRow}>
                     <span className={s.medal} aria-hidden>
-                      <Icon name="award" size={20} />
+                      <Icon name="award" size={16} />
                     </span>
-                    <div className={s.readyText}>
-                      <h3>{v.name}</h3>
-                      <p className={s.badgeName}>{def.name}</p>
-                    </div>
-                  </div>
-                  <p className={s.facts}>
-                    <span>
-                      <span className="num">{v.events}</span> events · <span className="num">{v.hours}</span> hours
+                    <span className={s.who}>
+                      <strong>{v.name}</strong>
+                      <span className={s.badgeName}>{def.name}</span>
                     </span>
-                    <span className={s.rule}>{def.rule}</span>
-                  </p>
-                  <SignBadgeForm volunteerId={v.volunteer_id!} badge={badge} badgeName={def.name} volunteerName={v.name} needsNote={def.needsNote} />
-                </Card>
-              );
-            })}
-          </div>
+                    <span className={s.evidence}>
+                      <span className={s.evidenceFacts}>
+                        <span className="num">{v.events}</span> events · <span className="num">{v.hours}</span> hours
+                      </span>
+                      <span className={s.rule}>{def.rule}</span>
+                    </span>
+                    <SignBadgeForm volunteerId={v.volunteer_id!} badge={badge} badgeName={def.name} volunteerName={v.name} needsNote={def.needsNote} />
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
         )}
       </section>
 

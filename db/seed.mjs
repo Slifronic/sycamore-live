@@ -197,9 +197,16 @@ async function main() {
   // random; this one is fixed so it can go on a slide.) Jay is 16: he can see
   // his records but can't share them.
   await sql`update volunteer set hours_goal = 40 where id = ${ana.id}`;
-  // Everyone in the demo agreed to the Terms when they joined; nobody has opted
-  // in to announcements (that stays off until a volunteer turns it on).
+  // Everyone in the demo agreed to the Terms when they joined. About three in
+  // five adults turned announcements on (a stable pick by email, so reseeds
+  // match); no one under 18 is opted in.
   await sql`update volunteer set terms_accepted_at = created_at where terms_accepted_at is null`;
+  await sql`
+    update volunteer set marketing_opt_in = true, marketing_opt_in_at = terms_accepted_at
+    where date_of_birth <= current_date - interval '18 years'
+      and (id = ${ana.id} or abs(hashtext(email)) % 5 < 3)`;
+  // The 13 to 17s also confirmed a parent or guardian knows (guardian_ack_at).
+  await sql`update volunteer set guardian_ack_at = terms_accepted_at where date_of_birth > current_date - interval '18 years'`;
   await sql`
     update record r set code = 'SYC-RVR7-PLNT', shared_at = r.issued_at + interval '1 day'
     from attendance a where a.id = r.attendance_id and a.event_id = ${plantings[2].id} and r.volunteer_id = ${ana.id}`;
@@ -300,11 +307,69 @@ async function main() {
 
   await seedIntake(sql, org.id);
   const discoverEvents = await seedDiscover(sql);
+  await seedOtherOrgsForAna(ana);
 
-  const [t] = await sql`select count(*)::int as n, coalesce(sum(coalesce(hours_adjusted, hours_captured)),0)::float as h from attendance where status = 'attested'`;
+  const [t] = await sql`select count(*)::int as n, coalesce(sum(coalesce(a.hours_adjusted, a.hours_captured)),0)::float as h from attendance a join event e on e.id = a.event_id where a.status = 'attested' and e.org_id = ${org.id}`;
   console.log(`Seeded Riverside Restoration Crew (PIN 246810): ${vols.length} volunteers, ${t.n} attested attendances, ${t.h} hours.`);
   console.log(`Seeded 3 more organizations for Discover (PINs 135790, 864202, 975318): ${discoverEvents} upcoming public events.`);
   await sql.end();
+}
+
+// Ana also serves with two of the Discover organizations, so the volunteer
+// home shows three folders. Three past, verified events in Sep and Oct with
+// six made-up regulars; nothing here touches Riverside's numbers.
+async function seedOtherOrgsForAna(ana) {
+  const regulars = [
+    ['Rhea Castillo', 'rhea.castillo@example.test', '2003-08-14'],
+    ['Malik Johnson', 'malik.johnson@example.test', '2001-11-02'],
+    ['Bea Lindqvist', 'bea.lindqvist@example.test', '2004-02-19'],
+    ['Tomas Ferreira', 'tomas.ferreira@example.test', '2002-06-30'],
+    ['Ines Duarte', 'ines.duarte@example.test', '2005-01-09'],
+    ['Kofi Mensah', 'kofi.mensah@example.test', '2000-09-21'],
+  ];
+  const who = { 'ana@example.test': ana };
+  for (const [i, [name, email, dob]] of regulars.entries()) {
+    const joined = at(-54 + i, 18);
+    const [v] = await sql`insert into volunteer (name, email, date_of_birth, created_at, terms_accepted_at) values (${name}, ${email}, ${dob}, ${joined}, ${joined}) returning id, name`;
+    who[email] = v;
+  }
+  const events = [
+    {
+      org: 'Eastside Learning Circle', title: 'Saturday Reading Buddies', location: 'Eastside Branch Library, San José', day: -43, from: [10, 0], to: [12, 0], lagH: 21, code: 'ELRB12', activity: 'education', rating: 5,
+      goal: 'Read one-on-one with 12 second graders', outcome: 'Read with 14 kids; 9 finished a chapter book',
+      crew: [['ana@example.test', 0, 'general'], ['rhea.castillo@example.test', 2, 'team_lead'], ['bea.lindqvist@example.test', 1, 'general'], ['ines.duarte@example.test', 4, 'general'], ['kofi.mensah@example.test', 3, 'general']],
+    },
+    {
+      org: 'Northside Neighbors Pantry', title: 'Fall Food Drive Sort', location: 'Northside Neighbors Pantry, San José', day: -29, from: [9, 0], to: [12, 30], lagH: 22.5, code: 'NNFD26', activity: 'logistics', rating: 4,
+      goal: 'Sort the fall food drive into family boxes', outcome: 'Sorted 900 lbs into 96 family boxes',
+      crew: [['ana@example.test', 1, 'team_lead'], ['malik.johnson@example.test', 0, 'event_coordinator'], ['tomas.ferreira@example.test', 2, 'general'], ['kofi.mensah@example.test', 5, 'general'], ['bea.lindqvist@example.test', 3, 'general']],
+    },
+    {
+      org: 'Eastside Learning Circle', title: 'Homework Help Night', location: 'Eastside Branch Library, San José', day: -18, from: [16, 0], to: [18, 0], lagH: 16, code: 'ELHW07', activity: 'education', rating: 5,
+      goal: 'Help 15 students finish the week’s homework', outcome: 'Helped 17 students; math and reading',
+      crew: [['ana@example.test', 2, 'general'], ['rhea.castillo@example.test', 0, 'team_lead'], ['malik.johnson@example.test', 4, 'general'], ['ines.duarte@example.test', 1, 'general']],
+    },
+  ];
+  for (const e of events) {
+    const [o] = await sql`select id from org where name = ${e.org}`;
+    const starts = at(e.day, ...e.from);
+    const ends = at(e.day, ...e.to);
+    const attested = new Date(ends.getTime() + e.lagH * 3_600_000);
+    const hours = (ends - starts) / 3_600_000;
+    const [ev] = await sql`
+      insert into event (org_id, title, location, starts_at, ends_at, checkin_code, status, closed_at, activity, goal_outcome, cohort_rating, attested_at, goal_text, outcome_text)
+      values (${o.id}, ${e.title}, ${e.location}, ${starts}, ${ends}, ${e.code}, 'closed', ${attested}, ${e.activity}, 'yes', ${e.rating}, ${attested}, ${e.goal}, ${e.outcome})
+      returning id`;
+    for (const [email, late, role] of e.crew) {
+      const v = who[email];
+      const inAt = addMin(starts, late);
+      const [a] = await sql`
+        insert into attendance (event_id, volunteer_id, display_name, method, checked_in_at, checked_out_at, hours_captured, role, status, attested_at)
+        values (${ev.id}, ${v.id}, ${v.name}, 'qr', ${inAt}, ${addMin(inAt, hours * 60)}, ${hours}, ${role}, 'attested', ${attested})
+        returning id`;
+      await sql`insert into record (attendance_id, volunteer_id, org_id, issued_at) values (${a.id}, ${v.id}, ${o.id}, ${attested})`;
+    }
+  }
 }
 
 main().catch(async (e) => {

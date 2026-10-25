@@ -4,7 +4,12 @@
   --topbar-h: 64px;
   display: grid; grid-template-columns: 84px minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100vh;
 }
-.main { grid-column: 2; grid-row: 2; padding: 24px 32px 64px 20px; min-width: 0; }
+/* The page column is fluid with a 32px gutter on both sides (the rail's edge
+   on the left, the top bar's right edge on the right), capped and centred on
+   very wide screens. Pages that use .page (max-width: var(--page-max)) widen
+   with it. */
+.main { --page-max: 1360px; grid-column: 2; grid-row: 2; padding: 24px 32px 64px 20px; min-width: 0; }
+.col { max-width: var(--page-max); margin-inline: auto; min-width: 0; }
 .main:focus { outline: none; }
 
 @media (max-width: 860px) {
@@ -15,3 +20,6 @@
   .shell { display: block; }
   .main { padding: 0; }
 }
+/* A page narrower than the column (Learn, a letter, a form) sits centred,
+   never pinned left with a dead gutter on the right. */
+.col > :global(.page) { margin-inline: auto; }

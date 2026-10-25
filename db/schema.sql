@@ -85,6 +85,9 @@ create table volunteer (
   -- Privacy Policy" at join or walk-in, and their announcements opt-in
   -- (marketing consent: off until they turn it on in Me, with the time).
   terms_accepted_at timestamptz,
+  -- 13 to 17: when they also confirmed "a parent or guardian knows I'm using
+  -- SycaMore" (at join or walk-in). Null for adults.
+  guardian_ack_at timestamptz,
   marketing_opt_in boolean not null default false,
   marketing_opt_in_at timestamptz
 );

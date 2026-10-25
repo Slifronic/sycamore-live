@@ -1,19 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '../shell/icons';
 import type { OrgColor } from './org-color';
 import s from './folders.module.css';
 
-// "Your organizations": each organization is a frosted folder, and its
-// attested records are the papers inside. Hover (or press and hold on a
-// phone) lifts the papers a few pixels; a tap opens the folder and the record
-// cards fan out below it, each linking to its record. It's a disclosure: the
-// folder is a button with aria-expanded, Escape closes it, and reduced motion
-// shows the list with no fan. CSS transforms and one motion list, nothing
-// heavier, so it stays smooth on a phone.
+// "Your organizations": each organization is a folder, and its attested
+// records are the papers inside. Hover (or press and hold on a phone) lifts
+// the papers a few pixels. A tap opens the folder: the three newest papers fan
+// up out of it (each one links to its record) and any older records list
+// below that folder, in its own column. It's a disclosure: the folder front is
+// a button with aria-expanded, Escape closes it, and the papers are inert
+// while it's closed. CSS transforms only; reduced motion shows the open state
+// with no movement.
 
 export type FolderRecord = {
   id: string;
@@ -36,14 +36,17 @@ export type Folder = {
   hours: string;
   hoursLabel: string; // "12 verified hours"
   count: number;
-  since: string; // "Since Aug 2026"
+  since: string; // "since Aug 2026"
   records: FolderRecord[];
 };
 
 const HOLD_MS = 280;
 
+const recordLabel = (r: FolderRecord) => `${r.title}, ${r.when}, ${r.hours} ${r.hours === '1' ? 'hour' : 'hours'}${r.revoked ? ', revoked' : ''}`;
+
+const roleLine = (r: FolderRecord) => `${r.role}${r.adjusted ? ' · adjusted' : ''}${r.revoked ? ' · revoked' : r.shared ? ' · shared' : ''}`;
+
 export function OrgFolders({ folders }: { folders: Folder[] }) {
-  const reduce = useReducedMotion();
   const [open, setOpen] = useState<string | null>(null);
   const [peek, setPeek] = useState<string | null>(null);
   const hold = useRef<{ t: ReturnType<typeof setTimeout> | null; fired: boolean }>({ t: null, fired: false });
@@ -75,11 +78,12 @@ export function OrgFolders({ folders }: { folders: Folder[] }) {
     <div className={s.grid}>
       {folders.map((f) => {
         const isOpen = open === f.orgId;
-        const papers = f.records.slice(0, 3).reverse(); // back to front; the newest sits in front
+        const papers = f.records.slice(0, 3);
+        const rest = f.records.slice(3);
         const regionId = `folder-${f.orgId}`;
         return (
-          <Fragment key={f.orgId}>
-            <div className={`${s.wrap} tag-${f.color}`} data-open={isOpen || undefined} data-peek={peek === f.orgId || undefined}>
+          <div key={f.orgId} className={`${s.wrap} tag-${f.color}`} data-open={isOpen || undefined} data-peek={peek === f.orgId || undefined}>
+            <div className={s.stage}>
               <button
                 type="button"
                 ref={(el) => {
@@ -111,17 +115,6 @@ export function OrgFolders({ folders }: { folders: Folder[] }) {
                 onContextMenu={(e) => e.preventDefault()}
               >
                 <span className={s.back} aria-hidden />
-                <span className={s.papers} aria-hidden>
-                  {papers.map((r, i) => (
-                    <span key={r.id} className={`${s.paper} force-light`} data-i={papers.length - 1 - i}>
-                      <span className={s.paperTitle}>{r.title}</span>
-                      <span className={s.paperMeta}>
-                        {r.month} {r.day} · {r.hours} h
-                      </span>
-                      <span className={s.paperLines} />
-                    </span>
-                  ))}
-                </span>
                 <span className={s.front}>
                   <span className={s.tile} aria-hidden>
                     {f.initials}
@@ -142,63 +135,53 @@ export function OrgFolders({ folders }: { folders: Folder[] }) {
                   </span>
                 </span>
               </button>
+
+              {/* The papers sit between the folder's back and its front. Closed,
+                  they only peek out; open, they fan up and each is a link. */}
+              <ul id={regionId} className={s.papers} aria-label={`Newest records from ${f.name}`} inert={!isOpen}>
+                {papers.map((r, i) => (
+                  <li key={r.id} className={s.paper} data-i={i}>
+                    <Link href={`/me/records/${r.id}`} className={s.paperLink} aria-label={recordLabel(r)}>
+                      <span className={s.paperTitle}>{r.title}</span>
+                      <span className={s.paperMeta}>
+                        {r.month} {r.day} · {r.hours} h
+                      </span>
+                      <span className={s.paperRole}>{roleLine(r)}</span>
+                      <span className={s.paperLines} aria-hidden />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.section
-                  key="region"
-                  id={regionId}
-                  className={s.region}
-                  aria-label={`Records from ${f.name}`}
-                  initial={reduce ? false : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={reduce ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, transition: { duration: 0.14 } }}
-                >
-                  <ul className={s.list}>
-                    {f.records.map((r, i) => (
-                      <motion.li
-                        key={r.id}
-                        initial={reduce ? false : { opacity: 0, y: -44 - Math.min(i, 4) * 10, rotate: (i % 2 ? 1 : -1) * (3 + (i % 3)), scale: 0.94 }}
-                        animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
-                        transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34, delay: Math.min(i, 8) * 0.045 }}
-                      >
-                        <Link href={`/me/records/${r.id}`} className={`${s.rec} hover-lift tag-${f.color}`}>
-                          <span className={s.date} aria-hidden>
-                            <span>{r.month}</span>
-                            <b>{r.day}</b>
-                          </span>
-                          <span className={s.recBody}>
-                            <span className={s.recTitle}>{r.title}</span>
-                            <span className={s.recMeta}>
-                              <span className="sr-only">{r.when} · </span>
-                              {r.role}
-                              {r.adjusted ? ' · adjusted' : ''}
-                              {r.revoked ? ' · revoked' : r.shared ? ' · shared' : ''}
-                            </span>
-                          </span>
-                          <span className={s.recHours}>
-                            {r.hours}
-                            <span className={s.unit}>h</span>
-                          </span>
-                          <Icon name="chevron-right" size={16} className={s.recChev} />
-                        </Link>
-                      </motion.li>
-                    ))}
-                  </ul>
-                </motion.section>
-              )}
-            </AnimatePresence>
-          </Fragment>
+            {isOpen && rest.length > 0 && (
+              <ul className={s.rest} aria-label={`Older records from ${f.name}`}>
+                {rest.map((r) => (
+                  <li key={r.id}>
+                    <Link href={`/me/records/${r.id}`} className={s.rec}>
+                      <span className={s.date} aria-hidden>
+                        <span>{r.month}</span>
+                        <b>{r.day}</b>
+                      </span>
+                      <span className={s.recBody}>
+                        <span className={s.recTitle}>{r.title}</span>
+                        <span className={s.recMeta}>
+                          <span className="sr-only">{r.when} · </span>
+                          {roleLine(r)}
+                        </span>
+                      </span>
+                      <span className={s.recHours}>
+                        {r.hours}
+                        <span className={s.unit}>h</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         );
       })}
-      <Link href="/discover" className={s.ghost}>
-        <span className={s.ghostIcon} aria-hidden>
-          <Icon name="plus" size={20} />
-        </span>
-        <span className={s.ghostTitle}>Serve somewhere new</span>
-        <span className={s.ghostHint}>Find an upcoming event on Discover</span>
-      </Link>
     </div>
   );
 }

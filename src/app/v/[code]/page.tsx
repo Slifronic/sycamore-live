@@ -110,7 +110,7 @@ export default async function VerifyPage({ params }: PageProps<'/v/[code]'>) {
               <a className="btn btn-sm" href={`tel:${tel}`}>
                 Call {r.org.contact_phone}
               </a>
-              <a className="btn btn-sm btn-quiet" href={`mailto:${r.org.contact_email}?subject=${encodeURIComponent(`Service record ${r.code}`)}`}>
+              <a className="btn btn-sm" href={`mailto:${r.org.contact_email}?subject=${encodeURIComponent(`Service record ${r.code}`)}`}>
                 {r.org.contact_email}
               </a>
             </div>

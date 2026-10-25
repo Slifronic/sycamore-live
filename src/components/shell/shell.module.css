@@ -1,7 +1,7 @@
 /* Coordinator top bar (OrgTopBar.tsx). The tile sits centred over the rail. */
 .top {
   position: sticky; top: 0; z-index: 45; grid-column: 1 / -1;
-  display: flex; align-items: center; gap: 12px; height: var(--topbar-h, 64px); padding: 0 20px 0 22px;
+  display: flex; align-items: center; gap: 12px; height: var(--topbar-h, 64px); padding: 0 32px 0 22px;
   background: var(--glass); backdrop-filter: saturate(1.4) blur(14px);
   border-bottom: 1px solid var(--rule-soft);
 }
@@ -22,13 +22,13 @@
 
 .actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: none; }
 .search {
-  display: inline-flex; align-items: center; gap: 8px; height: 40px; min-width: 210px; padding: 0 8px 0 12px; border: 0; border-radius: 12px;
+  display: inline-flex; align-items: center; gap: 8px; height: 36px; min-width: 210px; padding: 0 8px 0 12px; border: 0; border-radius: 10px;
   background: var(--paper); box-shadow: var(--shadow); color: var(--ink-3); font: 500 14px var(--font-sans), system-ui, sans-serif; cursor: pointer;
   transition: box-shadow var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
 }
 .search:hover { color: var(--ink-2); box-shadow: var(--shadow-hi); }
 .searchText { flex: 1; text-align: left; }
-.newBtn { height: 40px; padding: 0 14px 0 12px; gap: 6px; border-radius: 12px; }
+.newBtn { height: 36px; padding: 0 14px 0 11px; gap: 6px; border-radius: 10px; }
 
 .me {
   display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 8px 0 3px; border: 0; border-radius: 999px;

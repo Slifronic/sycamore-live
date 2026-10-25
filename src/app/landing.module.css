@@ -22,12 +22,16 @@
 .path svg { flex: none; transition: transform var(--dur-2) var(--ease-out); }
 .path:hover svg { transform: translateX(3px); }
 
-.heroMore { font-size: 14px; color: var(--ink-3); }
-.heroMore a { color: var(--ink); font-weight: 650; text-underline-offset: 3px; text-decoration-color: var(--line-2); }
-.heroMore a:hover { text-decoration-color: currentColor; }
 
 .heroArt { min-width: 0; display: grid; gap: 12px; }
 .heroCaption { font-size: 12.5px; color: var(--field); padding-left: 2px; }
+.capNarrow { display: none; }
+/* Under 640px the hero shows only the phone (ProductMock hides the window). */
+@media (max-width: 639px) {
+  .capWide { display: none; }
+  .capNarrow { display: inline; }
+  .heroCaption { text-align: center; padding-left: 0; }
+}
 
 /* ── 2 · How it works ─────────────────────────────────────── */
 .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
@@ -38,7 +42,7 @@
 .stepNum { font-size: 12px; font-weight: 700; color: var(--field); font-variant-numeric: tabular-nums; }
 
 /* ── 3 · Proof ────────────────────────────────────────────── */
-.proof { padding: clamp(44px, 6vw, 72px) 0; border-block: 1px solid var(--line); background: var(--surface-2); }
+.proof { padding: clamp(56px, 6vw, 80px) 0; border-block: 1px solid var(--line); background: var(--surface-2); }
 .proofGrid {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);

@@ -5,6 +5,7 @@ import { useMemo, useState, useTransition } from 'react';
 import { ROLE_LABEL, type AttendanceRow, type Role } from '@/lib/types';
 import { verifyEvent } from '../../../../actions';
 import { Icon } from '@/components/shell/icons';
+import { Menu } from '@/components/ui/Popover';
 import s from './verify.module.css';
 
 type Row = Pick<AttendanceRow, 'id' | 'display_name' | 'method'> & {
@@ -45,7 +46,6 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
   const [rating, setRating] = useState<number | null>(null);
   const [outcome, setOutcome] = useState('');
   const [filter, setFilter] = useState('');
-  const [bulkRole, setBulkRole] = useState<Role>('team_lead');
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -175,7 +175,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
             {[1, 2, 3, 4, 5].map((n) => (
               <label key={n} className={`${s.star} ${rating && n <= rating ? s.starLit : ''}`}>
                 <input type="radio" name="rating" className="sr-only" checked={rating === n} onChange={() => setRating(n)} />
-                <span aria-hidden>★</span>
+                <Icon name="star" size={20} fill={rating && n <= rating ? 'currentColor' : 'none'} />
                 <span className="sr-only">
                   {n} star{n > 1 ? 's' : ''}
                 </span>
@@ -197,34 +197,31 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
 
       <section className="card">
         <div className="card-head wrap">
-          <div className="row wrap" style={{ gap: 8 }}>
-            <button className="btn btn-sm" onClick={() => setRows((rs) => rs.map((r) => ({ ...r, no_show: false })))}>
+          {/* Every toolbar control is 36px. */}
+          <div className={s.toolbar}>
+            <button className={`btn ${s.tool}`} onClick={() => setRows((rs) => rs.map((r) => ({ ...r, no_show: false })))}>
               Everyone was here
             </button>
             {missing.length > 0 && (
-              <button className="btn btn-sm btn-primary" onClick={fillMissing}>
+              <button className={`btn btn-primary ${s.tool}`} onClick={fillMissing}>
                 Fill in {missing.length} who didn’t scan out
               </button>
             )}
-            <span className="row small" style={{ gap: 6 }}>
-              <label htmlFor="bulk-role" className="small muted">
-                Set role for selected:
-              </label>
-              <select id="bulk-role" className="select" style={{ height: 32, width: 170 }} value={bulkRole} onChange={(e) => setBulkRole(e.target.value as Role)}>
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {ROLE_LABEL[r]}
-                  </option>
-                ))}
-              </select>
-              <button className="btn btn-sm" disabled={!selected} onClick={() => setRows((rs) => rs.map((r) => (r.selected ? { ...r, role: bulkRole, selected: false } : r)))}>
-                Apply{selected ? ` to ${selected}` : ''}
-              </button>
-            </span>
+            <Menu
+              label="Set role for selected"
+              placement="bottom-start"
+              items={ROLES.map((x) => ({
+                label: ROLE_LABEL[x],
+                onSelect: () => setRows((rs) => rs.map((r) => (r.selected ? { ...r, role: x, selected: false } : r))),
+              }))}
+              trigger={(p) => (
+                <button {...p} type="button" className={`btn ${s.tool}`} disabled={!selected} title={selected ? undefined : 'Tick people first'}>
+                  {selected ? `Set role for ${selected}` : 'Set role'} <Icon name="chevron-down" size={16} />
+                </button>
+              )}
+            />
           </div>
-          {rows.length > 10 && (
-            <input className="input" style={{ height: 34, width: 220 }} placeholder="Find a name" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Find a name" />
-          )}
+          {rows.length > 10 && <input className={`input ${s.find}`} placeholder="Find a name" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Find a name" />}
         </div>
         <div style={{ overflowX: 'auto', position: 'relative' }}>
           <table className={`t ${s.table}`}>
@@ -303,13 +300,18 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                       </div>
                     </td>
                     <td className={s.cRole}>
-                      <select className="select" style={{ height: 36, minWidth: 170 }} value={r.role} disabled={r.no_show} onChange={(e) => set(r.id, { role: e.target.value as Role })} aria-label={`Role for ${r.display_name}`}>
-                        {ROLES.map((x) => (
-                          <option key={x} value={x}>
-                            {ROLE_LABEL[x]}
-                          </option>
-                        ))}
-                      </select>
+                      <Menu
+                        label={`Role for ${r.display_name}`}
+                        placement="bottom-start"
+                        className={s.roleWrap}
+                        items={ROLES.map((x) => ({ label: ROLE_LABEL[x], current: x === r.role, icon: x === r.role ? ('check' as const) : undefined, onSelect: () => set(r.id, { role: x }) }))}
+                        trigger={(p) => (
+                          <button {...p} type="button" className={s.role} disabled={r.no_show} aria-label={`Role for ${r.display_name}: ${ROLE_LABEL[r.role]}`}>
+                            <span className={s.roleText}>{ROLE_LABEL[r.role]}</span>
+                            <Icon name="chevron-down" size={16} />
+                          </button>
+                        )}
+                      />
                     </td>
                     <td className={s.cStar}>
                       <button
@@ -319,7 +321,8 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                         aria-label={`Standout: ${r.display_name}`}
                         onClick={() => set(r.id, { standout: !r.standout })}
                       >
-                        <span aria-hidden>{r.standout ? '★ Standout' : '☆'}</span>
+                        <Icon name="star" size={16} fill={r.standout ? 'currentColor' : 'none'} />
+                        {r.standout && <span aria-hidden>Standout</span>}
                       </button>
                     </td>
                     <td className={s.cNo} style={{ textAlign: 'right' }}>

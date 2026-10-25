@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import s from './consent.module.css';
 
 // The required agreement on /join and the walk-in page. 13 to 17 also confirm
@@ -23,6 +24,13 @@ export const isTeen = (dob: string) => {
 
 export function Consent({ dob, checked, onChange, big = false }: { dob: string; checked: boolean; onChange: (v: boolean) => void; big?: boolean }) {
   const teen = isTeen(dob);
+  // A box ticked under the adult wording doesn't carry over once a 13 to 17
+  // birth date adds the guardian clause: they tick it again for that.
+  const wasTeen = useRef(teen);
+  useEffect(() => {
+    if (teen && !wasTeen.current && checked) onChange(false);
+    wasTeen.current = teen;
+  }, [teen, checked, onChange]);
   return (
     <label className={`${s.consent} ${big ? s.big : ''}`}>
       <input type="checkbox" name="consent" required checked={checked} onChange={(e) => onChange(e.target.checked)} className={s.box} />

@@ -19,7 +19,8 @@ export type Waiting = { id: string; title: string; ended: string };
 /**
  * The coordinator's top bar (the Vessa layout): org tile and name; the
  * section's sub-view switcher; search (⌘K); the bell with events waiting to be
- * verified; "+ New"; and the avatar with a Pacific-time greeting, which opens
+ * verified; "+ New" (paper, so the page's own primary stays the one ink
+ * button); and the avatar with a Pacific-time greeting, which opens
  * the account panel (PIN, theme, sign out).
  */
 export function OrgTopBar({
@@ -157,7 +158,7 @@ export function OrgTopBar({
             ...(importHref ? [{ label: 'Import paper sheet', hint: 'Photo of a sign-in sheet', href: importHref, icon: 'clipboard' as const }] : []),
           ]}
           trigger={(p) => (
-            <button {...p} type="button" className={`btn btn-primary ${s.newBtn}`} aria-label="New">
+            <button {...p} type="button" className={`btn btn-secondary ${s.newBtn}`} aria-label="New">
               <Icon name="plus" size={16} strokeWidth={2} />
               <span className={s.newText}>New</span>
             </button>

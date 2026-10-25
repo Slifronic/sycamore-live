@@ -5,8 +5,8 @@
   --parchment: #f7f6f1;
   --paper: #ffffff;
   --ink: #0f261b;
-  --ink-2: #55665b;   /* bark */
-  --ink-3: #5f6d64;   /* lichen */
+  --ink-2: #46564c;   /* bark: secondary text (7.4:1 on paper) */
+  --ink-3: #66726a;   /* lichen: captions, meta (5.0:1 on paper, 4.6:1 on parchment) */
   --field: #6f6d63;   /* passes 4.5:1 as small text */
   --line: #e2e0d6;    /* rule */
   --line-2: #d6d3c7;
@@ -53,7 +53,7 @@
   --wash: rgba(15, 38, 27, 0.045); /* a quiet tint for hovered ghost controls */
   --chip-neutral: #edf0ec;      /* neutral chip background */
   --glass: rgba(247, 246, 241, 0.82); /* sticky bars over scrolling content */
-  --scrim: rgba(15, 38, 27, 0.32);
+  --scrim: rgba(15, 38, 27, 0.4);   /* modal backdrop: a plain 40% dim, no blur */
   --skel: #ebe8dd;
   --skel-sheen: rgba(255, 255, 255, 0.55);
   --pop: 0 0 0 1px rgba(15, 38, 27, 0.08), 0 16px 40px -12px rgba(15, 38, 27, 0.28), 0 4px 10px -4px rgba(15, 38, 27, 0.08); /* menus, popovers, palette */
@@ -73,7 +73,7 @@
   --paper: #15241c;
   --ink: #e8efe9;
   --ink-2: #b3c2b8;
-  --ink-3: #a1b1a6;
+  --ink-3: #909f95;
   --field: #8d9c92;
   --line: #2a3d32;
   --line-2: #374c40;
@@ -164,11 +164,17 @@ html { scroll-padding-top: 120px; scroll-padding-bottom: 110px; }
   text-decoration: none; cursor: pointer; white-space: nowrap;
   transition: transform 0.16s var(--ease), background 0.16s var(--ease), box-shadow 0.16s var(--ease);
 }
+.btn svg { flex-shrink: 0; }
 .btn:hover { background: var(--hover); transform: translateY(-1px); }
 .btn:active { transform: translateY(1px); }
 .btn[disabled], .btn[disabled]:hover { background: var(--rule-soft); border-color: transparent; color: var(--ink-3); cursor: not-allowed; transform: none; }
 .btn-primary { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
 .btn-primary:hover { background: var(--canopy); border-color: var(--canopy); }
+/* A primary waiting on input stays ink, just faded: grey reads as broken. */
+.btn-primary[disabled], .btn-primary[disabled]:hover { background: var(--ink); border-color: var(--ink); color: var(--on-ink); opacity: 0.4; }
+/* Paper with a rule: every action that isn't the page's one primary. Same as
+   a bare .btn; the name says so on purpose. */
+.btn-secondary { background: var(--paper); border-color: var(--line-2); color: var(--ink); }
 .btn-big { height: 52px; padding: 0 22px; font-size: 16px; border-radius: 12px; }
 .btn-quiet { border-color: transparent; background: transparent; }
 .btn-quiet:hover { background: var(--wash); }
@@ -258,11 +264,18 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 /* Page header: eyebrow, title, one-line lede, action on the right. Same on every page. */
 .page { display: grid; gap: 24px; max-width: var(--page-max); }
 .page > * { min-width: 0; }
-.page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 16px; flex-wrap: wrap; }
+/* The side (controls, "?", action) lines up with the title row, never the
+   lede: the eyebrow is ~22px tall, and a 40px button centres on the 33px title. */
+.page-head { position: relative; z-index: 5; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px 16px; flex-wrap: wrap; } /* its popovers float over the content below */
+.page-head > .page-head-side { margin-top: -3px; }
+.page-head[data-eyebrow] > .page-head-side { margin-top: 19px; }
 .page-head > div:first-child { display: grid; gap: 4px; min-width: 0; }
 .page-head .eyebrow { margin-bottom: 2px; }
 .page-lede { color: var(--ink-3); max-width: 72ch; }
-.page-head-side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.page-head-side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 40px; }
+@media (max-width: 640px) {
+  .page-head > .page-head-side, .page-head[data-eyebrow] > .page-head-side { margin-top: 0; }
+}
 .page-head-action { gap: 10px; }
 @media print {
   .no-print { display: none !important; }
@@ -276,10 +289,12 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 .t.tight th, .t.tight td { padding-left: 12px; padding-right: 12px; }
 .t.tight td { padding-top: 10px; padding-bottom: 10px; }
 
-/* Tags: an org's own labels for events. Six soft colours, none of them the
-   green/amber/red that mean verified / needs you / problem. */
-.tag { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 7px; font-size: 12px; font-weight: 600; white-space: nowrap; background: var(--tag-bg); color: var(--tag-fg); }
-.tag::before { content: ''; width: 7px; height: 7px; border-radius: 2px; background: var(--tag-dot); }
+/* Tags: an org's own labels for events. Every tag is a neutral chip; only the
+   small dot carries the tag's hue, so a tag never reads as verified / needs
+   you / problem (colour is information). The six hue sets stay as variables
+   (--tag-bg / --tag-fg / --tag-dot) for the volunteer folders' org tiles. */
+.tag { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 7px; font-size: 12px; font-weight: 600; white-space: nowrap; background: var(--chip-neutral); color: var(--ink-2); }
+.tag::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--tag-dot, var(--ink-3)); flex: none; }
 .tag-sap { --tag-bg: #e9f1ec; --tag-fg: #1d4d35; --tag-dot: #3f8f63; }
 .tag-sky { --tag-bg: #e6eff5; --tag-fg: #1f4b60; --tag-dot: #4a87ad; }
 .tag-sun { --tag-bg: #f6f0dc; --tag-fg: #5c4a12; --tag-dot: #c79a2b; }
@@ -288,7 +303,7 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 .tag-stone { --tag-bg: #ecebe6; --tag-fg: #45493f; --tag-dot: #8b8d82; }
 
 /* Demo mode (lib/demo.ts): one quiet line above the shell. */
-.demo-ribbon { margin: 0; padding: 3px 16px; text-align: center; font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em; color: var(--ink-2); background: var(--amber-soft); border-bottom: 1px solid var(--line); }
+.demo-ribbon { margin: 0; padding: 3px 16px; text-align: center; font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em; color: var(--ink-2); background: var(--chip-neutral); border-bottom: 1px solid var(--line); }
 
 /* ── Motion utilities ───────────────────────────────────────────────
    CSS only, transform/opacity only, so content is there without JS and the
@@ -354,19 +369,7 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
   .paper-sheet { background: #fff; box-shadow: none; animation: none; }
 }
 
-/* The not-found page. Global, not a CSS module: the root not-found boundary
-   is preloaded on every page, and a module made each page preload an unused
-   stylesheet (console warning in production). */
-.nf-page { min-height: 100dvh; display: grid; place-items: center; padding: 32px 16px; }
-.nf-inner { max-width: 520px; display: grid; justify-items: center; gap: 14px; text-align: center; }
-.nf-brand { display: inline-flex; align-items: center; min-height: 44px; gap: 8px; font-family: var(--font-display), Georgia, serif; font-weight: 600; font-size: 17px; color: var(--canopy); text-decoration: none; margin-bottom: 8px; }
-.nf-illo { position: relative; width: 180px; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 60%, var(--surface-2) 0 62%, transparent 63%); }
-.nf-img { object-fit: contain; mix-blend-mode: multiply; }
-.nf-title { font-size: clamp(28px, 6vw, 38px); line-height: 1.1; text-wrap: balance; }
-.nf-lede { color: var(--ink-3); font-size: 16px; }
-.nf-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 6px; }
-
-/* Tags in dark: the same six hues, darker wells and lighter text. */
+/* Tag hues in dark: darker wells, lighter text and dots. */
 :root[data-theme='dark'] .tag-sap { --tag-bg: #1a3428; --tag-fg: #a9dbbd; --tag-dot: #5cbf86; }
 :root[data-theme='dark'] .tag-sky { --tag-bg: #172d38; --tag-fg: #a5cde2; --tag-dot: #5d9cc4; }
 :root[data-theme='dark'] .tag-sun { --tag-bg: #33291a; --tag-fg: #ecd391; --tag-dot: #d6aa3f; }
@@ -379,7 +382,7 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
    to any surface that must read as paper (a certificate, a QR card). */
 :root[data-theme='dark'] .paper-sheet,
 :root[data-theme='dark'] .force-light {
-  --parchment: #f7f6f1; --paper: #ffffff; --ink: #0f261b; --ink-2: #55665b; --ink-3: #5f6d64; --field: #6f6d63;
+  --parchment: #f7f6f1; --paper: #ffffff; --ink: #0f261b; --ink-2: #46564c; --ink-3: #66726a; --field: #6f6d63;
   --line: #e2e0d6; --line-2: #d6d3c7; --rule-soft: #edebe3; --canopy: #1b4632; --primary: #1f6e45; --sap: #2c8a57;
   --primary-soft: #edf4ee; --verified: #155030; --verified-soft: #d9efe0; --amber: #6b4c07; --amber-soft: #f9eecd;
   --red: #8a2b21; --red-soft: #f8e0dd; --mist: #e4edf1; --mist-ink: #1f4b60; --gold: #a07c1f;
@@ -391,7 +394,7 @@ table.t tr.fresh td:first-child { box-shadow: inset 3px 0 0 var(--sap); }
 }
 @media print {
   :root[data-theme='dark'] {
-  --parchment: #f7f6f1; --paper: #ffffff; --ink: #0f261b; --ink-2: #55665b; --ink-3: #5f6d64; --field: #6f6d63;
+  --parchment: #f7f6f1; --paper: #ffffff; --ink: #0f261b; --ink-2: #46564c; --ink-3: #66726a; --field: #6f6d63;
   --line: #e2e0d6; --line-2: #d6d3c7; --rule-soft: #edebe3; --canopy: #1b4632; --primary: #1f6e45; --sap: #2c8a57;
   --primary-soft: #edf4ee; --verified: #155030; --verified-soft: #d9efe0; --amber: #6b4c07; --amber-soft: #f9eecd;
   --red: #8a2b21; --red-soft: #f8e0dd; --mist: #e4edf1; --mist-ink: #1f4b60; --gold: #a07c1f;

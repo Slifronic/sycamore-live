@@ -34,7 +34,11 @@ export default async function CheckinPage({ searchParams }: PageProps<'/checkin'
   const state = event ? checkinState(event) : null;
   return (
     <div className={s.narrow}>
-      <PageHeader eyebrow="Check in" title={event ? event.title : 'Check in to an event'} lede={event ? `${event.org_name} · ${fmtDay(event.starts_at)}, ${fmtTime(event.starts_at)} to ${fmtTime(event.ends_at)}${event.location ? ` · ${event.location}` : ''}` : 'Scan the QR at the sign-in table, or type the 6-character code.'} />
+      <PageHeader
+        eyebrow={event ? event.org_name : undefined}
+        title={event ? event.title : 'Check in to an event'}
+        lede={event ? `${fmtDay(event.starts_at)}, ${fmtTime(event.starts_at)} to ${fmtTime(event.ends_at)}${event.location ? ` · ${event.location}` : ''}` : 'The QR code is on the sign at the sign-in table.'}
+      />
       {code && !event && <p className="notice notice-amber">We couldn’t find an event with the code {code}. Check it with the coordinator, or type it again below.</p>}
       {event && state !== 'open' && (
         <p className="notice notice-amber">

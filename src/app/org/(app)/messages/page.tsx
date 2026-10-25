@@ -10,6 +10,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { MINOR_MESSAGES_OFF, minorIds } from '@/lib/minors';
 import { Help } from './Help';
 import { Composer } from './Composer';
+import { NewMessage } from './NewMessage';
+import { Segmented } from '@/components/Segmented';
 import { LiveInbox } from './LiveInbox';
 import s from './messages.module.css';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -22,7 +24,7 @@ const FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'unread', label: 'Unread' },
   { key: 'reply', label: 'Needs reply' },
-  { key: 'away', label: 'Away 30+ days' },
+  { key: 'away', label: 'Away' },
 ] as const;
 type Filter = (typeof FILTERS)[number]['key'];
 
@@ -34,7 +36,7 @@ function dayLabel(d: Date, now: number) {
   return day;
 }
 
-const STATUS_CHIP = { new: ['chip-ink', 'first-timer'], active: ['chip-green', 'regular'] } as const;
+const STATUS_CHIP = { new: ['chip-ink', 'came once'], active: ['chip-green', 'regular'] } as const;
 
 export default async function InboxPage({ searchParams }: PageProps<'/org/messages'>) {
   const org = await requireOrg();
@@ -88,19 +90,15 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
       <PageHeader
         eyebrow={`${plural(threads.length, 'conversation')}${unreadTotal ? ` · ${unreadTotal} unread` : ''}`}
         title="Inbox"
-        controls={
+        help={
           <Help label="About messages" placement="bottom-end">
             <p>
               <strong>Write to volunteers inside SycaMore.</strong> They read and reply on their phones, so nobody shares a phone number.
             </p>
-            <p>Volunteers under 18 get announcements only. “Needs reply” lists threads where they wrote last.</p>
+            <p>Volunteers under 18 get announcements only. “Needs reply” lists threads where they wrote last. “Away” is anyone who hasn’t come in 30+ days.</p>
           </Help>
         }
-        action={
-          <Link className="btn" href="/org/messages/broadcasts?new=1">
-            <Icon name="megaphone" size={16} /> New broadcast
-          </Link>
-        }
+        action={<NewMessage people={startable.map((v) => ({ id: v.volunteer_id!, name: v.name, hours: v.hours }))} />}
       />
 
       <div className={`card ${s.inbox} ${openId ? s.hasThread : ''}`}>
@@ -111,27 +109,23 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
               <Icon name="search" size={16} />
               <input className="input" name="q" defaultValue={q} placeholder="Search name or message" aria-label="Search name or message" />
             </form>
-            <form className="row" style={{ gap: 8 }} action="/org/messages">
-              <select className="select" name="v" aria-label="Start a conversation with" style={{ height: 36, flex: 1, fontSize: 13 }} defaultValue="">
-                <option value="" disabled>
-                  New message to…
-                </option>
-                {startable.map((v) => (
-                  <option key={v.volunteer_id} value={v.volunteer_id!}>
-                    {v.name} · {v.hours} hrs
-                  </option>
-                ))}
-              </select>
-              <button className="btn btn-sm">Open</button>
-            </form>
           </div>
-          <nav className={s.filters} aria-label="Filter conversations">
-            {FILTERS.map((x) => (
-              <Link key={x.key} href={qs({ f: x.key === 'all' ? null : x.key, v: null })} className={s.filter} aria-current={f === x.key ? 'page' : undefined}>
-                {x.label} <b>{counts[x.key]}</b>
-              </Link>
-            ))}
-          </nav>
+          <div className={s.filters}>
+            <Segmented
+              id="inbox-filter"
+              label="Filter conversations"
+              size="sm"
+              items={FILTERS.map((x) => ({
+                href: qs({ f: x.key === 'all' ? null : x.key, v: null }),
+                on: f === x.key,
+                label: (
+                  <>
+                    {x.label} <b className={s.filterCount}>{counts[x.key]}</b>
+                  </>
+                ),
+              }))}
+            />
+          </div>
           <ul className={s.threads}>
             {shown.map((t) => (
               <li key={t.volunteer_id}>
@@ -146,15 +140,22 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                       {t.last_direction === 'out' ? 'You: ' : ''}
                       {t.last_body}
                     </span>
-                    <span className={s.channel}>
-                      <span className={`${s.dot} ${t.last_source === 'automation' ? s.dotAuto : t.last_source === 'broadcast' ? s.dotBroadcast : ''}`} aria-hidden />
-                      {t.last_source === 'automation' ? 'Automation' : t.last_source === 'broadcast' ? 'Broadcast' : 'In app'}
-                      {t.status === 'away' && t.last_seen ? (
-                        <span className={`chip chip-ink ${s.mini18}`}>{lastCame(t.last_seen, new Date(now))}</span>
-                      ) : t.status && t.status !== 'away' ? (
-                        <span className={`chip ${STATUS_CHIP[t.status][0]} ${s.mini18}`}>{STATUS_CHIP[t.status][1]}</span>
-                      ) : null}
-                    </span>
+                    {/* The channel shows only when it isn't a plain in-app message. */}
+                    {(t.last_source !== 'direct' || t.status) && (
+                      <span className={s.channel}>
+                        {t.last_source !== 'direct' && (
+                          <>
+                            <span className={`${s.dot} ${t.last_source === 'automation' ? s.dotAuto : s.dotBroadcast}`} aria-hidden />
+                            {t.last_source === 'automation' ? 'Automation' : 'Broadcast'}
+                          </>
+                        )}
+                        {t.status === 'away' && t.last_seen ? (
+                          <span className={`chip chip-ink ${s.mini18}`}>{lastCame(t.last_seen, new Date(now))}</span>
+                        ) : t.status && t.status !== 'away' ? (
+                          <span className={`chip ${STATUS_CHIP[t.status][0]} ${s.mini18}`}>{STATUS_CHIP[t.status][1]}</span>
+                        ) : null}
+                      </span>
+                    )}
                   </span>
                   <span className={s.tMeta}>
                     {dayLabel(t.last_at, now) === 'Today' ? fmtTime(t.last_at) : dayLabel(t.last_at, now) === 'Yesterday' ? 'yesterday' : ago(t.last_at)}
@@ -174,7 +175,7 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                   compact
                   icon={threads.length === 0 ? 'message' : 'search'}
                   title={threads.length === 0 ? 'No conversations yet' : 'Nothing matches'}
-                  hint={threads.length === 0 ? 'Start one above, or send a broadcast.' : undefined}
+                  hint={threads.length === 0 ? 'Start one with “New message”, or send a broadcast.' : undefined}
                 />
               </li>
             )}

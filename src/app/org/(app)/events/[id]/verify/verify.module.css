@@ -18,7 +18,7 @@
 .totals { display: flex; align-items: baseline; flex-wrap: wrap; }
 .blocker { border: 0; background: none; padding: 0; font: inherit; color: var(--amber); font-weight: 700; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 900px) { .check2 { grid-template-columns: minmax(0, 1fr); } }
-.star { width: 44px; height: 44px; display: inline-grid; place-items: center; font-size: 30px; line-height: 1; background: none; border: 0; border-radius: 10px; cursor: pointer; color: var(--field); padding: 0; }
+.star { width: 44px; height: 44px; display: inline-grid; place-items: center; line-height: 1; background: none; border: 0; border-radius: 10px; cursor: pointer; color: var(--field); padding: 0; }
 .star:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 1px; }
 .star:hover { background: var(--wash); }
 .starLit { color: var(--gold); }
@@ -77,10 +77,34 @@
 .signer > svg { color: var(--sap); flex: none; }
 .signer strong { color: var(--ink); }
 /* Done screen: what's now on the record, as three stat cards. */
-.doneWrap { display: grid; gap: 16px; max-width: 880px; }
+.doneWrap { display: grid; gap: 16px; max-width: 880px; margin-inline: auto; }
 .doneHead { display: grid; gap: 10px; justify-items: center; text-align: center; padding: 28px 24px 8px; }
 .doneHead h1 { font-size: 32px; }
 .doneHead p { color: var(--ink-2); max-width: 52ch; }
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .doneActions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding-bottom: 8px; }
 @media (max-width: 720px) { .stats { grid-template-columns: minmax(0, 1fr); } }
+
+/* Toolbar: every control 36px. */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tool { height: 36px; padding: 0 14px; font-size: 13.5px; border-radius: 9px; }
+.find { height: 36px; width: 220px; font-size: 14px; }
+@media (pointer: coarse) { .tool, .find { height: 44px; } }
+
+/* Role: a menu button that reads as text until you point at it (like the hours box). */
+.roleWrap { display: inline-flex; }
+.role {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; height: 36px; min-width: 170px; padding: 0 10px 0 12px;
+  border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--ink); font: 500 14px var(--font-sans), system-ui, sans-serif; cursor: pointer; text-align: left;
+}
+.role > svg { color: var(--ink-3); flex: none; }
+.role:hover, .role[aria-expanded='true'], .warn .role { border-color: var(--line-2); background: var(--paper); }
+.role:disabled { cursor: not-allowed; opacity: 0.6; }
+.roleText { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cStar :global(.btn) { gap: 6px; }
+@media (max-width: 600px) {
+  .roleWrap, .role { width: 100%; min-width: 0; }
+  .role { border-color: var(--line); background: var(--paper); height: 44px; }
+}
+/* A toolbar button waiting on a selection stays paper, just quieter. */
+.tool.tool:disabled { background: var(--paper); border-color: var(--line-2); color: var(--ink-3); opacity: 0.7; }

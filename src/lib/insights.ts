@@ -41,6 +41,7 @@ export type VolunteerSummary = {
   badgesReady: BadgeKey[];
   badgesClose: { key: BadgeKey; progress: number }[];
   milestone: { hours: number; at: Date } | null; // most recent hour milestone crossed in the last 30 days
+  eventIds: string[]; // the verified events they attended (the Volunteers page's attendance strip)
 };
 
 type Att = AttendanceRow & { activity: Activity; starts_at: Date };
@@ -137,6 +138,7 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
       badgesEarned: earned,
       badgesReady: ready,
       badgesClose: close,
+      eventIds: list.map((a) => a.event_id),
     };
   });
   volunteers.sort((a, b) => b.hours - a.hours || a.name.localeCompare(b.name));
@@ -238,3 +240,18 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
 }
 
 export type OrgInsights = Awaited<ReturnType<typeof loadOrgInsights>>;
+
+/**
+ * Weekly trend lines for the Home stat cards: running totals at the end of
+ * each of the last `weeks` weeks (13 weeks ≈ 90 days), from the same verified
+ * rows as the headline numbers, so the last point equals the big number. A
+ * flat stretch is real: nothing new was verified those weeks.
+ */
+export function weeklyTrend(ins: Pick<OrgInsights, 'series' | 'volunteers'>, now: number, weeks = 13) {
+  const WEEK = 7 * DAY;
+  const ends = Array.from({ length: weeks }, (_, i) => now - (weeks - 1 - i) * WEEK);
+  return {
+    hours: ends.map((t) => ins.series.filter((p) => p.date.getTime() <= t).reduce((n, p) => n + p.hours, 0)),
+    people: ends.map((t) => ins.volunteers.filter((v) => v.first_seen.getTime() <= t).length),
+  };
+}

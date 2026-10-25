@@ -1,5 +1,5 @@
 /* Volunteer app shell (app/(vol)/layout.tsx + VolNav.tsx). Mobile first. */
-.shell { min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; }
+.shell { min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; --tabbar-h: calc(69px + env(safe-area-inset-bottom)); }
 .main { width: 100%; max-width: 980px; margin: 0 auto; padding: 16px 16px calc(100px + env(safe-area-inset-bottom)); min-width: 0; }
 .main:focus { outline: none; }
 
@@ -13,6 +13,7 @@
 .hello { display: grid; line-height: 1.2; min-width: 0; }
 .helloGreet { font-size: 12.5px; color: var(--ink-3); }
 .helloName { font-family: var(--font-display), Georgia, serif; font-size: 20px; font-weight: 600; color: var(--canopy); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.barTitle { font-family: var(--font-display), Georgia, serif; font-size: 20px; font-weight: 600; color: var(--canopy); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .pills { display: none; }
 .actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: none; }
 .checkin { height: 40px; border-radius: 12px; padding: 0 12px; }
@@ -49,7 +50,8 @@
 @media (min-width: 861px) {
   .top { gap: 16px; min-height: 64px; padding: 0 24px; }
   .brand { display: inline-flex; }
-  .hello { display: none; }
+  .hello, .barTitle { display: none; }
+  .shell { --tabbar-h: 0px; }
   .pills { display: flex; gap: 2px; padding: 4px; margin: 0 auto; border-radius: 999px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--rule-soft); }
   .pillItem {
     position: relative; display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px; border-radius: 999px;

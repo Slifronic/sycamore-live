@@ -112,7 +112,7 @@ export default async function BadgeVerifyPage({ params }: PageProps<'/v/b/[code]
               <a className="btn btn-sm" href={`tel:${tel}`}>
                 Call {b.org.contact_phone}
               </a>
-              <a className="btn btn-sm btn-quiet" href={`mailto:${b.org.contact_email}?subject=${encodeURIComponent(`Badge ${b.code}`)}`}>
+              <a className="btn btn-sm" href={`mailto:${b.org.contact_email}?subject=${encodeURIComponent(`Badge ${b.code}`)}`}>
                 {b.org.contact_email}
               </a>
             </div>

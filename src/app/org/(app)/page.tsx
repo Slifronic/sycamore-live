@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { requireOrg } from '@/lib/session';
-import { loadOrgInsights } from '@/lib/insights';
-import { LESSONS, courseProgress } from '@/lib/course';
+import { loadOrgInsights, weeklyTrend } from '@/lib/insights';
+import { courseProgress } from '@/lib/course';
 import { badgeByKey } from '@/lib/badges';
 import { ago, fmtDay, fmtTime, plural } from './util';
 import { requestNow } from '@/lib/format';
@@ -21,8 +21,9 @@ export const metadata = { title: 'Home' };
 const DAY = 86_400_000;
 const fmtH = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
 
-// Home (REDESIGN-2026-10-25): a welcome card that says what needs you, three
-// stat cards, the one chart, and what's happening now or next. Everything else
+// Home (REDESIGN-2026-10-25, round 2): a full-width welcome strip that says
+// what needs you, a row of three stat cards with 13-week trend lines, then the
+// one chart beside what's happening now or next. Everything else
 // lives on its own page (volunteers: away and milestones; reports: value of
 // volunteer time; learn: the course).
 export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
@@ -59,11 +60,11 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
       ? `Nothing needs you right now. Next up: ${next.title}, ${fmtDay(next.starts_at)}.`
       : 'Nothing needs you right now.';
 
-  // Stat cards. Sparklines are running totals across verified events, oldest first.
+  // Stat cards. Trend lines are weekly running totals over the last 13 weeks
+  // (real rows, so the last point is the headline number).
   const since = now - 30 * DAY;
   const hours30 = ins.series.filter((p) => p.date.getTime() >= since).reduce((n, p) => n + p.hours, 0);
-  const hoursRun = ins.series.reduce<number[]>((acc, p) => [...acc, (acc.at(-1) ?? 0) + p.hours], []);
-  const peopleRun = ins.series.map((p) => ins.volunteers.filter((v) => v.first_seen.getTime() <= p.date.getTime()).length);
+  const trend = weeklyTrend(ins, now);
   const new30 = ins.volunteers.filter((v) => v.first_seen.getTime() >= since).length;
   const verifiedByDate = [...ins.verified].sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at));
   const pips = verifiedByDate.slice(-8).map((e) => new Date(e.attested_at!).getTime() - new Date(e.ends_at).getTime() <= DAY);
@@ -72,25 +73,29 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
 
   return (
     <Stagger className={s.home}>
-      {/* 1 · Welcome: the day, one sentence, at most two things to do. */}
+      {/* 1 · Welcome strip: the day and one sentence on the left, at most two things to do on the right. */}
       <section className={`card ${s.welcome}`} aria-labelledby="home-title">
-        <p className={s.dateChip}>
-          <span className={s.dateDot} aria-hidden />
-          {today} · {clock}
-        </p>
-        <h1 id="home-title" className={s.hello}>
-          Welcome back, {first}
-        </h1>
-        <p className={s.sentence}>{sentence}</p>
-
-        {welcome && (
-          <p className={s.setup}>
-            <Icon name="key" size={16} />
-            <span>
-              You’re set up. Your sign-in PIN is <strong className="num">{org.coordinator_pin}</strong>; write it down. A practice event is ready to try.
-            </span>
+        <div className={s.welcomeText}>
+          <p className={s.dateChip}>
+            <span className={s.dateDot} aria-hidden />
+            {today} · {clock}
           </p>
-        )}
+          <h1 id="home-title" className={s.hello}>
+            Welcome back, {first}
+          </h1>
+          <p className={s.sentence}>{sentence}</p>
+          {welcome && (
+            <p className={s.setup}>
+              <Icon name="key" size={16} />
+              <span>
+                You’re set up. Your sign-in PIN is <strong className="num">{org.coordinator_pin}</strong>; write it down. A practice event is ready to try.
+              </span>
+            </p>
+          )}
+          {!course.complete && course.next && !hideLesson && (
+            <LessonHint done={course.done} total={course.total} title={course.next.title} minutes={course.next.minutes} href={course.next.href} />
+          )}
+        </div>
 
         {(awaiting.length > 0 || badges.length > 0) && (
           <ul className={s.asks}>
@@ -133,10 +138,6 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
             )}
           </ul>
         )}
-
-        {!course.complete && course.next && !hideLesson && (
-          <LessonHint n={LESSONS.indexOf(course.next) + 1} total={course.total} title={course.next.title} minutes={course.next.minutes} href={course.next.href} />
-        )}
       </section>
 
       {/* 2 · Three numbers. */}
@@ -148,7 +149,8 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
         unit="hrs"
         icon="clock"
         delta={hours30 > 0 ? { value: `+${fmtH(hours30)} in 30d`, dir: 'up', label: 'in the last 30 days' } : undefined}
-        sparkSlot={<WideSpark points={hoursRun} />}
+        foot="Last 13 weeks"
+        sparkSlot={<Trend points={trend.hours} label="Verified hours, week by week" />}
         href="/org/reports"
       />
       <StatCard
@@ -158,7 +160,8 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
         icon="users"
         iconTone="mist"
         delta={new30 > 0 ? { value: `+${new30} new in 30d`, dir: 'up', label: 'new in the last 30 days' } : undefined}
-        sparkSlot={<WideSpark points={peopleRun} delay={0.08} />}
+        foot="Last 13 weeks"
+        sparkSlot={<Trend points={trend.people} label="Unique volunteers, week by week" delay={0.08} />}
         href="/org/volunteers"
       />
       <StatCard
@@ -193,12 +196,7 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
       <section className={`card ${s.chartCard}`} aria-labelledby="chart-title">
         <CardHeader
           id="chart-title"
-          eyebrow="Hours by event"
-          title={
-            <>
-              {fmtH(chartHours)} <span className={s.titleUnit}>verified hours</span>
-            </>
-          }
+          title="Hours by event"
           action={
             <Link className="btn btn-sm btn-quiet" href="/org/reports">
               Funder report <Icon name="arrow-right" size={14} />
@@ -215,7 +213,7 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
         )}
         {chart.length > 0 && (
           <p className={s.chartFoot}>
-            Last {plural(chart.length, 'verified event')} · {ins.totals.attendances.toLocaleString()} attendances in all
+            Last {plural(chart.length, 'verified event')} · {fmtH(chartHours)} hours · {ins.totals.attendances.toLocaleString()} attendances in all
           </p>
         )}
       </section>
@@ -291,12 +289,14 @@ export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
   );
 }
 
-// A full-width trend line for the stat cards (the row is as tall as the welcome card).
-function WideSpark({ points, delay = 0 }: { points: number[]; delay?: number }) {
-  if (points.length < 2) return null;
+// A stat card's trend line: 13 weekly points, drawn in once. Flat when nothing
+// changed, never padded with made-up points.
+function Trend({ points, label, delay = 0 }: { points: number[]; label: string; delay?: number }) {
+  if (points.length < 8 || points.every((p) => p === points[0])) return null;
+  const fmt = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 0 });
   return (
-    <span className={s.wide}>
-      <Sparkline points={points} width={240} height={56} area delay={delay} className={s.wideSvg} />
+    <span className={s.trend} role="img" aria-label={`${label}: ${fmt(points[0])} to ${fmt(points.at(-1)!)}`}>
+      <Sparkline points={points} width={132} height={36} area delay={delay} className={s.trendSvg} />
     </span>
   );
 }

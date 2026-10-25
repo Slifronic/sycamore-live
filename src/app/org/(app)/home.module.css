@@ -1,8 +1,9 @@
-/* Home: welcome + three stats on one row, then the chart beside "now". */
+/* Home: a full-width welcome strip, three stats in their own row, then the
+   chart beside "now". */
 .home {
   display: grid; gap: 16px; max-width: var(--page-max);
-  grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(0, 1fr));
-  grid-template-areas: 'welcome s1 s2 s3' 'chart chart chart now';
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas: 'welcome welcome welcome' 's1 s2 s3' 'chart chart now';
   align-items: stretch;
 }
 .welcome { grid-area: welcome; }
@@ -12,8 +13,9 @@
 .chartCard { grid-area: chart; }
 .now { grid-area: now; }
 
-/* ── Welcome ── */
-.welcome { padding: 18px 20px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+/* ── Welcome strip: text left, the asks right ── */
+.welcome { padding: 18px 20px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 480px); gap: 12px 32px; align-items: center; min-width: 0; }
+.welcomeText { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .dateChip {
   align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 10px; border-radius: 999px;
   background: var(--surface-2); color: var(--ink-2); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;
@@ -24,8 +26,9 @@
 .setup { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--verified-soft); color: var(--verified); font-size: 13px; }
 .setup > svg { flex: none; margin-top: 2px; }
 
-.asks { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--rule-soft); }
+.asks { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
 .ask { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--rule-soft); min-width: 0; }
+.ask:last-child { border-bottom: 0; }
 .askIcon { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex: none; background: var(--amber-soft); color: var(--amber); }
 .askIcon[data-tone='gold'] { background: var(--chip-neutral); color: var(--gold); }
 .askText { display: grid; min-width: 0; flex: 1; line-height: 1.3; }
@@ -33,7 +36,7 @@
 .askText span { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ask :global(.btn) { flex: none; }
 
-.lesson { margin-top: auto; padding-top: 6px; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-3); min-width: 0; }
+.lesson { margin-top: 2px; align-self: flex-start; max-width: 100%; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-3); min-width: 0; }
 .lesson > svg { flex: none; color: var(--sap); }
 .lessonText { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lessonText a { color: var(--ink); font-weight: 600; text-decoration: none; }
@@ -44,12 +47,13 @@
 .lessonX:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
 @media (pointer: coarse) { .lessonX { width: 36px; height: 36px; } }
 
-/* ── Stat cards ── */
-.stat { min-height: 150px; }
+/* ── Stat cards: ~140px; the trend line sits bottom-right beside its label ── */
+.home .stat { padding: 16px 18px 14px; gap: 6px; }
+.home .stat :global(.figure) { font-size: 32px; }
 .waiting { color: var(--amber); font-weight: 700; }
 .pips { display: inline-flex; gap: 5px; align-items: flex-end; margin-left: auto; flex: none; padding-bottom: 4px; }
 .pips i {
-  display: block; width: 10px; height: 34px; border-radius: 4px; background: var(--chip-neutral);
+  display: block; width: 10px; height: 30px; border-radius: 4px; background: var(--chip-neutral);
   box-shadow: inset 0 0 0 1px var(--line); transform-origin: bottom;
   animation: pip-in var(--dur-3) var(--ease-out) both; animation-delay: calc(200ms + var(--i, 0) * 40ms);
 }
@@ -58,7 +62,6 @@
 
 /* ── Chart ── */
 .chartCard { padding: 18px 20px 14px; display: grid; grid-template-rows: auto 1fr auto; gap: 8px; min-width: 0; }
-.titleUnit { font-family: var(--font-sans), system-ui, sans-serif; font-size: 14px; font-weight: 600; color: var(--field); letter-spacing: 0; }
 .chartFoot { font-size: 12px; color: var(--field); }
 .chartEmpty { display: flex; align-items: center; gap: 10px; color: var(--ink-3); font-size: 14px; padding: 40px 0; justify-content: center; }
 
@@ -133,24 +136,21 @@ a.nowMain:hover .nowCta svg, a.nowCta:hover svg { transform: translateX(3px); }
   .bar, .pips i, .tip, .pulse::after { animation: none; }
 }
 
-/* Laptop: welcome on its own row beside "now"; stats in a row of three. */
-@media (max-width: 1180px) {
-  .home {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-areas: 'welcome welcome now' 's1 s2 s3' 'chart chart chart';
-  }
+/* Laptop: the strip stacks its asks under the text. */
+@media (max-width: 1020px) {
+  .welcome { grid-template-columns: minmax(0, 1fr); }
+  .asks { border-top: 1px solid var(--rule-soft); }
 }
 /* Phones: what needs you, then what's live, then the numbers and the chart. */
 @media (max-width: 720px) {
   .home { gap: 12px; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'welcome' 'now' 's1' 's2' 's3' 'chart'; }
   .hello { font-size: 25px; }
-  .stat { min-height: 0; }
+  .welcome { padding: 16px; }
   .chart { min-height: 200px; }
   .plot { gap: 6px; }
   .x { font-size: 10px; }
 }
 
-/* Wide sparkline: fills the stat card's bottom edge to edge. */
-.wide { flex: 1; min-width: 0; display: block; color: var(--sap); margin-top: auto; }
-.wideSvg { display: block; width: 100%; height: auto; max-height: 64px; overflow: visible; }
-.stat > div:last-child > span:empty { display: none; }
+/* Trend line (13 weekly points), bottom-right of the stat card. */
+.trend { flex: none; margin-left: auto; display: block; color: var(--sap); }
+.trendSvg { display: block; overflow: visible; }

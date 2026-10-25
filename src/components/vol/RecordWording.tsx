@@ -13,8 +13,9 @@ export function RecordWording({ r, className, fineClassName }: { r: RecordView; 
   return (
     <>
       <p className={className}>
-        <strong>{r.org.name}</strong> states that <strong>{r.volunteer_name}</strong> served as <strong>{roleWords(r.role)}</strong> at{' '}
-        <strong>{r.event.title}</strong> on <strong>{longDate(r.event.date)}</strong>, for <strong>{fmtHours(r.hours_total)} attested hours</strong>:{' '}
+        {/* Two bold runs only: who attests, and how much. */}
+        <strong>{r.org.name}</strong> states that {r.volunteer_name} served as {roleWords(r.role)} at {r.event.title} on {longDate(r.event.date)}, for{' '}
+        <strong>{fmtHours(r.hours_total)} attested hours</strong>:{' '}
         {fmtHours(r.hours_captured)} captured by check-in and check-out
         {r.hours_adjusted != null && (
           <>

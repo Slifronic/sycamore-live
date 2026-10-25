@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { FOOTER_GROUPS } from './nav';
-import { Wordmark } from './Wordmark';
+import { BrandMark } from './BrandMark';
 import { ThemeToggle } from '../shell/ThemeToggle';
 import s from './footer.module.css';
 
@@ -13,8 +13,8 @@ const LEGAL = [
   { href: '/licenses', label: 'Licenses' },
 ] as const;
 
-// Port of vengeance-ui footer/five (link groups over a rule) with the
-// animated-footer's oversized wordmark rising at the bottom.
+// Link groups over a rule, on the one dark panel the site keeps. No glow and
+// no oversized wordmark: the leaf and the name are enough.
 
 export function SiteFooter() {
   return (
@@ -23,7 +23,7 @@ export function SiteFooter() {
         <div className={s.top}>
           <div className={s.about}>
             <p className={s.brand}>
-              <span aria-hidden="true">❦</span> SycaMore Live
+              <BrandMark tone="panel" />
             </p>
             <p className={s.blurb}>
               Volunteer hours recorded as the event happens, confirmed by the organization, and checkable by anyone with the link.
@@ -66,7 +66,6 @@ export function SiteFooter() {
           <ThemeToggle variant="inline" className={s.theme} />
         </div>
       </div>
-      <Wordmark />
     </footer>
   );
 }

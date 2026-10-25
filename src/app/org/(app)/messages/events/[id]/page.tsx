@@ -48,7 +48,7 @@ export default async function EventChatPage({ params }: PageProps<'/org/messages
         }
         title={event.title}
         lede={`${fmtDay(event.starts_at)} · ${fmtTime(event.starts_at)} to ${fmtTime(event.ends_at)}${event.location ? ` · ${event.location}` : ''}`}
-        controls={
+        help={
           <Help label="About group chats" placement="bottom-end">
             <p>
               <strong>Everyone in the chat sees every post.</strong> For a one-to-one message, tap a member to open the inbox.

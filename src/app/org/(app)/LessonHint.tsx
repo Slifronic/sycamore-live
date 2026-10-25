@@ -9,11 +9,11 @@ import s from './home.module.css';
 const LESSON_HINT_COOKIE = 'sm-hide-lesson';
 
 /**
- * One quiet line under the welcome card's actions: the next lesson of the
- * getting-started course. Dismissing it sets a cookie, so the server stops
+ * One quiet line in the welcome strip: progress through the getting-started
+ * course (the same count /org/learn shows) and the next lesson. Dismissing it sets a cookie, so the server stops
  * rendering it (no flash on the next visit); /org/learn keeps the full course.
  */
-export function LessonHint({ n, total, title, minutes, href }: { n: number; total: number; title: string; minutes: number; href: string }) {
+export function LessonHint({ done, total, title, minutes, href }: { done: number; total: number; title: string; minutes: number; href: string }) {
   const [hidden, setHidden] = useState(false);
   if (hidden) return null;
   return (
@@ -21,7 +21,7 @@ export function LessonHint({ n, total, title, minutes, href }: { n: number; tota
       <Icon name="book" size={16} />
       <span className={s.lessonText}>
         <span className={s.lessonMeta}>
-          Lesson {n} of {total}
+          {done} of {total} lessons done · Next:
         </span>{' '}
         <Link href={href}>{title}</Link>
         <span className={s.lessonMeta}> · {minutes} min</span>

@@ -6,9 +6,27 @@ import { sql } from '@/lib/db';
 
 export const FORMER = 'Former volunteer';
 
-/** "I agree to the Terms and Privacy Policy", ticked at join or at a walk-in. Keeps the first time. */
-export async function acceptTerms(volunteerId: string) {
-  await sql`update volunteer set terms_accepted_at = coalesce(terms_accepted_at, now()) where id = ${volunteerId}`;
+/**
+ * "I agree to the Terms and Privacy Policy", ticked at join or at a walk-in,
+ * and for 13 to 17 "and a parent or guardian knows" (guardian: true). Keeps
+ * the first time of each.
+ */
+export async function acceptTerms(volunteerId: string, opts: { guardian?: boolean } = {}) {
+  await sql`
+    update volunteer set
+      terms_accepted_at = coalesce(terms_accepted_at, now()),
+      guardian_ack_at = case when ${!!opts.guardian} then coalesce(guardian_ack_at, now()) else guardian_ack_at end
+    where id = ${volunteerId}`;
+}
+
+/** What an existing account already agreed to, found the way a walk-in finds it (Google id, then email). */
+export async function priorConsent(email: string, googleSub: string | null) {
+  const [r] = (await sql`
+    select to_char(date_of_birth, 'YYYY-MM-DD') as date_of_birth, terms_accepted_at is not null as terms, guardian_ack_at is not null as guardian
+    from volunteer
+    where email = ${email.trim().toLowerCase()} or (${googleSub}::text is not null and google_sub = ${googleSub})
+    order by (google_sub = ${googleSub}) desc nulls last limit 1`) as unknown as { date_of_birth: string; terms: boolean; guardian: boolean }[];
+  return r ?? null;
 }
 
 /** Announcements opt-in (marketing consent). Off by default; the time is kept when it's turned on. */
@@ -30,7 +48,7 @@ export async function accountSettings(volunteerId: string) {
 export async function exportData(volunteerId: string) {
   const [volunteer] = await sql`
     select id, name, email, to_char(date_of_birth, 'YYYY-MM-DD') as date_of_birth, created_at, signup_method,
-           (google_sub is not null) as signed_up_with_google, hours_goal, terms_accepted_at, marketing_opt_in, marketing_opt_in_at
+           (google_sub is not null) as signed_up_with_google, hours_goal, terms_accepted_at, guardian_ack_at, marketing_opt_in, marketing_opt_in_at
     from volunteer where id = ${volunteerId}`;
   if (!volunteer) return null;
   const [attendance, records, badges, messages, chatPosts, saved] = await Promise.all([

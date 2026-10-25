@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SessionCard, type SessionAttendance } from '@/components/vol/SessionCard';
-import { Consent } from '@/components/vol/Consent';
+import { Consent, isTeen } from '@/components/vol/Consent';
 import s from './walkin.module.css';
 
 export type WalkinAttendance = SessionAttendance;
@@ -71,11 +71,6 @@ export function WalkinFlow(props: {
           return;
         }
         setGoogleCred(null);
-        // Keep the agreement they ticked (terms_accepted_at). A returning
-        // volunteer agreed when they first joined.
-        if (body.mode !== 'returning') {
-          void fetch('/api/vol/consent', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ terms: true }) }).catch(() => {});
-        }
         setWho({ name: data.volunteer.name, is_minor: data.is_minor, is_new: data.is_new });
         setAtt(data.attendance);
       } catch {
@@ -121,7 +116,7 @@ export function WalkinFlow(props: {
           busy={busy}
           agreed={agreed}
           onAgree={setAgreed}
-          onSubmit={(d) => submit({ mode: 'google', credential: googleCred, date_of_birth: d, accept_terms: true })}
+          onSubmit={(d) => submit({ mode: 'google', credential: googleCred, date_of_birth: d, accept_terms: true, guardian_ok: agreed && isTeen(d) })}
           onCancel={() => setGoogleCred(null)}
         />
       ) : (
@@ -131,13 +126,13 @@ export function WalkinFlow(props: {
           {props.googleClientId && (
             <>
               <Consent dob={dob} checked={agreed} onChange={setAgreed} big />
-              <GoogleButton clientId={props.googleClientId} disabled={busy || !agreed} onCredential={(credential) => submit({ mode: 'google', credential, accept_terms: true })} />
+              <GoogleButton clientId={props.googleClientId} disabled={busy || !agreed} onCredential={(credential) => submit({ mode: 'google', credential, accept_terms: true, guardian_ok: agreed && isTeen(dob) })} />
               <p className={s.or}>
                 <span>or with your email</span>
               </p>
             </>
           )}
-          <EmailForm busy={busy} dob={dob} onDob={setDob} agreed={agreed} onAgree={setAgreed} showConsent={!props.googleClientId} onSubmit={(f) => (agreed ? submit({ mode: 'email', ...f, accept_terms: true }) : setError('Tick the box to agree to the Terms and Privacy Policy.'))} />
+          <EmailForm busy={busy} dob={dob} onDob={setDob} agreed={agreed} onAgree={setAgreed} showConsent={!props.googleClientId} onSubmit={(f) => (agreed ? submit({ mode: 'email', ...f, accept_terms: true, guardian_ok: isTeen(f.date_of_birth) }) : setError('Tick the box to agree to the Terms and Privacy Policy.'))} />
         </div>
       )}
       {error && (

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { mapEmbed, type Place } from '@/lib/place-links';
+import { Icon } from '../shell/icons';
 import s from './events.module.css';
 
 // Where the event is. Type a place or an address and pick a result, paste a
@@ -151,7 +152,7 @@ export function PlacePicker({
           onBlur={() => setTimeout(() => setOpen(false), 150)}
         />
         <button type="button" className="btn" onClick={useHere} title="Use where you are now" aria-label="Use my current location">
-          ◎ Here
+          <Icon name="locate" size={16} /> Here
         </button>
       </div>
       {open && results.length > 0 && (

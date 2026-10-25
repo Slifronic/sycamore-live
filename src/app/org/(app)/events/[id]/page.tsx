@@ -8,6 +8,7 @@ import { ACTIVITY_LABEL } from '@/lib/types';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { utcToPacific } from '@/lib/tz';
 import { EventDay } from './EventDay';
+import { EventActions } from './EventActions';
 import { PageHeader } from '@/components/PageHeader';
 import s from './event.module.css';
 import { sheetImportEnabled } from '@/lib/sheet-import';
@@ -57,11 +58,40 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
   const importOpen = sp.import === '1' && !event.attested_at;
   const when = `${fmtDay(event.starts_at)} · ${fmtTime(event.starts_at)} – ${fmtTime(event.ends_at)}`;
 
+  // One action row on the title line: Chat · Announce · Edit · ⋯, plus the primary once the event has ended.
+  const quick = event.is_practice
+    ? []
+    : [
+        {
+          label: 'Chat',
+          href: `/org/messages/events/${id}`,
+          icon: 'message' as const,
+          badge: chat.unread > 0 ? { text: `${chat.unread} new`, tone: 'red' as const } : chat.messages > 0 ? { text: String(chat.messages), tone: 'quiet' as const } : undefined,
+        },
+        { label: 'Announce', href: `/org/messages/broadcasts?new=1&event=${id}`, icon: 'megaphone' as const },
+        ...(event.attested_at ? [] : [{ label: 'Edit', href: `/org/events/${id}/edit` }]),
+      ];
+  const primary = event.attested_at
+    ? { label: 'Tell the story', href: `/org/events/${id}/story`, icon: 'arrow-right' as const, trailing: true }
+    : ended || event.is_practice
+      ? { label: 'Close & verify', href: `/org/events/${id}/verify`, icon: 'check' as const }
+      : undefined;
+  const more = event.attested_at
+    ? []
+    : ended
+      ? event.is_practice
+        ? []
+        : [{ label: 'Debrief', hint: 'Notes and clips for the event story', href: `/org/events/${id}/story`, icon: 'clipboard' as const }]
+      : event.is_practice
+        ? []
+        : [{ label: 'Close & verify early', hint: 'Ends check-in now and opens the sign-off', href: `/org/events/${id}/verify`, icon: 'check' as const }];
+
   return (
     <Stagger className={`page ${s.page}`}>
       {saved && <ToastOnMount id={`saved-${id}`} message="Event saved" body="The event page and calendar feeds show the new details." />}
       {created && <ToastOnMount id={`created-${id}`} message="Event created" body="Share the link with volunteers. On the day, show the QR full screen." />}
-      {!event.is_practice && <Cover cover={coverFor({ title: event.title, activity: event.activity, tags })} variant="band" priority className={`${s.band} no-print`} />}
+      {/* The cover band sets the scene before and after the day; while it runs, the roster comes first. */}
+      {!event.is_practice && !live && <Cover cover={coverFor({ title: event.title, activity: event.activity, tags })} variant="band" priority className={`${s.band} no-print`} />}
       <PageHeader
         eyebrow={
           <span className={s.eyebrow}>
@@ -70,8 +100,6 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
                 <span className={s.liveDot} aria-hidden />
                 <span style={{ color: 'var(--primary)' }}>Live now</span>
               </>
-            ) : event.attested_at ? (
-              <span style={{ color: 'var(--verified)' }}>Verified · records issued</span>
             ) : (
               <Link href="/org/events">Events</Link>
             )}
@@ -79,26 +107,22 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
             {event.is_practice ? 'Practice' : ACTIVITY_LABEL[event.activity]}
           </span>
         }
-        title={event.title}
-        action={
+        title={
           event.attested_at ? (
-            <Link className="btn btn-primary" href={`/org/events/${id}/story`}>
-              Tell the story <Icon name="arrow-right" size={16} />
-            </Link>
-          ) : ended || event.is_practice ? (
-            <Link className="btn btn-primary" href={`/org/events/${id}/verify`}>
-              <Icon name="check" size={16} /> Close &amp; verify
-            </Link>
+            <span className={s.titleRow}>
+              {event.title}
+              <span className="chip chip-green" title={`Verified ${fmtDay(event.attested_at)}`}>
+                <Icon name="check" size={13} strokeWidth={2.25} /> Verified
+              </span>
+            </span>
           ) : (
-            // While the event runs, closing it is a quiet option; the QR is the job.
-            <Link className="btn btn-sm btn-quiet" href={`/org/events/${id}/verify`}>
-              Close &amp; verify early
-            </Link>
+            event.title
           )
         }
+        action={<EventActions quick={quick} primary={primary} more={more} />}
       />
 
-      {/* The event's facts as one row of properties, with its quick links on the right. */}
+      {/* The event's facts as one row of properties. */}
       <div className={`${s.meta} ${dayOf ? s.dayNav : ''}`}>
         <ul className={s.props} aria-label="Details">
           <li>
@@ -134,31 +158,6 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
             </li>
           ))}
         </ul>
-        {!event.is_practice && (
-          <nav className={s.quick} aria-label="This event">
-            {!event.attested_at && (
-              <Link className="btn btn-sm btn-quiet" href={`/org/events/${id}/edit`}>
-                Edit
-              </Link>
-            )}
-            <Link className="btn btn-sm btn-quiet" href={`/org/messages/broadcasts?new=1&event=${id}`}>
-              <Icon name="megaphone" size={16} /> Announce
-            </Link>
-            <Link className="btn btn-sm btn-quiet" href={`/org/messages/events/${id}`}>
-              <Icon name="message" size={16} /> Chat
-              {chat.unread > 0 ? (
-                <span className={s.unread}>{chat.unread} new</span>
-              ) : (
-                chat.messages > 0 && <span className={s.count}>{chat.messages}</span>
-              )}
-            </Link>
-            {ended && !event.attested_at && (
-              <Link className="btn btn-sm btn-quiet" href={`/org/events/${id}/story`}>
-                Debrief
-              </Link>
-            )}
-          </nav>
-        )}
       </div>
 
       {share && !live && sharePanel}

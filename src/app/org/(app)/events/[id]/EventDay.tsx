@@ -9,7 +9,6 @@ import { SiteSetup } from './SiteSetup';
 import { WalkinCard } from './WalkinCard';
 import type { WalkinPanel } from '@/lib/walkin-panel';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Chip } from '@/components/ui/Chip';
 import { Icon } from '@/components/shell/icons';
 import { toast } from '@/components/shell/Toast';
 import s from './event.module.css';
@@ -113,17 +112,9 @@ export function EventDay(props: {
       <p className="sr-only" aria-live="polite">
         {arrived}
       </p>
-      <div className={`${s.grid} ${s.still}`}>
-        <div className={s.side}>
-          {props.verified ? (
-            <section className={`card ${s.qrCard}`}>
-              <Chip tone="green" icon="check">
-                Verified
-              </Chip>
-              <p className={`figure ${s.issued}`}>{rows.filter((r) => r.status === 'attested').length}</p>
-              <p className={s.qrHint}>hour records issued. Each volunteer can share theirs; anyone can check it at a public link.</p>
-            </section>
-          ) : (
+      <div className={`${s.grid} ${s.still} ${props.verified ? s.solo : ''}`}>
+        {!props.verified && (
+          <div className={s.side}>
             <section className={`card ${s.qrCard}`} aria-label="Check-in code">
               <div className={`${s.qrTile} force-light`}>
                 <div className={s.qr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
@@ -139,21 +130,21 @@ export function EventDay(props: {
                 Print a sign for the table
               </Link>
             </section>
-          )}
-          {walkin && walkinLive && walkinLive !== 'verified' && !props.verified && !props.practice && (
-            <WalkinCard
-              eventId={props.eventId}
-              panel={walkin}
-              state={walkinLive}
-              count={walkins}
-              onChange={(p) => {
-                setWalkin(p);
-                setNow(Date.now());
-              }}
-              onFull={() => openFull('walkin')}
-            />
-          )}
-        </div>
+            {walkin && walkinLive && walkinLive !== 'verified' && !props.verified && !props.practice && (
+              <WalkinCard
+                eventId={props.eventId}
+                panel={walkin}
+                state={walkinLive}
+                count={walkins}
+                onChange={(p) => {
+                  setWalkin(p);
+                  setNow(Date.now());
+                }}
+                onFull={() => openFull('walkin')}
+              />
+            )}
+          </div>
+        )}
 
         <section className={`card ${s.roster}`} aria-labelledby="roster-h">
           <div className={s.rosterHead}>
@@ -165,7 +156,8 @@ export function EventDay(props: {
               <p className={s.headcount} aria-live="polite" aria-atomic="true">
                 <span className={`figure ${s.headNum}`}>{props.verified ? rows.length : here}</span>
                 <span className="figure-unit">{props.verified ? 'on the record' : 'here now'}</span>
-                {left > 0 && <span className={s.headSub}>{left} checked out</span>}
+                {left > 0 && !props.verified && <span className={s.headSub}>{left} checked out</span>}
+                {props.verified && <span className={s.headSub}>Each volunteer can share their record; anyone can check it at a public link.</span>}
               </p>
             </div>
             <div className={s.headActions}>
@@ -227,7 +219,7 @@ export function EventDay(props: {
                       In – Out
                     </th>
                     <th scope="col" className="r">
-                      Hours
+                      {props.verified ? 'Hours' : 'Status'}
                     </th>
                     <th scope="col">
                       <span className="sr-only">Actions</span>
@@ -270,8 +262,10 @@ export function EventDay(props: {
                             <span className={s.dot} aria-hidden />
                             here
                           </span>
-                        ) : (
+                        ) : props.verified ? (
                           Number(r.hours_adjusted ?? r.hours_captured)
+                        ) : (
+                          `${Number(r.hours_adjusted ?? r.hours_captured)} hrs`
                         )}
                       </td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>

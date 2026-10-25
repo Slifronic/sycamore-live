@@ -20,11 +20,19 @@ export function openCommandPalette() {
 }
 
 type Group = 'Actions' | 'Pages' | 'Events' | 'Volunteers';
-type Entry = { id: string; group: Group; label: string; sub?: string; meta?: string; icon: IconName; href?: string; run?: () => void; keywords?: string; rank?: number };
+type Entry = { id: string; group: Group; label: string; sub?: string; meta?: string; icon: IconName; initials?: string; href?: string; run?: () => void; keywords?: string; rank?: number };
 type Index = {
   events: { id: string; title: string; starts_at: string; state: 'live' | 'waiting' | 'verified' | 'upcoming'; practice: boolean }[];
   volunteers: { key: string; name: string; events: number }[];
 };
+
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join('');
 
 const STATE_TEXT = { live: 'Live now', waiting: 'Needs verifying', verified: 'Verified', upcoming: 'Upcoming' } as const;
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
@@ -135,8 +143,9 @@ export function CommandPalette({ importHref }: { importHref: string | null }) {
       id: `v-${v.key}`,
       group: 'Volunteers',
       label: v.name,
-      sub: `${v.events} ${v.events === 1 ? 'event' : 'events'}`,
+      meta: `${v.events} ${v.events === 1 ? 'event' : 'events'}`,
       icon: 'user',
+      initials: initialsOf(v.name),
       href: `/org/volunteers?q=${encodeURIComponent(v.name)}`,
     }));
     return [...actions, ...pages, ...events, ...people];
@@ -245,9 +254,15 @@ export function CommandPalette({ importHref }: { importHref: string | null }) {
                     onMouseMove={() => i !== current && setActive(i)}
                     onClick={() => choose(e)}
                   >
-                    <span className={s.optIcon} data-live={e.icon === 'live' || undefined}>
-                      <Icon name={e.icon} size={16} />
-                    </span>
+                    {e.initials ? (
+                      <span className={s.optInitials} aria-hidden>
+                        {e.initials}
+                      </span>
+                    ) : (
+                      <span className={s.optIcon} data-live={e.icon === 'live' || undefined}>
+                        <Icon name={e.icon} size={16} />
+                      </span>
+                    )}
                     <span className={s.optText}>
                       <span className={s.optLabel}>{e.label}</span>
                       {e.sub && <span className={s.optSub}>{e.sub}</span>}

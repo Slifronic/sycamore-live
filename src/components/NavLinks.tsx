@@ -13,8 +13,9 @@ import { Menu, type MenuItem } from './ui/Popover';
 import { INSTANT, SPRING } from './motion/tokens';
 import s from './shell/rail.module.css';
 
-// The coordinator's navigation. Desktop: a slim icon rail (theme toggle on
-// top, the five sections, then More and Sign out at the foot). The active
+// The coordinator's navigation. Desktop: a slim icon rail (the five sections,
+// then More and the theme toggle at the foot; sign out lives in the account
+// menu). The active
 // item sits on a moss pill that slides between items (spring 380/32).
 // Keyboard: Tab reaches the rail; ↑/↓ (and Home/End) move within it.
 // Phones: a bottom tab bar of four sections plus More.
@@ -41,7 +42,7 @@ function moreItems(path: string, counts: NavCounts, course: Course, list: NavIte
   }));
 }
 
-export function OrgRail({ counts, course, signOut }: { counts: NavCounts; course: Course; signOut: () => Promise<void> }) {
+export function OrgRail({ counts, course }: { counts: NavCounts; course: Course; signOut?: () => Promise<void> }) {
   const path = usePathname();
   const reduce = useReducedMotion();
   const nav = useRef<HTMLElement>(null);
@@ -63,10 +64,6 @@ export function OrgRail({ counts, course, signOut }: { counts: NavCounts; course
 
   return (
     <nav ref={nav} className={`${s.rail} no-print`} aria-label="Organization" onKeyDown={onKey}>
-      <div className={s.group}>
-        <ThemeToggle tooltip="right" className={s.item} />
-      </div>
-      <span className={s.rule} aria-hidden />
       <ul className={s.group}>
         {RAIL.map((it) => {
           const active = isActive(path, it);
@@ -107,13 +104,8 @@ export function OrgRail({ counts, course, signOut }: { counts: NavCounts; course
             </Tooltip>
           )}
         />
-        <form action={signOut}>
-          <Tooltip label="Sign out" side="right">
-            <button className={s.item} aria-label="Sign out">
-              <Icon name="logout" size={20} className={s.icon} />
-            </button>
-          </Tooltip>
-        </form>
+        <span className={s.rule} aria-hidden />
+        <ThemeToggle tooltip="right" className={s.item} />
       </div>
     </nav>
   );

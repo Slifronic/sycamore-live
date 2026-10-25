@@ -9,7 +9,8 @@ import { acceptTerms } from '../_account';
 // 403 under 13 (nothing stored). An existing email signs back in with its birth date.
 // Volunteer addition: `accept_terms: true` is required ("I agree to the Terms and
 // Privacy Policy"), and 13 to 17 also need `guardian_ok: true` ("and a parent or
-// guardian knows I'm using SycaMore"). The time is kept as terms_accepted_at.
+// guardian knows I'm using SycaMore"). The times are kept as terms_accepted_at
+// and guardian_ack_at.
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Send your name, email and date of birth.' }, { status: 400 });
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
 
   try {
     const { volunteer, is_new } = await join(body);
-    await acceptTerms(volunteer.id);
+    await acceptTerms(volunteer.id, { guardian: volunteer.is_minor && body.guardian_ok === true });
     await setVolunteerCookie(volunteer.id);
     return NextResponse.json(
       { volunteer: { id: volunteer.id, name: volunteer.name, email: volunteer.email }, is_minor: volunteer.is_minor, is_new },

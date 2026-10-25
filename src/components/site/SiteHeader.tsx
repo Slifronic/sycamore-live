@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { BrandMark } from './BrandMark';
 import { MORE, NAV, activeHref } from './nav';
 import s from './header.module.css';
 
@@ -71,11 +72,7 @@ export function SiteHeader() {
     <header className={s.header} data-open={open || undefined}>
       <div className={s.bar}>
         <Link href="/" className={s.brand} aria-current={path === '/' ? 'page' : undefined}>
-          <span className={s.mark} aria-hidden="true">
-            ❦
-          </span>
-          <span>SycaMore</span>
-          <span className={s.live}>Live</span>
+          <BrandMark />
         </Link>
 
         <nav aria-label="Main" className={s.nav} onMouseLeave={() => setHover(null)}>

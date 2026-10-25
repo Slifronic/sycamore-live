@@ -3,7 +3,7 @@
    open thread, funnel bars beside a phone preview, flows as connected steps),
    in SycaMore's paper-on-parchment tokens. */
 
-.inbox, .chatLayout, .autoCard {
+.inbox, .chatLayout, .autoList {
   /* A quiet well behind the conversation and the flow, a step off paper in both themes. */
   --well: color-mix(in srgb, var(--surface-2) 55%, var(--paper));
   --auto-bg: #2d2a4a;
@@ -27,7 +27,7 @@
 
 .inbox {
   display: grid;
-  grid-template-columns: minmax(280px, 340px) 1fr;
+  grid-template-columns: minmax(280px, 380px) 1fr;
   min-height: 620px;
   height: calc(100vh - 230px);
   overflow: hidden;
@@ -41,15 +41,9 @@
   min-height: 0;
 }
 .listHead { padding: 14px 14px 10px; display: grid; gap: 10px; }
-.filters { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 14px 10px; border-bottom: 1px solid var(--rule-soft); }
-.filter {
-  display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border-radius: 999px;
-  font-size: 12.5px; font-weight: 600; color: var(--ink-2); text-decoration: none; background: transparent;
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-.filter[aria-current='page'] { background: var(--ink); color: var(--on-ink); box-shadow: none; }
-.filter b { font-weight: 700; opacity: 0.7; }
-@media (pointer: coarse) { .filter { height: 44px; padding: 0 14px; } }
+.filters { display: flex; padding: 0 14px 10px; border-bottom: 1px solid var(--rule-soft); min-width: 0; }
+.filters :global(.seg) { max-width: 100%; }
+.filterCount { font-weight: 700; opacity: 0.6; font-variant-numeric: tabular-nums; }
 
 .threads { overflow-y: auto; list-style: none; margin: 0; padding: 6px; }
 .thread {
@@ -131,12 +125,30 @@
 .phoneBubble { background: var(--paper); box-shadow: var(--shadow); border-radius: 14px; border-bottom-left-radius: 5px; padding: 10px 12px; font-size: 13px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 .phoneNote { font-size: 11px; color: var(--field); text-align: center; }
 
-.bList { display: grid; gap: 12px; }
-.bCard { padding: 16px 18px; display: grid; gap: 12px; text-decoration: none; color: inherit; }
-.bCard[aria-current='true'] { box-shadow: 0 0 0 2px var(--primary), var(--shadow); }
-.miniFunnel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-.mini { display: grid; gap: 4px; }
-.mini :global(.figure) { font-size: 22px; }
+/* All broadcasts: one row each, title on the left, four compact funnel bars on the right. */
+.bList { list-style: none; margin: 0; padding: 0; overflow: hidden; }
+.bList > li + li { border-top: 1px solid var(--rule-soft); }
+.bRow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 12px 32px; align-items: center; padding: 14px 20px; text-decoration: none; color: inherit; }
+.bRow:hover { background: var(--hover); }
+.bRow[aria-current='true'] { background: var(--primary-soft); box-shadow: inset 3px 0 0 var(--sap); }
+.bText { display: grid; gap: 2px; min-width: 0; }
+.bText strong { font-size: 14.5px; }
+.bMeta { font-size: 12.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.miniFunnel { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 0; }
+.mini { display: grid; gap: 3px; min-width: 0; }
+.miniVal { margin: 0; display: flex; align-items: baseline; gap: 6px; font-size: 14px; font-weight: 700; color: var(--ink); }
+.miniPct { font-size: 12px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.miniTrack { display: block; height: 4px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.miniFill { display: block; height: 100%; border-radius: inherit; background: var(--sap); transform-origin: left; }
+.miniGold { background: var(--star); }
+.summary { display: inline-flex; flex-wrap: wrap; gap: 4px 16px; }
+.summary b { color: var(--ink); font-weight: 700; }
+@media (max-width: 760px) {
+  .bRow { grid-template-columns: minmax(0, 1fr); padding: 14px 16px; }
+  .bMeta { white-space: normal; }
+  .miniFunnel { gap: 8px; }
+  .miniFunnel .miniLabel { letter-spacing: 0.03em; font-size: 10px; }
+}
 
 .placeholders { display: flex; gap: 6px; flex-wrap: wrap; }
 .placeholders button { height: 26px; padding: 0 8px; border-radius: 8px; border: 1px dashed var(--line-2); background: var(--paper); font: 600 12px var(--font-mono, ui-monospace), monospace; color: var(--ink-2); cursor: pointer; }
@@ -144,9 +156,6 @@
 .flag { background: var(--amber-soft); color: var(--amber); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
 
 /* automations */
-.autoGrid { display: grid; gap: 16px; }
-.autoCard { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 0; padding: 0; overflow: hidden; }
-.autoInfo { padding: 18px 20px; display: grid; gap: 12px; align-content: start; border-right: 1px solid var(--rule-soft); }
 .flow { padding: 18px 20px; display: grid; justify-items: center; align-content: center; gap: 0; background: var(--well); }
 .step { width: 100%; max-width: 420px; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 12px; background: var(--paper); box-shadow: var(--shadow); font-size: 13px; }
 .stepTrigger { box-shadow: 0 0 0 1.5px var(--red-soft), var(--shadow); }
@@ -154,16 +163,12 @@
 .stepTrigger .stepIcon { background: var(--red-soft); color: var(--red); }
 .stepKind { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--field); }
 .link { width: 2px; height: 18px; background: var(--line-2); }
-.endPill { margin-top: 2px; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 12px; border-radius: 999px; background: var(--surface-2); font-size: 12px; font-weight: 600; color: var(--ink-2); }
 .toggle { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; font-size: 14px; }
 .toggle input { appearance: none; width: 40px; height: 24px; border-radius: 999px; background: var(--line-2); position: relative; cursor: pointer; transition: background 160ms var(--ease); margin: 0; }
 .toggle input::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--paper); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); transition: transform 200ms var(--out); }
 .toggle input:checked { background: var(--primary); }
 .toggle input:checked::after { transform: translateX(16px); }
 .toggle input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.stats { display: flex; gap: 18px; flex-wrap: wrap; }
-.stat { display: grid; gap: 2px; }
-.stat :global(.figure) { font-size: 24px; }
 
 @media (max-width: 900px) {
   .inbox { grid-template-columns: 1fr; height: auto; }
@@ -175,8 +180,7 @@
   .facts { gap: 4px 10px; font-size: 12px; }
   .hideNarrow { display: none; }
   .stream { padding: 14px; max-height: 60vh; }
-  .bGrid, .autoCard { grid-template-columns: 1fr; }
-  .autoInfo { border-right: 0; border-bottom: 1px solid var(--rule-soft); }
+  .bGrid { grid-template-columns: 1fr; }
   .phone { position: static; }
   .fRow { grid-template-columns: 90px 1fr 44px 44px; }
 }
@@ -216,23 +220,72 @@
 @media (pointer: coarse) { .composeHint { display: none; } }
 .crumb { display: inline-flex; align-items: center; gap: 4px; color: inherit; text-decoration: none; }
 .crumb:hover { color: var(--ink); }
-.statRow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-@media (max-width: 720px) {
-  /* Phones: the three numbers scroll sideways instead of filling the screen. */
-  .statRow { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: -16px; padding: 2px 16px 6px; }
-  .statRow > * { flex: 0 0 min(240px, 72%); scroll-snap-align: start; }
-}
 .h2 { font-size: 19px; }
-.miniLabel { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.miniLabel { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .draftBox { gap: 8px; padding: 12px; border-radius: 12px; background: var(--primary-soft); }
 .twoCol { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
 @media (max-width: 600px) { .twoCol { grid-template-columns: minmax(0, 1fr); } }
-.meter { width: 96px; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-left: auto; align-self: center; }
-.meter > span { display: block; height: 100%; border-radius: 999px; background: var(--fill); transform-origin: left; animation: grow 1s var(--out) 0.2s both; }
-@media (prefers-reduced-motion: reduce) { .meter > span { animation: none; } }
-.miniPct { min-height: 1.4em; }
 :global(:root[data-theme='dark']) .phone { box-shadow: 0 0 0 1px rgba(232, 239, 233, 0.16), 0 30px 60px -24px rgba(0, 0, 0, 0.8); }
-@media (max-width: 600px) {
-  .filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .filter { flex: none; }
+
+/* "New message": a volunteer picker in a popover. */
+.newBtn { height: 40px; }
+.pickPanel.pickPanel { width: 320px; padding: 8px; }
+.pick { display: grid; gap: 6px; }
+.pickSearch { position: relative; display: flex; align-items: center; }
+.pickSearch > svg { position: absolute; left: 11px; color: var(--ink-3); pointer-events: none; }
+.pickSearch :global(.input) { height: 36px; padding-left: 34px; font-size: 14px; }
+.pickList { list-style: none; margin: 0; padding: 0; max-height: 300px; overflow-y: auto; display: grid; gap: 1px; }
+.pickItem { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 8px; border-radius: 9px; color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 600; }
+.pickItem:hover, .pickItem:focus-visible { background: var(--wash); outline: none; }
+.pickItem:focus-visible { box-shadow: inset 0 0 0 2px var(--primary); }
+.pickAvatar { width: 26px; height: 26px; font-size: 10.5px; }
+.pickName { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pickMeta { flex: none; font-size: 12px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.pickEmpty { padding: 12px 8px; font-size: 13px; color: var(--ink-3); }
+@media (pointer: coarse) { .pickItem { height: 44px; } }
+
+/* Broadcast audience preview: who it reaches, and who consent leaves out. */
+.reach { font-size: 13px; color: var(--ink-3); }
+.reach b { color: var(--ink); font-weight: 700; }
+.excluded { color: var(--ink-2); font-weight: 600; }
+.reachNote { color: var(--ink-3); }
+
+/* Automations: a list of rows (name · trigger · sent · switch) that expand to the editor. */
+.autoList { list-style: none; margin: 0; padding: 0; overflow: visible; }
+.autoRow + .autoRow { border-top: 1px solid var(--rule-soft); }
+.autoHead { display: flex; align-items: center; gap: 16px; padding: 0 20px 0 8px; min-height: 64px; transition: background var(--dur-1) var(--ease-out); }
+.autoRow:first-child .autoHead { border-radius: var(--radius) var(--radius) 0 0; }
+.autoRow:last-child:not([data-open]) .autoHead { border-radius: 0 0 var(--radius) var(--radius); }
+.autoExpand { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 12px; margin: 0; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.autoHead:hover { background: var(--hover); }
+.autoExpand:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.autoChev { flex: none; color: var(--ink-3); transition: transform var(--dur-2) var(--ease-out); }
+.autoExpand[aria-expanded='true'] .autoChev { transform: rotate(90deg); }
+.autoName { display: grid; gap: 1px; min-width: 0; }
+.autoName strong { font-size: 14.5px; }
+.autoTrigger { font-size: 12.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.autoSent { flex: none; font-size: 13px; color: var(--ink-3); white-space: nowrap; }
+.autoSent b { color: var(--ink); font-weight: 700; }
+.autoToggle { flex: none; }
+.toggleText { min-width: 26px; font-size: 13px; }
+.autoError { margin: 0 20px 12px; }
+.autoBody { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr); border-top: 1px solid var(--rule-soft); }
+.autoForm { display: grid; gap: 12px; padding: 16px 20px 18px 42px; align-content: start; }
+.autoFacts { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--ink-3); }
+.autoActions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.autoDue { font-size: 12.5px; color: var(--ink-3); }
+.autoFlow { border-left: 1px solid var(--rule-soft); display: grid; }
+.autoFlow .flow { padding: 16px 20px; }
+@media (max-width: 760px) {
+  .autoHead { flex-wrap: wrap; padding: 4px 12px 8px 4px; gap: 4px 12px; }
+  .autoExpand { flex-basis: 100%; }
+  .autoSent { margin-left: 38px; }
+  .autoToggle { margin-left: auto; }
+  .autoBody { grid-template-columns: minmax(0, 1fr); }
+  .autoForm { padding: 14px 16px; }
+  .autoFlow { border-left: 0; border-top: 1px solid var(--rule-soft); }
+}
+/* Phones: the button sits on the left, so the picker opens to the right of it. */
+@media (max-width: 640px) {
+  .pickPanel.pickPanel.pickPanel { left: 0; right: auto; width: min(320px, calc(100vw - 32px)); }
 }

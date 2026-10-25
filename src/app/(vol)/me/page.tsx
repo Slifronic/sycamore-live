@@ -9,7 +9,7 @@ import { Stagger } from '@/components/motion/Stagger';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/shell/icons';
 import { OrgFolders, type Folder } from '@/components/vol/OrgFolders';
-import { orgColor, orgInitials } from '@/components/vol/org-color';
+import { orgColor, orgInitials, type OrgColor } from '@/components/vol/org-color';
 import { ActiveCard } from './ActiveCard';
 import { GoalCard } from './GoalCard';
 import s from './home.module.css';
@@ -27,10 +27,23 @@ const part = (iso: string | Date, o: Intl.DateTimeFormatOptions) => new Date(iso
 const ym = (iso: string | number) => new Date(iso).toLocaleDateString('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit' });
 const decimals = (n: number) => (Number.isInteger(n) ? 0 : Number.isInteger(n * 10) ? 1 : 2);
 
+// Each folder gets its organization's colour, unless another folder on this
+// screen already has it; then the next free one, so no two look alike. Sun
+// (butter) means "needs you" elsewhere, so it's used only after the others.
+const COLOR_ORDER: OrgColor[] = ['sap', 'sky', 'plum', 'clay', 'sun'];
+function distinctColors(folders: Folder[]): Folder[] {
+  const used = new Set<OrgColor>();
+  return folders.map((f) => {
+    const color = used.has(f.color) || f.color === 'sun' ? (COLOR_ORDER.find((c) => !used.has(c)) ?? f.color) : f.color;
+    used.add(color);
+    return { ...f, color };
+  });
+}
+
 function folders(records: VolRecord[]): Folder[] {
   const by = new Map<string, VolRecord[]>();
   for (const r of records) by.set(r.org_id, [...(by.get(r.org_id) ?? []), r]);
-  return [...by.entries()]
+  const list = [...by.entries()]
     .map(([orgId, rs]) => {
       const hours = rs.filter((r) => r.status === 'active').reduce((n, r) => n + r.hours_total, 0);
       const first = rs.at(-1)!; // records come newest first
@@ -60,9 +73,10 @@ function folders(records: VolRecord[]): Folder[] {
     })
     .sort((a, b) => b.hours - a.hours)
     .map((x) => x.folder);
+  return distinctColors(list);
 }
 
-type UpNext = { title: string; slug: string; starts_at: Date; ends_at: Date; place: string | null; org_name: string };
+type UpNext = { title: string; slug: string; starts_at: Date; ends_at: Date; place: string | null; org_name: string; saved: boolean };
 
 export default async function Home() {
   const vol = await requireVolunteer('/me');
@@ -70,11 +84,21 @@ export default async function Home() {
     activeSession(vol.id),
     volunteerRecords(vol.id),
     pendingAttendance(vol.id),
+    // Up next: the next event they saved; else the next one at an
+    // organization they've served with (not one already under way).
     sql`
-      select e.title, e.public_slug as slug, e.starts_at, e.ends_at, coalesce(e.place_name, e.location) as place, o.name as org_name
-      from saved_event s join event e on e.id = s.event_id join org o on o.id = e.org_id
-      where s.volunteer_id = ${vol.id} and e.ends_at > now() and e.attested_at is null and not e.is_practice
-      order by e.starts_at limit 1` as unknown as Promise<UpNext[]>,
+      (select e.title, e.public_slug as slug, e.starts_at, e.ends_at, coalesce(e.place_name, e.location) as place, o.name as org_name, true as saved, 0 as rank
+       from saved_event s join event e on e.id = s.event_id join org o on o.id = e.org_id
+       where s.volunteer_id = ${vol.id} and e.ends_at > now() and e.attested_at is null and not e.is_practice
+       order by e.starts_at limit 1)
+      union all
+      (select e.title, e.public_slug as slug, e.starts_at, e.ends_at, coalesce(e.place_name, e.location) as place, o.name as org_name, false as saved, 1 as rank
+       from event e join org o on o.id = e.org_id
+       where e.starts_at > now() and e.attested_at is null and not e.is_practice
+         and e.org_id in (select ev.org_id from attendance a join event ev on ev.id = a.event_id where a.volunteer_id = ${vol.id})
+         and not exists (select 1 from attendance a where a.event_id = e.id and a.volunteer_id = ${vol.id})
+       order by e.starts_at limit 1)
+      order by rank limit 1` as unknown as Promise<UpNext[]>,
   ]);
   const upNext = upNextRows[0];
 
@@ -127,7 +151,7 @@ export default async function Home() {
                 <b>{part(upNext.starts_at, { day: 'numeric' })}</b>
               </span>
               <span className={s.nextBody}>
-                <span className={s.nextEyebrow}>Up next</span>
+                <span className={s.nextEyebrow}>{upNext.saved ? 'Up next' : 'Coming up'}</span>
                 <span className={s.nextTitle}>{upNext.title}</span>
                 <span className={s.nextMeta}>
                   {part(upNext.starts_at, { weekday: 'short' })} {fmtTime(upNext.starts_at)} · {upNext.org_name}
@@ -151,7 +175,19 @@ export default async function Home() {
           )}
         </div>
         {records.length ? (
-          <OrgFolders folders={folders(records)} />
+          <>
+            <OrgFolders folders={folders(records)} />
+            <Link href="/discover" className={s.newRow}>
+              <span className={s.newIcon} aria-hidden>
+                <Icon name="plus" size={16} />
+              </span>
+              <span className={s.newText}>
+                <b>Serve somewhere new</b>
+                <span>Find an upcoming event on Discover</span>
+              </span>
+              <Icon name="chevron-right" size={16} className={s.nextChev} />
+            </Link>
+          </>
         ) : (
           <div className="card">
             <EmptyState

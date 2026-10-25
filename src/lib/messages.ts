@@ -19,6 +19,13 @@ import { MINOR_MESSAGES_OFF, isMinor, minorIds } from './minors';
 // one-way org announcements and still reach them. See lib/minors.ts.
 // Every number a template fills in ({hours}, {event}, dates) comes from the
 // database, never from the person writing it.
+//
+// Consent (volunteer.marketing_opt_in, off by default): announcements and other
+// marketing-type messages (broadcasts, invite-back, reminders, milestones) only
+// go to volunteers who opted in. Transactional messages still go to everyone
+// they concern: event-day logistics for an event they signed up for (a
+// broadcast to the people of an event that hasn't ended, about that event),
+// "you forgot to check out", and "your hours were verified".
 
 export const MAX_BODY = 1000;
 export class MessageError extends Error {
@@ -165,19 +172,47 @@ export async function sendDirect(org: Org, volunteerId: string, body: string) {
   await markThreadRead(org.id, volunteerId);
 }
 
+// ---------- consent ----------
+
+/** The volunteers (of these ids) who opted in to announcements. */
+export async function optedInIds(ids: string[]): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+  const rows = (await sql`select id from volunteer where id = any(${ids}) and marketing_opt_in`) as unknown as { id: string }[];
+  return new Set(rows.map((r) => r.id));
+}
+
+/**
+ * A broadcast is transactional (reaches everyone in the group, opted in or
+ * not) only when it goes to the people of an event that hasn't ended, and
+ * invites to nothing else: that's event-day logistics for something they
+ * signed up for. Everything else is an announcement and needs opt-in.
+ */
+export function broadcastIsTransactional(audience: string, inviteEventId: string | null, ins: Pick<OrgInsights, 'events'>, now = Date.now()) {
+  const m = /^event:([0-9a-f-]{36})$/.exec(audience);
+  if (!m) return false;
+  const ev = ins.events.find((e) => e.id === m[1]);
+  if (!ev || new Date(ev.ends_at).getTime() < now) return false;
+  return !inviteEventId || inviteEventId === ev.id;
+}
+
 // ---------- broadcasts ----------
 
 export type Audience = 'all' | 'regulars' | 'new' | 'away' | `event:${string}`;
 
-export function audienceOptions(ins: OrgInsights) {
+/**
+ * The broadcast audiences with their sizes. Pass the opted-in set to also get
+ * `optedIn` per audience (the audience preview shows "12 not opted in").
+ */
+export function audienceOptions(ins: OrgInsights, opted?: Set<string>) {
   const withAccount = ins.volunteers.filter((v) => v.volunteer_id);
-  const base = [
-    { key: 'all', label: 'Everyone with verified hours', count: withAccount.length },
-    { key: 'regulars', label: 'Regulars (2+ events)', count: withAccount.filter((v) => v.status === 'active').length },
-    { key: 'new', label: 'First-timers', count: withAccount.filter((v) => v.status === 'new').length },
-    { key: 'away', label: 'Haven’t come in 30+ days', count: withAccount.filter((v) => v.status === 'away').length },
+  const opt = (list: typeof withAccount) => (opted ? list.filter((v) => opted.has(v.volunteer_id!)).length : list.length);
+  const groups: [string, string, typeof withAccount][] = [
+    ['all', 'Everyone with verified hours', withAccount],
+    ['regulars', 'Regulars (2+ events)', withAccount.filter((v) => v.status === 'active')],
+    ['new', 'Came once (1 event so far)', withAccount.filter((v) => v.status === 'new')],
+    ['away', 'Haven’t come in 30+ days', withAccount.filter((v) => v.status === 'away')],
   ];
-  return base;
+  return groups.map(([key, label, list]) => ({ key, label, count: list.length, optedIn: opt(list) }));
 }
 
 export async function resolveAudience(orgId: string, audience: string, ins: OrgInsights): Promise<{ label: string; people: { id: string; name: string; hours?: number }[] }> {
@@ -188,7 +223,7 @@ export async function resolveAudience(orgId: string, audience: string, ins: OrgI
   });
   if (audience === 'all') return pick(() => true, 'Everyone with verified hours');
   if (audience === 'regulars') return pick((v) => v.status === 'active', 'Regulars (2+ events)');
-  if (audience === 'new') return pick((v) => v.status === 'new', 'First-timers');
+  if (audience === 'new') return pick((v) => v.status === 'new', 'Came once (1 event so far)');
   if (audience === 'away') return pick((v) => v.status === 'away', 'Haven’t come in 30+ days');
   const m = /^event:([0-9a-f-]{36})$/.exec(audience);
   if (m) {
@@ -220,8 +255,17 @@ export async function sendBroadcast(
   const bad = unfilled(template).filter((p) => !allowed.has(p));
   if (bad.length) throw new MessageError(`${bad.join(', ')} needs ${invite ? 'a value we don’t have' : 'an event: pick one under “Invites them to”'}.`);
 
-  const { label, people } = await resolveAudience(org.id, input.audience, ins);
-  if (people.length === 0) throw new MessageError('Nobody is in that group yet.');
+  const resolved = await resolveAudience(org.id, input.audience, ins);
+  const { label } = resolved;
+  if (resolved.people.length === 0) throw new MessageError('Nobody is in that group yet.');
+  // Announcements reach only people who opted in; event-day logistics reach everyone at the event.
+  const transactional = broadcastIsTransactional(input.audience, invite?.id ?? null, ins);
+  const opted = transactional ? null : await optedInIds(resolved.people.map((p) => p.id));
+  const people = opted ? resolved.people.filter((p) => opted.has(p.id)) : resolved.people;
+  if (people.length === 0)
+    throw new MessageError(
+      `None of the ${resolved.people.length} people in that group have opted in to announcements yet. Event-day notes to the people of an upcoming event still go to everyone.`,
+    );
 
   return sql.begin(async (tx) => {
     const [b] = await tx`
@@ -287,11 +331,14 @@ export type AutomationDef = {
   condition: string; // what happens after, in plain words
   defaultBody: string;
   allowed: string[]; // placeholders this rule can fill
+  /** Transactional rules reach everyone they concern; the rest only reach volunteers who opted in. */
+  transactional: boolean;
 };
 
 export const AUTOMATIONS: AutomationDef[] = [
   {
     key: 'missing_checkout',
+    transactional: true,
     name: 'Forgot to check out',
     trigger: 'An event has ended and a volunteer is still checked in',
     wait: '30 minutes after the event’s end time',
@@ -301,6 +348,7 @@ export const AUTOMATIONS: AutomationDef[] = [
   },
   {
     key: 'record_ready',
+    transactional: true,
     name: 'Hours verified',
     trigger: 'The coordinator verifies an event the volunteer attended',
     wait: 'Right away (events verified in the last 3 weeks)',
@@ -310,6 +358,7 @@ export const AUTOMATIONS: AutomationDef[] = [
   },
   {
     key: 'event_reminder',
+    transactional: false,
     name: 'Day-before reminder',
     trigger: 'An event starts within the next 36 hours',
     wait: 'Sends to regulars (2+ events) once per event',
@@ -319,6 +368,7 @@ export const AUTOMATIONS: AutomationDef[] = [
   },
   {
     key: 'invite_back',
+    transactional: false,
     name: 'Invite back',
     trigger: 'A volunteer came 2+ times but not in 30 days',
     wait: 'At most once a month per person, only when an event is coming up',
@@ -328,6 +378,7 @@ export const AUTOMATIONS: AutomationDef[] = [
   },
   {
     key: 'milestone',
+    transactional: false,
     name: 'Hour milestone',
     trigger: 'A volunteer passes 10, 25, 50, 100 or 250 verified hours',
     wait: 'Once per milestone (crossed in the last 30 days)',
@@ -384,6 +435,14 @@ async function dueFor(org: Org, key: AutomationKey, ins: OrgInsights, now = new 
       out.push({ volunteer_id: v.volunteer_id!, dedupe: `milestone:${v.volunteer_id}:${v.milestone!.hours}`, ctx: { first_name: first(v.name), org: org.name, hours: String(v.milestone!.hours) } });
   }
   if (out.length === 0) return out;
+  // Consent: marketing-type rules skip volunteers who haven't opted in.
+  if (!automationByKey[key].transactional) {
+    const opted = await optedInIds([...new Set(out.map((p) => p.volunteer_id))]);
+    const kept = out.filter((p) => opted.has(p.volunteer_id));
+    out.length = 0;
+    out.push(...kept);
+    if (out.length === 0) return out;
+  }
   const sent = new Set(
     ((await sql`select dedupe_key from message where org_id = ${org.id} and dedupe_key = any(${out.map((p) => p.dedupe)})`) as unknown as { dedupe_key: string }[]).map((r) => r.dedupe_key),
   );

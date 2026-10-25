@@ -66,12 +66,14 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
           viewCounts={{ unread: inboxUnread, chatUnread }}
           signOut={signOut}
         />
-        <OrgRail counts={counts} course={courseInfo} signOut={signOut} />
+        <OrgRail counts={counts} course={courseInfo} />
         <main className={s.main} id="main" tabIndex={-1}>
-          <Suspense>
-            <CoachBar />
-          </Suspense>
-          <RouteTransition>{children}</RouteTransition>
+          <div className={s.col}>
+            <Suspense>
+              <CoachBar />
+            </Suspense>
+            <RouteTransition>{children}</RouteTransition>
+          </div>
         </main>
         <OrgTabBar counts={counts} course={courseInfo} signOut={signOut} />
         <CommandPalette importHref={importHref} />

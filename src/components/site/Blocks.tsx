@@ -161,10 +161,10 @@ export function CtaBand({
           </div>
           <div className={s.ctaActions}>
             <div className={s.ctas}>
-              <Link href={primary.href} className={`btn btn-big ${s.btnLight}`}>
+              <Link href={primary.href} className="btn btn-primary btn-big">
                 {primary.label}
               </Link>
-              <Link href={secondary.href} className={`btn btn-big ${s.btnGhostLight}`}>
+              <Link href={secondary.href} className="btn btn-big">
                 {secondary.label}
               </Link>
             </div>

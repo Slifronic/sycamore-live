@@ -77,7 +77,14 @@
 .props strong { color: var(--ink); font-weight: 600; }
 .props .tagItem { margin-left: -10px; }
 .props .tagItem + .tagItem { margin-left: -14px; }
-.quick { display: flex; gap: 2px; flex-wrap: wrap; margin: 0 -8px 0 auto; }
+.actions { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+.actions .primary { margin-left: 8px; }
+.moreBtn { width: 32px; padding: 0; }
+@media (pointer: coarse) { .moreBtn { width: 44px; } }
+.titleRow { display: inline-flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.titleRow :global(.chip) { font-family: var(--font-sans), system-ui, sans-serif; letter-spacing: 0; vertical-align: middle; }
+/* Verified: the roster is the whole page (the header's chip says it's on the record). */
+.solo { grid-template-columns: minmax(0, 1fr); }
 .unread { margin-left: 2px; padding: 0 6px; height: 18px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 11px; font-weight: 800; background: var(--red); color: var(--paper); }
 .count { margin-left: 2px; font-size: 12px; color: var(--field); font-variant-numeric: tabular-nums; }
 
@@ -122,7 +129,6 @@ details[open] > .siteSum .siteChev { transform: rotate(180deg); }
 .table td:nth-child(n + 2) { padding-top: 14px; }
 @media (max-width: 600px) {
   .meta { margin-top: -4px; }
-  .quick { margin-right: 0; }
   .rosterHead { padding: 14px 14px 12px; }
   .tools { padding: 12px; }
 }

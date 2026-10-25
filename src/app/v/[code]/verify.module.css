@@ -52,7 +52,11 @@
 .tile { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--band); color: #fff; font-family: var(--font-display), Georgia, serif; font-weight: 600; font-size: 18px; }
 .issuerText { display: grid; gap: 6px; min-width: 0; }
 .contact { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-.contact a { overflow-wrap: anywhere; white-space: normal; }
+.contact a { overflow-wrap: anywhere; white-space: normal; justify-content: flex-start; text-align: left; }
+@media (max-width: 560px) {
+  /* Stacked on a phone: two matching outline buttons, both left-aligned. */
+  .contact { display: grid; justify-items: start; }
+}
 
 /* How to read */
 .how { border-radius: var(--radius); background: var(--primary-soft); padding: 4px 18px; }

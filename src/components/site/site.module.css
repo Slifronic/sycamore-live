@@ -12,6 +12,9 @@
 .section { padding-block: clamp(64px, 8vw, 112px); }
 .section + .section { padding-top: 0; }
 .well { background: var(--surface-2); }
+/* A band on the quiet surface always gets its own padding, even straight
+   after another section (it matches the home page's proof band). */
+.section.well { padding-block: clamp(56px, 6vw, 80px); }
 .section.well + .section { padding-top: clamp(64px, 8vw, 112px); }
 
 .head { display: grid; gap: 14px; margin-bottom: clamp(32px, 4vw, 52px); max-width: 760px; }
@@ -89,41 +92,24 @@
 }
 @keyframes rise { from { transform: translateY(42%); opacity: 0.3; } }
 
-/* ── CTA band: a dark contrast panel in both themes ──────── */
+/* ── CTA band: a paper card on the page, no glow ─────────── */
 .cta { padding: 0 0 clamp(64px, 8vw, 104px); }
+/* After a band on the quiet surface, the card needs its own gap above it. */
+.section.well + .cta { padding-top: clamp(56px, 6vw, 80px); }
 .ctaCard {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  border-radius: 24px;
-  background: var(--ink-panel);
-  color: var(--on-ink-panel);
-  padding: clamp(40px, 6vw, 72px) clamp(24px, 5vw, 64px);
+  border-radius: 20px;
+  background: var(--paper);
+  padding: clamp(36px, 5vw, 64px) clamp(24px, 5vw, 64px);
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) auto;
   gap: 28px 48px;
   align-items: end;
   box-shadow: var(--shadow);
 }
-.ctaCard::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: radial-gradient(70% 120% at 100% 0%, rgba(111, 191, 144, 0.2), transparent 60%);
-}
-.ctaTitle { color: var(--on-ink-panel); font-size: clamp(30px, 3.8vw, 48px); line-height: 1.04; letter-spacing: -0.03em; font-weight: 500; text-wrap: balance; max-width: 18ch; }
-.ctaText { color: color-mix(in srgb, var(--on-ink-panel) 76%, transparent); font-size: 16px; line-height: 1.55; margin-top: 14px; max-width: 48ch; }
+.ctaTitle { color: var(--canopy); font-size: clamp(30px, 3.8vw, 48px); line-height: 1.04; letter-spacing: -0.03em; font-weight: 500; text-wrap: balance; max-width: 18ch; }
+.ctaText { color: var(--ink-2); font-size: 16px; line-height: 1.55; margin-top: 14px; max-width: 48ch; }
 .ctaActions { display: grid; gap: 12px; justify-items: start; }
-.ctaNote { font-size: 13px; color: color-mix(in srgb, var(--on-ink-panel) 66%, transparent); }
-
-/* Buttons on the dark panel. The panel is dark in both themes, so these are
-   fixed light-on-dark values rather than theme tokens. */
-.btnLight { background: #f4f6f2; border-color: #f4f6f2; color: #0f261b; }
-.btnLight:hover { background: #ffffff; border-color: #ffffff; }
-.btnGhostLight { background: transparent; border-color: rgba(255, 255, 255, 0.28); color: #f4f6f2; }
-.btnGhostLight:hover { background: rgba(255, 255, 255, 0.08); }
-.btnLight:focus-visible, .btnGhostLight:focus-visible { outline-color: #6fcf97; }
+.ctaNote { font-size: 13px; color: var(--ink-3); }
 
 /* ── Cards ───────────────────────────────────────────────── */
 .paper { position: relative; background: var(--paper); border-radius: 16px; box-shadow: var(--shadow); }

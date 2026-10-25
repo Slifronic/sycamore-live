@@ -33,11 +33,22 @@
 .orgText { display: grid; gap: 2px; min-width: 0; font-size: 13px; color: var(--ink-3); overflow-wrap: anywhere; }
 .orgText b { font-size: 15px; color: var(--ink); }
 
-/* Two actions. */
-.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.action { width: 100%; gap: 8px; height: 56px; border-radius: 14px; }
-.print { grid-column: 1 / -1; justify-self: center; color: var(--ink-2); font-weight: 600; }
-.minorNote { margin-top: -6px; text-align: center; font-size: 13px; color: var(--ink-3); }
+/* Two actions in a bar that sticks 8px above the phone tab bar (--tabbar-h
+   comes from the shell; 0 on desktop), or 16px off the bottom on desktop. */
+.actionBar {
+  position: sticky; bottom: calc(var(--tabbar-h, 0px) + 8px); z-index: 5;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 8px; border-radius: 20px;
+  background: var(--glass); -webkit-backdrop-filter: saturate(1.4) blur(14px); backdrop-filter: saturate(1.4) blur(14px); box-shadow: var(--pop);
+}
+.actionBar[data-single] { grid-template-columns: minmax(0, 1fr); }
+.action { width: 100%; gap: 8px; height: 52px; border-radius: 14px; font-size: 15px; }
+.actionIcon { flex: none; }
+.below { display: grid; justify-items: center; gap: 4px; }
+.print { color: var(--ink-2); font-weight: 600; }
+.minorNote { text-align: center; font-size: 13px; color: var(--ink-3); }
+@media (min-width: 861px) {
+  .actionBar { bottom: 16px; }
+}
 
 /* The sheet: bottom sheet on phones, a centred card on wider screens. */
 .sheet {

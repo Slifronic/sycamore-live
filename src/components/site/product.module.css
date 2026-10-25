@@ -308,6 +308,22 @@
   .bottom { display: none; }
 }
 
+/* Phones: the window and the phone can't both stay legible, and the phone
+   would cover the window's Verify button. Show the volunteer's phone alone,
+   centred, at a readable size. */
+@media (max-width: 639px) {
+  .stage { padding: 8px 0 4px; display: grid; justify-items: center; }
+  .window { display: none; }
+  .phone {
+    --b: 13px;
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: min(64%, 240px);
+    min-width: 0;
+  }
+}
+
 /* Tilt (HeroStage). Pointer devices only, and never under reduced motion. */
 .tilt {
   transform: perspective(1400px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));

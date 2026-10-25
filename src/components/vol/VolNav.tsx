@@ -23,6 +23,21 @@ export const VOL_TABS: Tab[] = [
   { href: '/me/account', label: 'Me', icon: 'user', match: (p) => p.startsWith('/me/account') || p.startsWith('/me/badges') || p.startsWith('/me/journey') },
 ];
 
+// The phone bar's title: the greeting on Home only; elsewhere the page's name,
+// so Account doesn't say "Good morning, Lucia" right above "Lucia Kim".
+function barTitle(p: string): string | null {
+  if (p === '/me') return null;
+  if (p.startsWith('/me/records')) return 'Record';
+  if (p.startsWith('/me/badges')) return 'Badges';
+  if (p.startsWith('/me/journey')) return 'Journey';
+  if (p.startsWith('/me/account')) return 'Account';
+  if (p.startsWith('/me/messages')) return 'Messages';
+  if (p.startsWith('/checkin')) return 'Check in';
+  if (p.startsWith('/discover/profile')) return 'Your experience';
+  if (p.startsWith('/discover')) return 'Discover';
+  return null;
+}
+
 function Count({ n, className }: { n: number; className: string }) {
   if (n <= 0) return null;
   return (
@@ -37,15 +52,20 @@ export function VolTopBar({ greeting, first, initials, unread }: { greeting: str
   const path = usePathname();
   const reduce = useReducedMotion();
   const meActive = VOL_TABS[3].match(path);
+  const title = barTitle(path);
   return (
     <header className={`${s.top} no-print`}>
       <Link href="/me" className={s.brand} aria-label="SycaMore, home">
         <Leaf size={22} color="var(--canopy)" />
         <span className={s.brandText}>SycaMore</span>
       </Link>
-      <p className={s.hello}>
-        <span className={s.helloGreet}>{greeting},</span> <span className={s.helloName}>{first}</span>
-      </p>
+      {title ? (
+        <p className={s.barTitle}>{title}</p>
+      ) : (
+        <p className={s.hello}>
+          <span className={s.helloGreet}>{greeting},</span> <span className={s.helloName}>{first}</span>
+        </p>
+      )}
       <nav className={s.pills} aria-label="Volunteer">
         {VOL_TABS.map((t) => {
           const on = t.match(path);

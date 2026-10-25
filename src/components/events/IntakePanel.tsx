@@ -5,6 +5,7 @@ import type { IntakeDraft, IntakeResult } from '@/lib/intake-types';
 import type { Place } from '@/lib/place-links';
 import { Icon } from '../shell/icons';
 import { HelpTip } from '../media/HelpTip';
+import { Menu } from '../ui/Popover';
 import s from './events.module.css';
 
 export type RepeatOption = { label: string; draft: IntakeDraft };
@@ -155,24 +156,17 @@ export function IntakePanel({
             </button>
           )}
           {repeats.length > 0 && (
-            <select
-              className="select"
-              style={{ width: 'auto', maxWidth: '100%', height: 40 }}
-              aria-label="Repeat a past event"
-              value=""
-              disabled={!!busy}
-              onChange={(e) => {
-                const r = repeats[Number(e.target.value)];
-                if (r) onDraft(r.draft);
-              }}
-            >
-              <option value="">Repeat a past event…</option>
-              {repeats.map((r, i) => (
-                <option key={r.label} value={i}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+            <Menu
+              label="Repeat a past event"
+              placement="bottom-start"
+              panelClassName={s.repeatMenu}
+              items={repeats.map((r) => ({ label: r.label, icon: 'calendar' as const, onSelect: () => onDraft(r.draft) }))}
+              trigger={(p) => (
+                <button {...p} type="button" className="btn" disabled={!!busy}>
+                  <Icon name="enter" size={16} /> Repeat a past event <Icon name="chevron-down" size={16} />
+                </button>
+              )}
+            />
           )}
           <input
             ref={fileRef}

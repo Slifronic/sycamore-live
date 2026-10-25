@@ -12,16 +12,10 @@
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   min-height: 44px;
-  font-family: var(--font-display), Georgia, serif;
-  font-weight: 600;
   font-size: 18px;
-  letter-spacing: -0.015em;
-  color: var(--canopy);
   text-decoration: none;
 }
-.mark { color: var(--sap); }
 .what { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 650; color: var(--ink-2); text-decoration: none; }
 .what:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .main { flex: 1; }

@@ -2,12 +2,11 @@ import Link from 'next/link';
 import { requireOrg } from '@/lib/session';
 import { sql } from '@/lib/db';
 import { loadOrgInsights } from '@/lib/insights';
-import { audienceOptions, listBroadcasts, upcoming, type BroadcastStats } from '@/lib/messages';
+import { audienceOptions, listBroadcasts, optedInIds, upcoming, type BroadcastStats } from '@/lib/messages';
 import { draftEnabled } from '@/lib/messages-ai';
 import { fmtDay, fmtTime, plural, requestNow } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { Stagger } from '@/components/motion/Stagger';
-import { StatCard } from '@/components/ui/StatCard';
 import { Chip } from '@/components/ui/Chip';
 import { Icon } from '@/components/shell/icons';
 import { ToastOnMount } from '@/components/shell/Toast';
@@ -42,11 +41,30 @@ function Funnel({ b }: { b: BroadcastStats }) {
   );
 }
 
-function Meter({ value }: { value: number }) {
+// A broadcast's results as four compact funnel bars (Sent, Read, Replied,
+// Showed up), each with its count and share of those sent.
+function MiniFunnel({ b }: { b: BroadcastStats }) {
+  const steps: [string, number | null, boolean?][] = [
+    ['Sent', b.recipients],
+    ['Read', b.read],
+    ['Replied', b.replied],
+    ['Showed up', b.showed_up, true],
+  ];
   return (
-    <span className={s.meter} aria-hidden>
-      <span style={{ width: `${Math.min(100, Math.max(value, value ? 3 : 0))}%` }} />
-    </span>
+    <dl className={s.miniFunnel}>
+      {steps.map(([label, n, gold]) => (
+        <div key={label} className={s.mini}>
+          <dt className={s.miniLabel}>{label}</dt>
+          <dd className={s.miniVal}>
+            <span className="num">{n == null ? '—' : n.toLocaleString()}</span>
+            {n != null && label !== 'Sent' && <span className={s.miniPct}>{pct(n, b.recipients)}%</span>}
+          </dd>
+          <span className={s.miniTrack} aria-hidden>
+            <span className={`${s.miniFill} ${gold ? s.miniGold : ''}`} style={{ transform: `scaleX(${n == null ? 0 : Math.max(pct(n, b.recipients), n ? 3 : 0) / 100})` }} />
+          </span>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -68,12 +86,15 @@ export default async function BroadcastsPage({ searchParams }: PageProps<'/org/m
         where m.broadcast_id = ${focus.id} order by v.name limit 1`) as unknown as { body: string; name: string }[])
     : [];
 
-  // People with an account at each event: "everyone at <event>" audiences.
-  const people = new Map(
-    ((await sql`
-      select a.event_id, count(distinct a.volunteer_id)::int as n from attendance a join event e on e.id = a.event_id
-      where e.org_id = ${org.id} and a.volunteer_id is not null and a.status <> 'no_show' group by a.event_id`) as unknown as { event_id: string; n: number }[]).map((r) => [r.event_id, r.n]),
-  );
+  // People with an account at each event: "everyone at <event>" audiences,
+  // and how many of them opted in to announcements (the audience preview).
+  const peopleRows = (await sql`
+      select a.event_id, count(distinct a.volunteer_id)::int as n,
+        count(distinct a.volunteer_id) filter (where v.marketing_opt_in)::int as opted
+      from attendance a join event e on e.id = a.event_id join volunteer v on v.id = a.volunteer_id
+      where e.org_id = ${org.id} and a.status <> 'no_show' group by a.event_id`) as unknown as { event_id: string; n: number; opted: number }[];
+  const people = new Map(peopleRows.map((r) => [r.event_id, r]));
+  const opted = await optedInIds(ins.volunteers.map((v) => v.volunteer_id).filter((x): x is string => !!x));
   const events = ins.events
     .filter((e) => !e.is_practice)
     .map((e) => ({
@@ -84,7 +105,8 @@ export default async function BroadcastsPage({ searchParams }: PageProps<'/org/m
       time: fmtTime(e.starts_at),
       location: e.location ?? '',
       past: new Date(e.ends_at).getTime() < now, // ended; a live event can still be announced
-      people: people.get(e.id) ?? 0,
+      people: people.get(e.id)?.n ?? 0,
+      optedIn: people.get(e.id)?.opted ?? 0,
     }));
 
   // "Send announcement" from an event page: that event's people, and if it's
@@ -100,8 +122,24 @@ export default async function BroadcastsPage({ searchParams }: PageProps<'/org/m
       <PageHeader
         eyebrow={`${plural(list.length, 'broadcast')} sent`}
         title={composing ? (fromEvent ? 'New announcement' : 'New broadcast') : 'Broadcasts'}
-        lede={composing && fromEvent ? fromEvent.title : 'One message to a group, with results from what people did next.'}
-        controls={
+        lede={
+          composing ? (
+            fromEvent ? fromEvent.title : 'One message to a group, with results from what people did next.'
+          ) : list.length > 0 ? (
+            <span className={s.summary}>
+              <span>
+                <b className="num">{totals.sent.toLocaleString()}</b> messages sent
+              </span>
+              <span>
+                <b className="num">{pct(totals.read, totals.sent)}%</b> read
+              </span>
+              <span>
+                <b className="num">{pct(totals.replied, totals.sent)}%</b> replied
+              </span>
+            </span>
+          ) : undefined
+        }
+        help={
           <Help label="How results are counted" placement="bottom-end">
             <p>
               <strong>Read</strong> means opened in the app. <strong>Replied</strong> counts anyone who wrote back within 7 days.
@@ -128,20 +166,12 @@ export default async function BroadcastsPage({ searchParams }: PageProps<'/org/m
 
       {sp.sent && focus && <ToastOnMount id={`sent-${focus.id}`} message={`Sent to ${plural(focus.recipients, 'volunteer')}`} body="Results fill in as they open it." />}
 
-      {!composing && !focus && list.length > 0 && (
-        <section className={s.statRow} aria-label="All broadcasts">
-          <StatCard label="Messages sent" value={totals.sent} icon="megaphone" foot={`Across ${plural(list.length, 'broadcast')}`} />
-          <StatCard label="Read rate" value={pct(totals.read, totals.sent)} unit="%" icon="eye" iconTone="mist" foot={`${totals.read.toLocaleString()} opened`} sparkSlot={<Meter value={pct(totals.read, totals.sent)} />} />
-          <StatCard label="Reply rate" value={pct(totals.replied, totals.sent)} unit="%" icon="message" iconTone="butter" foot={`${totals.replied.toLocaleString()} wrote back`} sparkSlot={<Meter value={pct(totals.replied, totals.sent)} />} />
-        </section>
-      )}
-
       {composing && (
         <section>
           <BroadcastComposer
             orgName={org.name}
             coordinator={org.coordinator_name}
-            audiences={audienceOptions(ins)}
+            audiences={audienceOptions(ins, opted)}
             events={events}
             sample={{ first_name: sampleVol?.name.split(' ')[0] ?? 'Ana', hours: String(sampleVol?.hours ?? 12) }}
             canDraft={draftEnabled()}
@@ -195,36 +225,22 @@ export default async function BroadcastsPage({ searchParams }: PageProps<'/org/m
       {list.length > 0 && !composing && (
         <section className="stack" style={{ gap: 12 }}>
           <h2 className={s.h2}>All broadcasts</h2>
-          <div className={s.bList}>
+          <ul className={`card ${s.bList}`}>
             {list.map((b) => (
-              <Link key={b.id} href={`/org/messages/broadcasts?id=${b.id}`} className={`card hover-lift ${s.bCard}`} aria-current={focus?.id === b.id ? 'true' : undefined} scroll={false}>
-                <div className="row between wrap">
-                  <div style={{ minWidth: 0 }}>
+              <li key={b.id}>
+                <Link href={`/org/messages/broadcasts?id=${b.id}`} className={s.bRow} aria-current={focus?.id === b.id ? 'true' : undefined} scroll={false}>
+                  <span className={s.bText}>
                     <strong>{b.title}</strong>
-                    <div className="small muted">
+                    <span className={s.bMeta}>
                       {fmtDay(b.sent_at)} · {b.audience_label}
-                      {b.event_title ? ` · ${b.event_title}` : ''}
-                    </div>
-                  </div>
-                  <span className="small muted">by {b.sent_by.split(' ')[0]}</span>
-                </div>
-                <div className={s.miniFunnel}>
-                  {[
-                    ['Sent', b.recipients],
-                    ['Read', b.read],
-                    ['Replied', b.replied],
-                    ['Showed up', b.showed_up],
-                  ].map(([label, n]) => (
-                    <div key={label as string} className={s.mini}>
-                      <span className={s.miniLabel}>{label}</span>
-                      <span className="figure">{n == null ? '—' : (n as number).toLocaleString()}</span>
-                      <span className={`small muted ${s.miniPct}`}>{n != null && label !== 'Sent' ? `${pct(n as number, b.recipients)}%` : ''}</span>
-                    </div>
-                  ))}
-                </div>
-              </Link>
+                      {b.event_title ? ` · ${b.event_title}` : ''} · by {b.sent_by.split(' ')[0]}
+                    </span>
+                  </span>
+                  <MiniFunnel b={b} />
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
     </Stagger>

@@ -3,7 +3,7 @@
   padding: 0; border: 0; background: transparent; color: var(--ink); overflow: visible;
   width: min(640px, calc(100vw - 24px)); max-width: none; max-height: none; margin: min(12vh, 96px) auto auto;
 }
-.dialog::backdrop { background: var(--scrim); backdrop-filter: blur(2px); animation: fade var(--dur-2) var(--ease-out); }
+.dialog::backdrop { background: var(--scrim); animation: fade var(--dur-2) var(--ease-out); }
 @keyframes fade { from { opacity: 0; } }
 .box {
   display: flex; flex-direction: column; max-height: min(560px, 76dvh); overflow: hidden;
@@ -18,28 +18,36 @@
 .input:focus, .input:focus-visible { outline: none; }
 .list { overflow-y: auto; overscroll-behavior: contain; padding: 6px 8px 8px; }
 .group { padding: 10px 10px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--field); }
+/* One line per row (40px): icon or initials, the label, its context in a
+   quieter tone on the same line, and the meta right-aligned. */
 .option {
-  display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 6px 10px; border-radius: 11px; cursor: pointer;
+  display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 10px; border-radius: 10px; cursor: pointer;
   scroll-margin: 8px;
 }
 .option[aria-selected='true'] { background: var(--primary-soft); }
-.optIcon { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex: none; background: var(--surface-2); color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--rule-soft); }
-.option[aria-selected='true'] .optIcon { background: var(--paper); color: var(--canopy); }
+.optIcon { width: 24px; height: 24px; display: grid; place-items: center; flex: none; color: var(--ink-3); }
+.option[aria-selected='true'] .optIcon { color: var(--canopy); }
+.optInitials { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--primary-soft); color: var(--canopy); font: 800 10px/1 var(--font-sans), system-ui, sans-serif; letter-spacing: 0.02em; }
+.option[aria-selected='true'] .optInitials { background: var(--paper); }
 .optIcon[data-live] { color: var(--sap); }
-.optText { flex: 1; min-width: 0; display: grid; gap: 1px; }
-.optLabel { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.optSub { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.optMeta { flex: none; font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
+.optText { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.optLabel { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+.optSub { font-size: 12.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 10 auto; }
+.optMeta { flex: none; margin-left: auto; font-size: 12px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; text-align: right; }
 .optMeta[data-state='Needs verifying'] { color: var(--amber); }
 .optMeta[data-state='Live now'] { color: var(--sap); }
 .optMeta[data-state='Verified'] { color: var(--verified); }
-.optEnter { flex: none; color: var(--ink-3); opacity: 0; }
+.optEnter { flex: none; color: var(--ink-3); opacity: 0; width: 16px; }
 .option[aria-selected='true'] .optEnter { opacity: 1; }
 .empty { padding: 28px 12px; text-align: center; display: grid; gap: 4px; }
 .loading { padding: 10px 12px; font-size: 13px; color: var(--ink-3); }
 .foot { display: flex; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--rule-soft); font-size: 12px; color: var(--ink-3); flex: none; }
 .foot > span { display: inline-flex; align-items: center; gap: 4px; }
+@media (pointer: coarse) {
+  .option { height: 44px; }
+}
 @media (max-width: 560px) {
   .dialog { margin-top: 12px; }
+  .optSub { display: none; }
   .foot { display: none; }
 }

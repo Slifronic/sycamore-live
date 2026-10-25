@@ -4,8 +4,8 @@ import { useActionState, useMemo, useRef, useState } from 'react';
 import { draftBroadcastAction, sendBroadcastAction } from '../actions';
 import s from '../messages.module.css';
 
-type Opt = { key: string; label: string; count: number };
-type Ev = { id: string; title: string; when: string; date: string; time: string; location: string; past: boolean; people: number };
+type Opt = { key: string; label: string; count: number; optedIn: number };
+type Ev = { id: string; title: string; when: string; date: string; time: string; location: string; past: boolean; people: number; optedIn: number };
 
 const MAX = 1000;
 
@@ -38,8 +38,15 @@ export function BroadcastComposer({ orgName, coordinator, audiences, events, sam
   }
 
   const ev = events.find((e) => e.id === eventId);
-  const eventAudiences: Opt[] = events.filter((e) => e.people > 0).map((e) => ({ key: `event:${e.id}`, label: `Everyone at ${e.title} · ${e.when}`, count: e.people }));
-  const count = [...audiences, ...eventAudiences].find((a) => a.key === audience)?.count;
+  const eventAudiences: Opt[] = events.filter((e) => e.people > 0).map((e) => ({ key: `event:${e.id}`, label: `Everyone at ${e.title} · ${e.when}`, count: e.people, optedIn: e.optedIn }));
+  const chosen = [...audiences, ...eventAudiences].find((a) => a.key === audience);
+  // Same rule as the server (broadcastIsTransactional): logistics for an event
+  // that hasn't ended reach everyone at it; anything else is an announcement
+  // and reaches only the people who opted in.
+  const audEvent = audience.startsWith('event:') ? events.find((e) => `event:${e.id}` === audience) : undefined;
+  const transactional = !!audEvent && !audEvent.past && (!eventId || eventId === audEvent.id);
+  const reach = chosen ? (transactional ? chosen.count : chosen.optedIn) : null;
+  const excluded = chosen && !transactional ? chosen.count - chosen.optedIn : 0;
   const tokens = ['{first_name}', '{hours}', ...(ev ? ['{event}', '{date}', '{time}', '{location}'] : [])];
   const preview = useMemo(
     () =>
@@ -80,7 +87,7 @@ export function BroadcastComposer({ orgName, coordinator, audiences, events, sam
               <optgroup label="Volunteers">
                 {audiences.map((a) => (
                   <option key={a.key} value={a.key} disabled={a.count === 0}>
-                    {a.label} ({a.count})
+                    {a.label} ({a.optedIn} of {a.count} opted in)
                   </option>
                 ))}
               </optgroup>
@@ -151,10 +158,23 @@ export function BroadcastComposer({ orgName, coordinator, audiences, events, sam
 
         {sendState?.error && <p className="notice notice-red small">{sendState.error}</p>}
         <div className="row between wrap">
-          <span className="small muted">
-            {count != null ? `Goes to ${count.toLocaleString()} ${count === 1 ? 'person' : 'people'} in their SycaMore app.` : 'Goes to everyone in that group, in their SycaMore app.'}
-          </span>
-          <button className="btn btn-primary" disabled={sending || !body.trim()}>
+          <p className={s.reach} aria-live="polite">
+            {reach != null ? (
+              <>
+                Goes to <b className="num">{reach.toLocaleString()}</b> {reach === 1 ? 'person' : 'people'} in their SycaMore app
+                {excluded > 0 && (
+                  <span className={s.excluded}>
+                    {' '}
+                    · <span className="num">{excluded.toLocaleString()}</span> not opted in
+                  </span>
+                )}
+                {transactional && <span className={s.reachNote}> · event-day note, so it reaches everyone at the event</span>}
+              </>
+            ) : (
+              'Goes to everyone in that group who opted in, in their SycaMore app.'
+            )}
+          </p>
+          <button className="btn btn-primary" disabled={sending || !body.trim() || reach === 0} title={reach === 0 ? 'Nobody in this group has opted in to announcements' : undefined}>
             {sending ? 'Sending…' : 'Send broadcast'}
           </button>
         </div>

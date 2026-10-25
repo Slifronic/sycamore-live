@@ -25,7 +25,7 @@ export default async function EventChatsPage() {
         eyebrow={plural(active.filter((c) => c.messages > 0).length, 'active chat')}
         title="Event chats"
         lede="One group chat per event, for you and everyone who came."
-        controls={
+        help={
           <Help label="About event chats" placement="bottom-end">
             <p>Parking notes, “we’re by the blue tent”, thank-yous. A chat opens as soon as people check in.</p>
             <p>Volunteers see each other as first name and last initial. Under-18s aren’t in group chats; an announcement reaches them.</p>

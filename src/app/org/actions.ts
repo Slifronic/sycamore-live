@@ -147,6 +147,24 @@ export async function signBadge(_: FormState, form: FormData): Promise<FormState
   return { ok: `${def.name} signed.` };
 }
 
+/** Signs every ready badge whose rule needs no written note (the others need the coordinator's words). */
+export async function signAllBadges(_: FormState, form: FormData): Promise<FormState> {
+  void form;
+  const org = await requireOrg();
+  const ins = await loadOrgInsights(org.id);
+  const rows = ins.badgeReady.filter((r) => r.v.volunteer_id && !badgeByKey[r.badge].needsNote);
+  if (!rows.length) return { error: 'Nothing to sign without a note.' };
+  for (const r of rows) {
+    await sql`
+      insert into badge_award (org_id, volunteer_id, badge, evidence_note, signed_by)
+      values (${org.id}, ${r.v.volunteer_id}, ${r.badge}, null, ${org.coordinator_name})
+      on conflict do nothing`;
+  }
+  await markLesson(org.id, 'badge_signed');
+  revalidatePath('/org', 'layout');
+  return { ok: `${rows.length} ${rows.length === 1 ? 'badge' : 'badges'} signed.` };
+}
+
 export async function completeLesson(key: LessonKey) {
   const org = await requireOrg();
   await markLesson(org.id, key);
