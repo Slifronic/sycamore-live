@@ -5,36 +5,39 @@
 .walkin { padding: 18px 20px; display: grid; gap: 10px; }
 .walkinTitle { margin: 2px 0 4px; font-size: 17px; font-weight: 700; color: var(--ink); }
 .walkinQr { width: 150px; height: 150px; justify-self: center; }
-.walkinQr :global(svg), .fullQrHalf :global(svg) { width: 100%; height: 100%; display: block; }
-.fullPair { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(20px, 5vw, 72px); align-items: start; }
-.fullHalf { display: grid; justify-items: center; gap: 12px; max-width: 46vw; }
-.fullQrHalf { width: min(52vh, 38vw); height: min(52vh, 38vw); }
-@media (max-width: 700px) {
-  .fullPair { grid-template-columns: 1fr; }
-  .fullHalf { max-width: none; }
-  .fullQrHalf { width: min(36vh, 72vw); height: min(36vh, 72vw); }
-}
+.walkinQr :global(svg) { width: 100%; height: 100%; display: block; }
 .qr { width: 220px; height: 220px; }
 .qr :global(svg), .fullQr :global(svg) { width: 100%; height: 100%; display: block; }
 .code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 34px; font-weight: 700; letter-spacing: 0.18em; color: var(--ink); }
 .tools { display: flex; gap: 12px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--line); background: #fbfaf7; }
-.full { position: fixed; inset: 0; z-index: 50; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0; background: var(--paper); color: var(--ink); place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center; }
+/* Full-screen QR: one code at a time. The top strip is kept clear for the Close
+   button, and anything taller than the screen scrolls instead of being cut off. */
+.full { position: fixed; inset: 0; z-index: 50; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0; background: var(--paper); color: var(--ink); align-content: safe center; justify-content: center; justify-items: center; gap: 14px; padding: 76px 16px 24px; overflow-y: auto; text-align: center; }
 .full[open] { display: grid; }
 .full::backdrop { background: var(--paper); }
 /* The check-in screen holds still: no hover lifts. */
 .still :global(.btn:hover), .full :global(.btn:hover) { transform: none; }
 .headcount { display: flex; align-items: baseline; flex-wrap: wrap; margin-top: 4px; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sap); }
-.close { position: absolute; top: 20px; right: 20px; }
+.close { position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); z-index: 1; min-height: 44px; min-width: 44px; }
+.fullSeg { min-height: 44px; padding: 0 18px; font-size: 15px; }
+@media (max-width: 600px) { .esc { display: none; } }
 .fullTitle { font-family: var(--font-display), Georgia, serif; font-size: clamp(28px, 5vw, 48px); font-weight: 600; color: var(--canopy); }
-.fullQr { width: min(62vh, 80vw); height: min(62vh, 80vw); }
+/* As big as fits: the screen's width or its height less the title, toggle and hint. */
+.fullQr { --qr: max(180px, min(calc(100vw - 48px), calc(100vh - 420px))); width: var(--qr); height: var(--qr); }
+@supports (height: 100dvh) { .fullQr { --qr: max(180px, min(calc(100vw - 48px), calc(100dvh - 420px))); } }
 .fullCode { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: clamp(32px, 6vw, 64px); font-weight: 700; letter-spacing: 0.2em; }
 .fullHint { font-size: 18px; color: var(--ink-2); }
 .fullCount { font-weight: 700; color: var(--verified); }
 @media (max-width: 860px) {
   .grid { grid-template-columns: minmax(0, 1fr); }
   .side { position: static; }
+  /* Phones on the day: the full-screen button sits above the code, and the
+     event's other links wait below the roster, so both are on the first screen. */
+  .fullBtn { order: -1; }
+  .dayNav { order: 1; }
 }
+.tagLink { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
 @media (min-width: 861px) and (max-width: 1240px) {
   .grid { grid-template-columns: 250px minmax(0, 1fr); }
   .qr { width: 190px; height: 190px; }

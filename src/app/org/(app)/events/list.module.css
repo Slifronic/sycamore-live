@@ -7,6 +7,8 @@
   /* The action moves under the status, and a long status wraps instead of being cut off. */
   .inlineAction { display: block; margin-top: 8px; }
   .status :global(.chip) { white-space: normal; height: auto; min-height: 24px; padding: 3px 10px; }
+  /* Narrower cell padding, so “Open check-in” fits without the table scrolling sideways. */
+  .table:global(.t) td, .table:global(.t) th { padding-left: 10px; padding-right: 10px; }
 }
 
 /* Each event row leads with its cover photo. */

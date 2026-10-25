@@ -4,6 +4,7 @@ import { sql } from '@/lib/db';
 import { ACTIVITY_LABEL, type EventRow } from '@/lib/types';
 import { fmtDate, fmtDay, fmtTime } from '@/lib/format';
 import { requestNow } from '@/lib/format';
+import { utcToPacific } from '@/lib/tz';
 import { PageHeader } from '@/components/PageHeader';
 import { Segmented } from '@/components/Segmented';
 import { listTags, tagsForEvents } from '@/lib/event-intake';
@@ -31,6 +32,12 @@ export default async function EventsPage({ searchParams }: PageProps<'/org/event
     order by e.is_practice desc, e.starts_at desc
   `) as unknown as Row[];
   const now = requestNow();
+  // Today's unverified events go first (the live one is what the coordinator opens on the day).
+  const todayYmd = utcToPacific(new Date(now)).ymd;
+  const isToday = (e: Row) => !e.attested_at && !e.is_practice && utcToPacific(new Date(e.starts_at)).ymd === todayYmd;
+  const isLive = (e: Row) => !e.attested_at && new Date(e.starts_at).getTime() <= now && new Date(e.ends_at).getTime() >= now;
+  const rank = (e: Row) => (isToday(e) ? (isLive(e) ? 0 : 1) : 2);
+  events.sort((a, b) => rank(a) - rank(b));
   const [tags, tagMap] = await Promise.all([listTags(org.id), tagsForEvents(events.map((e) => e.id))]);
   const q = (t: string | null) => (t ? `?tag=${encodeURIComponent(t)}` : '');
 
@@ -111,7 +118,7 @@ export default async function EventsPage({ searchParams }: PageProps<'/org/event
         </div>
       ) : (
         <div className="card" style={{ overflowX: 'auto', position: 'relative' }}>
-          <table className="t">
+          <table className={`t ${l.table}`}>
             <thead>
               <tr>
                 <th scope="col">Event</th>

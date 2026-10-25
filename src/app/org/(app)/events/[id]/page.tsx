@@ -6,6 +6,7 @@ import { getEvent, getRoster } from '@/lib/org-data';
 import { isUuid } from '@/lib/ids';
 import { ACTIVITY_LABEL } from '@/lib/types';
 import { fmtDay, fmtTime } from '@/lib/format';
+import { utcToPacific } from '@/lib/tz';
 import { EventDay } from './EventDay';
 import { PageHeader } from '@/components/PageHeader';
 import s from './event.module.css';
@@ -45,6 +46,8 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
 
   // Before the day, sharing the event is the job, so it comes first; on the day, the QR code is.
   const share = !event.is_practice && !event.attested_at && !ended;
+  // On the day itself, phones lead with the QR code: this event's other links move below the roster.
+  const dayOf = !event.is_practice && !event.attested_at && utcToPacific(new Date(event.starts_at)).ymd === utcToPacific(new Date(now)).ymd;
   const sharePanel = <SharePanel url={links.page} title={event.title} announcement={announcement(event, org.name)} links={{ google: links.google, ics: links.ics, outlook: links.outlook }} />;
 
   return (
@@ -78,10 +81,11 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
               ''
             )}
             {tags.length > 0 && (
-              <span className="row wrap" style={{ gap: 6, marginTop: 6 }}>
+              <span className="row wrap" style={{ gap: 6, marginTop: 2 }}>
                 {tags.map((t) => (
-                  <Link key={t.id} href={`/org/events?tag=${encodeURIComponent(t.name)}`} className={`tag tag-${t.color}`} style={{ textDecoration: 'none' }}>
-                    {t.name}
+                  // The link is a full finger tall; the tag inside keeps its small look.
+                  <Link key={t.id} href={`/org/events?tag=${encodeURIComponent(t.name)}`} className={s.tagLink}>
+                    <span className={`tag tag-${t.color}`}>{t.name}</span>
                   </Link>
                 ))}
               </span>
@@ -120,7 +124,7 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
         }
       />
       {!event.is_practice && (
-        <nav className="row wrap" style={{ gap: 8 }} aria-label="This event">
+        <nav className={`row wrap ${dayOf ? s.dayNav : ''}`} style={{ gap: 8 }} aria-label="This event">
           {!event.attested_at && (
             <Link className="btn btn-sm" href={`/org/events/${id}/edit`}>
               ✎ Edit details

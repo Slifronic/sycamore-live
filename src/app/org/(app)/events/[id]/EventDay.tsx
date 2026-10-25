@@ -46,6 +46,15 @@ export function EventDay(props: {
   const walkins = rows.filter((r) => r.method === 'walk_in').length;
   const [fresh, setFresh] = useState<Set<string>>(new Set());
   const [full, setFull] = useState(false);
+  // Full screen shows one code at a time, so a camera can't pick up the wrong one.
+  // While walk-in sign-up is open it starts on the walk-in code.
+  const [which, setWhich] = useState<'walkin' | 'checkin'>('walkin');
+  const pairOk = walkinLive === 'open' && !!walkin?.qrSvg && !props.practice;
+  const showing = pairOk ? which : 'checkin';
+  const openFull = (w: 'walkin' | 'checkin') => {
+    setWhich(w);
+    setFull(true);
+  };
   const [pending, start] = useTransition();
   const known = useRef(new Set(props.initial.map((r) => r.id)));
   const [arrived, setArrived] = useState('');
@@ -115,7 +124,7 @@ export function EventDay(props: {
             Scan to check in, or type the code at <br />
             <strong>{props.url.replace(/^https?:\/\//, '').split('/checkin')[0]}/checkin</strong>
           </p>
-          <button className="btn btn-primary" onClick={() => setFull(true)}>
+          <button className={`btn btn-primary ${s.fullBtn}`} onClick={() => openFull('walkin')}>
             Show QR full screen
           </button>
           <Link className="btn btn-sm btn-quiet" href={`/org/events/${props.eventId}/sign`} target="_blank">
@@ -133,7 +142,7 @@ export function EventDay(props: {
               setWalkin(p);
               setNow(Date.now());
             }}
-            onFull={() => setFull(true)}
+            onFull={() => openFull('walkin')}
           />
         )}
         </div>
@@ -258,27 +267,25 @@ export function EventDay(props: {
       {full && (
         <dialog ref={dialog} className={s.full} aria-label="Check-in QR code" onClose={() => setFull(false)}>
           <button className={`btn ${s.close}`} onClick={() => dialog.current?.close()} autoFocus>
-            Close <span className="muted small">(Esc)</span>
+            Close <span className={`muted small ${s.esc}`}>(Esc)</span>
           </button>
-          {walkinLive === 'open' && walkin?.qrSvg && !props.practice ? (
-            // Two codes side by side: one for people already signed up, one for walk-ins.
-            <div className={s.fullPair}>
-              <div className={s.fullHalf}>
-                <p className={s.fullTitle}>Check in here</p>
-                <div className={s.pulse}>
-                  <div className={s.fullQrHalf} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
-                </div>
-                <p className={s.fullCode}>{props.code}</p>
-                <p className={s.fullHint}>Already signed up? Scan in, and again when you leave.</p>
-              </div>
-              <div className={s.fullHalf}>
-                <p className={s.fullTitle}>First time here?</p>
-                <div className={s.fullQrHalf} role="img" aria-label="Walk-in sign-up QR code" dangerouslySetInnerHTML={{ __html: walkin.qrSvg }} />
-                <p className={s.fullHint}>
-                  Scan to sign up in under a minute{walkin.google ? ' with Google or your email' : ''}. You’re checked in when you’re done.
-                </p>
-              </div>
+          {pairOk && (
+            <div className="seg" role="group" aria-label="Which code to show">
+              {(['walkin', 'checkin'] as const).map((w) => (
+                <button key={w} type="button" className={`seg-item ${s.segBtn} ${s.fullSeg} ${showing === w ? s.segOn : ''}`} aria-pressed={showing === w} onClick={() => setWhich(w)}>
+                  {w === 'walkin' ? 'Walk-in sign-up' : 'Check in'}
+                </button>
+              ))}
             </div>
+          )}
+          {showing === 'walkin' && walkin?.qrSvg ? (
+            <>
+              <p className={s.fullTitle}>First time here?</p>
+              <div className={s.fullQr} role="img" aria-label="Walk-in sign-up QR code" dangerouslySetInnerHTML={{ __html: walkin.qrSvg }} />
+              <p className={s.fullHint}>
+                Scan to sign up in under a minute{walkin.google ? ' with Google or your email' : ''}. You’re checked in when you’re done.
+              </p>
+            </>
           ) : (
             <>
               <p className={s.fullTitle}>Check in here</p>
@@ -286,7 +293,7 @@ export function EventDay(props: {
                 <div className={s.fullQr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
               </div>
               <p className={s.fullCode}>{props.code}</p>
-              <p className={s.fullHint}>Scan with your phone camera. Scan again when you leave.</p>
+              <p className={s.fullHint}>{pairOk ? 'Already signed up? Scan in, and again when you leave.' : 'Scan with your phone camera. Scan again when you leave.'}</p>
             </>
           )}
           <p className={s.fullCount} aria-live="polite" aria-atomic="true">
