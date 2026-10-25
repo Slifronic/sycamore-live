@@ -8,6 +8,8 @@ import { ensureWalkinToken, walkinWindow } from '@/lib/walkin';
 import { walkinUrl } from '@/lib/walkin-panel';
 import s from './sign.module.css';
 
+export const metadata = { title: 'Check-in sign' };
+
 // A one-page sign to tape to the sign-in table, for when there's no screen to
 // prop up. Same QR and code as the event-day screen.
 export default async function SignPage({ params }: PageProps<'/org/events/[id]/sign'>) {
@@ -50,7 +52,7 @@ export default async function SignPage({ params }: PageProps<'/org/events/[id]/s
       {walkinQr && (
         <article className={`${s.sign} ${s.second}`}>
           <p className={s.org}>{org.name}</p>
-          <h1 className={s.title}>First time here?</h1>
+          <h2 className={s.title}>First time here?</h2>
           <p className={s.event}>
             {event.title} · {fmtDay(event.starts_at)}, {fmtTime(event.starts_at)}
           </p>

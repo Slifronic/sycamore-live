@@ -13,6 +13,8 @@ import { ChatComposer } from '../ChatComposer';
 import s from '../../messages.module.css';
 import { EmptyState } from '@/components/media/EmptyState';
 
+export const metadata = { title: 'Event chat' };
+
 function dayLabel(d: Date, now: number) {
   const day = fmtDay(d);
   if (day === fmtDay(new Date(now))) return 'Today';

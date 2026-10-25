@@ -12,6 +12,8 @@ import { Segmented } from '@/components/Segmented';
 import { CopyField } from '@/components/events/CopyField';
 import s from './calendar.module.css';
 
+export const metadata = { title: 'Calendar' };
+
 // The org's events on a month grid (an agenda list on phones), filtered by
 // tag, plus the subscribe links that put them in Google, Apple or Outlook.
 

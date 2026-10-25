@@ -5,6 +5,8 @@ import { SignBadgeForm } from './SignBadgeForm';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/media/EmptyState';
 
+export const metadata = { title: 'Badges' };
+
 export default async function BadgesPage() {
   const org = await requireOrg();
   const ins = await loadOrgInsights(org.id);

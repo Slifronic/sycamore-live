@@ -14,6 +14,8 @@ import { BadgeSharePanel } from './BadgeSharePanel';
 import { LinkedInPanel } from './LinkedInPanel';
 import s from '../badges.module.css';
 
+export const metadata = { title: 'Badge' };
+
 // One badge. Signed: the certificate (issuer, signer, date, the coordinator's
 // evidence note, the attested service behind it), the public verification link,
 // LinkedIn wording and print. Not signed: the rule from badges.ts and how far

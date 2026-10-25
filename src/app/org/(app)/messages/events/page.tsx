@@ -8,6 +8,8 @@ import { MessagesTabs } from '../MessagesTabs';
 import s from '../messages.module.css';
 import { EmptyState } from '@/components/media/EmptyState';
 
+export const metadata = { title: 'Event chats' };
+
 const TZ = 'America/Los_Angeles';
 
 export default async function EventChatsPage() {

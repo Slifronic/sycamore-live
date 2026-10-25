@@ -5,6 +5,8 @@ import { IndexCard } from '@/components/IndexCard';
 import { PageHeader } from '@/components/PageHeader';
 import s from './score.module.css';
 
+export const metadata = { title: 'Score' };
+
 const TIERS = [
   { name: 'Platinum', from: 90 },
   { name: 'Gold', from: 75 },

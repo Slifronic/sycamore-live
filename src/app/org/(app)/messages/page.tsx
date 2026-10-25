@@ -15,6 +15,8 @@ import { LiveInbox } from './LiveInbox';
 import s from './messages.module.css';
 import { EmptyState } from '@/components/media/EmptyState';
 
+export const metadata = { title: 'Messages' };
+
 const FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'unread', label: 'Unread' },

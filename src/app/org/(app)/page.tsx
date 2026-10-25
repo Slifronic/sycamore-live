@@ -16,6 +16,8 @@ import { sql } from '@/lib/db';
 import { milestoneThanks } from '@/lib/mailto';
 import { EmptyState } from '@/components/media/EmptyState';
 
+export const metadata = { title: 'Home' };
+
 export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
   const org = await requireOrg();
   const ins = await loadOrgInsights(org.id);

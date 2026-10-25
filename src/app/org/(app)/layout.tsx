@@ -19,7 +19,7 @@ import { RouteTransition } from '@/components/motion/RouteTransition';
 // Every org screen reads the coordinator's cookie, so it renders per request.
 export const instant = false;
 
-export const metadata: Metadata = { title: 'Coordinator', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: { default: 'Coordinator', template: '%s · SycaMore Live' }, robots: { index: false, follow: false } };
 
 export default async function OrgShell({ children }: LayoutProps<'/org'>) {
   const org = await requireOrg();

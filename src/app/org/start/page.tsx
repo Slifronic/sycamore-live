@@ -3,6 +3,8 @@ import { StartForm } from './StartForm';
 import { AuthArt } from '../AuthArt';
 import s from '../auth.module.css';
 
+export const metadata = { title: 'Set up your organization' };
+
 export default function StartPage() {
   return (
     <main className={s.page}>

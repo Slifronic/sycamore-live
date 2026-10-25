@@ -1,5 +1,7 @@
 import { DiscoverHome } from './DiscoverHome';
 
+export const metadata = { title: 'Discover' };
+
 // Contract-free volunteer addition: recommendations from real upcoming events.
 // Everything renders from the layout's data; see DiscoverState.tsx.
 export default function DiscoverPage() {

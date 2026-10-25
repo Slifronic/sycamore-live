@@ -9,6 +9,8 @@ import { longDay, targetLine } from '@/components/vol/badge-format';
 import { EmptyState } from '@/components/media/EmptyState';
 import s from './badges.module.css';
 
+export const metadata = { title: 'Badges' };
+
 // The badge gallery. Signed means an organization signed a badge_award row;
 // "in progress" and "ready" are computed from attested hours with the rules in
 // badges.ts and are never a credential on their own.

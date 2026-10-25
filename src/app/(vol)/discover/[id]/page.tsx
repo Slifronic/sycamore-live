@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import { sql } from '@/lib/db';
 import { DetailView } from './DetailView';
 
+export const metadata = { title: 'Event details' };
+
 // One listing, by the event's public slug. A slug that isn't an upcoming
 // public event is a 404 (the listings themselves come from the layout).
 export default async function DiscoverDetailPage({ params }: PageProps<'/discover/[id]'>) {

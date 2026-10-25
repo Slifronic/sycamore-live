@@ -9,6 +9,8 @@ import { FocusOnMount } from './FocusOnMount';
 import { VerifyConsole } from './VerifyConsole';
 import s from './verify.module.css';
 
+export const metadata = { title: 'Verify hours' };
+
 export default async function VerifyPage({ params, searchParams }: PageProps<'/org/events/[id]/verify'>) {
   const org = await requireOrg();
   const { id } = await params;

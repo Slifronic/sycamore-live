@@ -12,6 +12,8 @@ import { HoursBar } from '@/components/media/HoursBar';
 import { BlurbPanel } from './BlurbPanel';
 import s from '../../../pages.module.css';
 
+export const metadata = { title: 'Record' };
+
 // Contract: one record. The exact record wording, captured versus adjusted with
 // the reason, and the share link (with a QR code). Minors see that sharing
 // needs a guardian's OK, and the API refuses them too. Prints as a certificate.

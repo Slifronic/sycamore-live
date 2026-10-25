@@ -7,6 +7,8 @@ import { MessagesTabs } from '../MessagesTabs';
 import { AutomationForm } from './AutomationForm';
 import s from '../messages.module.css';
 
+export const metadata = { title: 'Automatic messages' };
+
 export default async function AutomationsPage() {
   const org = await requireOrg();
   const [rules, unread, chatUnread] = await Promise.all([listAutomations(org), unreadCount(org.id), orgChatUnread(org.id)]);

@@ -5,6 +5,8 @@ import { volSignOut } from '../actions';
 import { JoinForm } from './JoinForm';
 import s from '../pages.module.css';
 
+export const metadata = { title: 'Join' };
+
 // Contract: /join. Name, email and date of birth on one screen. Under 13 is
 // refused with nothing stored; 13 to 17 can join and see their hours, but
 // sharing needs a guardian's OK. An existing email signs back in with its

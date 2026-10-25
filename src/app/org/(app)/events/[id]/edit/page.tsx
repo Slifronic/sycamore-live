@@ -9,6 +9,8 @@ import { updateEventFull } from '@/app/org/event-actions';
 import { EventForm } from '@/components/events/EventForm';
 import { PageHeader } from '@/components/PageHeader';
 
+export const metadata = { title: 'Edit event' };
+
 export default async function EditEventPage({ params }: PageProps<'/org/events/[id]/edit'>) {
   const org = await requireOrg();
   const { id } = await params;

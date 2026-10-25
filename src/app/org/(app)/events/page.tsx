@@ -12,6 +12,8 @@ import { EmptyState } from '@/components/media/EmptyState';
 import { coverFor } from '@/lib/covers';
 import l from './list.module.css';
 
+export const metadata = { title: 'Events' };
+
 type Row = EventRow & { people: number; hours: number };
 
 export default async function EventsPage({ searchParams }: PageProps<'/org/events'>) {

@@ -10,6 +10,8 @@ import { fmtDay } from '@/lib/format';
 import { PrintButton } from '../../../reports/PrintButton';
 import s from './letter.module.css';
 
+export const metadata = { title: 'Hour letter' };
+
 type Row = {
   title: string;
   starts_at: Date;
@@ -46,6 +48,7 @@ export default async function HourLetter({ params }: PageProps<'/org/volunteers/
 
   return (
     <div className="stack" style={{ gap: 16, maxWidth: 800 }}>
+      <h1 className="sr-only">Hour letter</h1>
       <div className="row between wrap no-print">
         <p className="small muted">
           <Link href="/org/volunteers">Volunteers</Link> / Hour letter

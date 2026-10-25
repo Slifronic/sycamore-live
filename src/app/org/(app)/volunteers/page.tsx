@@ -12,6 +12,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { Segmented } from '@/components/Segmented';
 import { EmptyState } from '@/components/media/EmptyState';
 
+export const metadata = { title: 'Volunteers' };
+
 const TABS = [
   { key: 'all', label: 'Everyone' },
   { key: 'new', label: 'First-timers' },

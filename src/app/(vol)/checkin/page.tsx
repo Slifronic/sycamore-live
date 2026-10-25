@@ -5,6 +5,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { CheckinForm, LiveSession } from './CheckinClient';
 import s from '../pages.module.css';
 
+export const metadata = { title: 'Check in' };
+
 // Contract: /checkin. The org's event QR encodes /checkin?code=<checkin_code>;
 // typing the 6 characters is the fallback. Signed out, /join brings them back
 // here with the code. Checked in, this is the active-session screen.

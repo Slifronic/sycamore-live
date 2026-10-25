@@ -15,7 +15,7 @@ import s from './vol.module.css';
 // sidebar, Fraunces headings) so it reads as one product: a sidebar on
 // desktop, a bottom tab bar on phones. Signed out (/join), it's just the brand.
 
-export const metadata: Metadata = { title: 'Volunteer', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: { default: 'Volunteer', template: '%s · SycaMore Live' }, robots: { index: false, follow: false } };
 
 export const instant = false;
 

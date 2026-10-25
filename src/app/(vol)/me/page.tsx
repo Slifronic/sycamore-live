@@ -15,6 +15,8 @@ import { coverFor } from '@/lib/covers';
 import { volSignOut } from '../actions';
 import s from '../pages.module.css';
 
+export const metadata = { title: 'My hours' };
+
 // Contract: "My hours". The active session on top, then what's attested
 // (totals, the personal goal, one card per record) and what's still waiting
 // for the organization, shown with no hour number because nothing is official

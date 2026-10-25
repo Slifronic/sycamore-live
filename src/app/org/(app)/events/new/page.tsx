@@ -8,6 +8,8 @@ import { createEventFull } from '@/app/org/event-actions';
 import { EventForm } from '@/components/events/EventForm';
 import { PageHeader } from '@/components/PageHeader';
 
+export const metadata = { title: 'New event' };
+
 export default async function NewEventPage({ searchParams }: PageProps<'/org/events/new'>) {
   await connection(); // "today" is the request's date, not the build's
   const org = await requireOrg();

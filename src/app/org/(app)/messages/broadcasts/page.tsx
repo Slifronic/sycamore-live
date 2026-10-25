@@ -12,6 +12,8 @@ import { MessagesTabs } from '../MessagesTabs';
 import { BroadcastComposer } from './BroadcastComposer';
 import s from '../messages.module.css';
 
+export const metadata = { title: 'Announcements' };
+
 const pct = (n: number, d: number) => (d ? Math.round((100 * n) / d) : 0);
 
 function Funnel({ b }: { b: BroadcastStats }) {

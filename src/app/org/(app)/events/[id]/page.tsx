@@ -20,6 +20,8 @@ import { SharePanel } from '@/components/events/SharePanel';
 import { Cover } from '@/components/media/Cover';
 import { coverFor } from '@/lib/covers';
 
+export const metadata = { title: 'Event day' };
+
 export default async function EventPage({ params, searchParams }: PageProps<'/org/events/[id]'>) {
   const org = await requireOrg();
   const { id } = await params;

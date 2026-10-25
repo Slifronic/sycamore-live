@@ -7,6 +7,8 @@ import { fmtDay } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { StoryStudio } from './StoryStudio';
 
+export const metadata = { title: 'Event story' };
+
 export default async function StoryPage({ params }: PageProps<'/org/events/[id]/story'>) {
   const org = await requireOrg();
   const { id } = await params;

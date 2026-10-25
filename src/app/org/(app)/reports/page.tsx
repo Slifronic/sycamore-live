@@ -12,6 +12,8 @@ import { Segmented } from '@/components/Segmented';
 import s from './report.module.css';
 import { requestNow } from '@/lib/format';
 
+export const metadata = { title: 'Funder report' };
+
 const PERIODS = [
   { key: '90', label: 'Last 90 days', days: 90 },
   { key: '365', label: 'Last 12 months', days: 365 },

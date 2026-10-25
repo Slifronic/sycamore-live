@@ -3,6 +3,8 @@ import { LoginForm } from './LoginForm';
 import { AuthArt } from '../AuthArt';
 import s from '../auth.module.css';
 
+export const metadata = { title: 'Coordinator sign in' };
+
 export default function LoginPage() {
   return (
     <main className={s.page}>

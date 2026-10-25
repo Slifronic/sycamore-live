@@ -4,6 +4,8 @@ import { LESSONS, courseProgress } from '@/lib/course';
 import { MarkDone } from './MarkDone';
 import s from './learn.module.css';
 
+export const metadata = { title: 'Learn' };
+
 export default async function LearnPage() {
   const org = await requireOrg();
   const flags = org.course;
