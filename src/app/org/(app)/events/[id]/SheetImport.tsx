@@ -29,8 +29,11 @@ export function SheetImport({ eventId, enabled, eventDate, rosterNames }: { even
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
 
-  const needsLook = (d: Draft) => d.confidence < 0.8 || !d.inT || !!d.notes;
   const isDup = (d: Draft) => rosterNames.some((n) => n.trim().toLowerCase() === d.display_name.trim().toLowerCase());
+  // Amber means "check this one against the photo": Claude isn't sure, the time in is missing or
+  // unreadable, the name is unreadable, or the name is already on the roster. A note alone is
+  // just a note.
+  const needsLook = (d: Draft) => d.confidence < 0.8 || !d.inT || !d.display_name.trim() || !!d.name_unclear || isDup(d);
 
   async function onFile(f: File | undefined) {
     if (!f) return;
@@ -131,13 +134,14 @@ export function SheetImport({ eventId, enabled, eventDate, rosterNames }: { even
                         <input className="input" type="time" value={d.outT} aria-label="Time out" onChange={(e) => update(d.key, { outT: e.target.value, confirmed: false })} />
                       </div>
                       <div className="row between wrap" style={{ gap: 8 }}>
-                        <span className="small muted">
+                        <span className="small muted" style={{ flex: '1 1 160px' }}>
                           {Math.round(d.confidence * 100)}% sure
+                          {d.name_unclear ? ' · part of the name is hard to read' : ''}
                           {d.notes ? ` · ${d.notes}` : ''}
                           {isDup(d) ? ' · possible duplicate: already on the roster' : ''}
                           {!d.outT ? ' · no time out: hours will be 0 until you fix it at verify' : ''}
                         </span>
-                        <label className="row small" style={{ gap: 6, fontWeight: 700 }}>
+                        <label className={`row small ${s.looks}`}>
                           <input type="checkbox" checked={d.confirmed} disabled={!d.inT || !d.display_name.trim()} onChange={(e) => update(d.key, { confirmed: e.target.checked })} />
                           Looks right
                         </label>
@@ -154,7 +158,7 @@ export function SheetImport({ eventId, enabled, eventDate, rosterNames }: { even
                 <div className="row">
                   <button
                     className="btn btn-sm"
-                    onClick={() => setDrafts((ds) => ds!.map((d) => (needsLook(d) || isDup(d) || !d.inT ? d : { ...d, confirmed: true })))}
+                    onClick={() => setDrafts((ds) => ds!.map((d) => (needsLook(d) ? d : { ...d, confirmed: true })))}
                   >
                     Confirm the clear rows
                   </button>

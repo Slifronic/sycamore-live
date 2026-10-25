@@ -11,6 +11,7 @@ export type SheetDraft = {
   checked_out_at: string | null;
   confidence: number;
   notes?: string;
+  name_unclear?: boolean; // the model couldn't read all of the name
 };
 
 export type RecordView = {

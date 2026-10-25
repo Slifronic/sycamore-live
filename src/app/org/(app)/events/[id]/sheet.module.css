@@ -15,3 +15,6 @@
   .fields { grid-template-columns: 1fr 1fr; }
   .fields input:first-child { grid-column: 1 / -1; }
 }
+/* "Looks right" is a full finger tall, with a bigger box to tick. */
+.looks { gap: 8px; font-weight: 700; min-height: 44px; padding: 0 6px; cursor: pointer; }
+.looks input { width: 22px; height: 22px; }
