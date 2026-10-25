@@ -12,7 +12,7 @@
 .btn:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 .primary { background: var(--primary); border-color: var(--primary); color: #fff; }
 .links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
-.link { color: var(--primary); font: 600 15px var(--font-sans), system-ui, sans-serif; text-decoration: underline; padding: 10px 0; }
+.link { color: var(--primary); font: 600 15px var(--font-sans), system-ui, sans-serif; text-decoration: underline; padding: 0; display: inline-flex; align-items: center; min-height: 44px; }
 .notice { background: var(--amber-soft); color: #6b4107; border-radius: 10px; padding: 12px 14px; font-size: 15px; }
 .error { background: var(--red-soft); color: #7d2219; border-radius: 10px; padding: 12px 14px; font-size: 15px; }
 .fine { font-size: 13px; color: var(--ink-3); }

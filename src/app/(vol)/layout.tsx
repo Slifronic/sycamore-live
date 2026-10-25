@@ -30,7 +30,7 @@ export default async function VolShell({ children }: LayoutProps<'/'>) {
             <Link href="/" className={s.brand}>
               <Leaf size={22} color="var(--canopy)" /> SycaMore
             </Link>
-            <Link href="/org/login" className="small muted">
+            <Link href="/org/login" className={`small muted ${s.signin}`}>
               Coordinator? Sign in
             </Link>
           </header>

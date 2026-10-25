@@ -1,8 +1,8 @@
 /* Discover. Tokens and components from globals.css; nothing off-palette. */
 .page { display: grid; gap: 20px; max-width: var(--page-max); }
 .page > * { min-width: 0; }
-.textlink { font-size: 14px; font-weight: 700; color: var(--primary); text-decoration: none; padding: 10px 0; justify-self: start; cursor: pointer; background: none; border: 0; }
-summary.textlink { display: list-item; }
+.textlink { font-size: 14px; font-weight: 700; color: var(--primary); text-decoration: none; padding: 0; display: inline-flex; align-items: center; min-height: 44px; justify-self: start; cursor: pointer; background: none; border: 0; }
+summary.textlink { display: list-item; padding: 12px 0; }
 .left { justify-self: start; }
 
 .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -21,8 +21,9 @@ summary.textlink { display: list-item; }
 .preset[aria-pressed='true'] .presetTick { opacity: 1; transform: none; }
 .cell { min-width: 0; display: grid; }
 
-.skillBtn { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--paper); color: var(--ink-2); font: 600 13px var(--font-sans), system-ui, sans-serif; cursor: pointer; }
+.skillBtn { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--paper); color: var(--ink-2); font: 600 13px var(--font-sans), system-ui, sans-serif; cursor: pointer; }
 .skillBtn:hover { border-color: var(--primary); color: var(--canopy); }
+@media (pointer: coarse) { .skillBtn { min-height: 44px; } }
 .skill { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 7px; background: var(--primary-soft); color: var(--canopy); font-size: 12px; font-weight: 600; white-space: nowrap; }
 .cause { display: inline-flex; align-items: center; justify-self: start; height: 24px; padding: 0 10px; border-radius: 999px; background: var(--mist); color: var(--mist-ink); font-size: 12px; font-weight: 700; white-space: nowrap; }
 

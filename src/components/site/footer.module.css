@@ -97,5 +97,5 @@
 @media (max-width: 560px) {
   .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .inner { padding-top: 56px; }
-  .groups a, .fine a { min-height: 44px; }
+  .groups a, .fine a { min-height: 44px; min-width: 44px; }
 }

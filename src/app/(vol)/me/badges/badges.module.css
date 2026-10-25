@@ -11,7 +11,7 @@
 .tileTitle { font-family: var(--font-display), serif; font-size: 19px; font-weight: 600; color: var(--canopy); }
 .more { font-size: 14px; font-weight: 700; color: var(--primary); margin-top: 4px; }
 .empty { padding: 26px 22px; display: grid; gap: 10px; justify-items: start; }
-.link { font-size: 14px; font-weight: 700; color: var(--primary); text-decoration: none; padding: 10px 0; justify-self: start; }
+.link { font-size: 14px; font-weight: 700; color: var(--primary); text-decoration: none; padding: 0; display: inline-flex; align-items: center; min-height: 44px; justify-self: start; }
 
 /* Detail */
 .detail { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 24px; align-items: start; }

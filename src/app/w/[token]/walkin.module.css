@@ -20,7 +20,7 @@
 .btn:disabled { opacity: 0.6; cursor: default; }
 .btn:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 .primary { background: var(--primary); border-color: var(--primary); color: #fff; }
-.link { background: none; border: 0; color: var(--primary); font: 600 15px var(--font-sans), system-ui, sans-serif; text-decoration: underline; cursor: pointer; padding: 6px 0; justify-self: center; }
+.link { background: none; border: 0; color: var(--primary); font: 600 15px var(--font-sans), system-ui, sans-serif; text-decoration: underline; cursor: pointer; padding: 0 4px; min-height: 44px; justify-self: center; }
 .google { display: grid; justify-items: center; min-height: 44px; }
 .or { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; color: var(--ink-3); font-size: 13px; }
 .or::before, .or::after { content: ''; height: 1px; background: var(--line); }

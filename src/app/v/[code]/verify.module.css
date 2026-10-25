@@ -3,7 +3,7 @@
 .page { min-height: 100dvh; padding: 24px 16px 56px; display: grid; justify-items: center; overflow-x: clip; } /* the seal stamps in at 1.7x; never let it widen the page */
 .inner { width: 100%; max-width: 680px; display: grid; gap: 16px; align-content: start; }
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.brand { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display), Georgia, serif; font-weight: 600; color: var(--canopy); font-size: 17px; text-decoration: none; }
+.brand { display: inline-flex; align-items: center; min-height: 44px; gap: 8px; font-family: var(--font-display), Georgia, serif; font-weight: 600; color: var(--canopy); font-size: 17px; text-decoration: none; }
 .brandSub { color: var(--ink-2); font-weight: 500; }
 
 .banner { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px 18px; border-radius: var(--radius); font-size: 14px; }
