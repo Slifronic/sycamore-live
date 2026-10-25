@@ -10,6 +10,9 @@ export const metadata = {
   description: 'Sign in with your organization’s 6-digit PIN to run events, verify hours and message your volunteers.',
 };
 
+// Reads ?next= to send the coordinator back where they started, so it renders per request.
+export const instant = false;
+
 export default async function LoginPage({ searchParams }: PageProps<'/org/login'>) {
   const next = safeOrgNext((await searchParams).next);
   return (
