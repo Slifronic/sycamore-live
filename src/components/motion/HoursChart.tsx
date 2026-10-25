@@ -38,7 +38,7 @@ export function HoursChart({ points }: { points: Point[] }) {
             <motion.span
               className={s.bar}
               style={{ height: `${(p.hours / max) * 100}%`, transformOrigin: 'bottom' }}
-              initial={reduce ? false : { scaleY: 0 }}
+              initial={{ scaleY: 0 }}
               animate={{ scaleY: 1 }}
               transition={reduce ? { duration: 0 } : { duration: 0.9, delay: 0.1 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
             />

@@ -5,6 +5,8 @@ import { motion, useReducedMotion } from 'motion/react';
 // A small trend line that draws itself in once. Decorative: the number next to
 // it carries the meaning, so it's hidden from screen readers.
 export function Sparkline({ points, width = 96, height = 32, color = 'currentColor', delay = 0 }: { points: number[]; width?: number; height?: number; color?: string; delay?: number }) {
+  // The server can't know the motion preference, so `initial` is the same on both
+  // sides (no hydration mismatch); reduced motion just makes the transition instant.
   const reduce = useReducedMotion();
   if (points.length < 2) return null;
   const max = Math.max(...points);
@@ -23,7 +25,7 @@ export function Sparkline({ points, width = 96, height = 32, color = 'currentCol
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
-        initial={reduce ? false : { pathLength: 0 }}
+        initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}
         transition={reduce ? { duration: 0 } : { duration: 1.1, delay, ease: [0.16, 1, 0.3, 1] }}
       />
@@ -32,7 +34,7 @@ export function Sparkline({ points, width = 96, height = 32, color = 'currentCol
         cy={ly}
         r={3}
         fill={color}
-        initial={reduce ? false : { scale: 0 }}
+        initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={reduce ? { duration: 0 } : { delay: delay + 1, type: 'spring', stiffness: 380, damping: 18 }}
       />

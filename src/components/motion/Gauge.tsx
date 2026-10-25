@@ -40,7 +40,7 @@ export function Gauge({ value, from = 0, size = 168 }: { value: number | null; f
             strokeWidth="13"
             strokeLinecap="round"
             transform="rotate(135 80 80)"
-            initial={reduce ? false : { strokeDasharray: `${start} ${C}` }}
+            initial={{ strokeDasharray: `${start} ${C}` }}
             animate={{ strokeDasharray: `${shown} ${C}` }}
             transition={reduce ? { duration: 0 } : { duration: 1.6, ease: OUT }}
           />
@@ -68,7 +68,7 @@ export function GrowBar({ value, index = 0 }: { value: number | null; index?: nu
     <div className="bar" ref={ref} aria-hidden>
       <motion.span
         style={{ width: `${value ?? 0}%`, transformOrigin: 'left' }}
-        initial={reduce ? false : { scaleX: 0 }}
+        initial={{ scaleX: 0 }}
         animate={{ scaleX: reduce || inView ? 1 : 0 }}
         transition={reduce ? { duration: 0 } : { duration: 1.2, delay: 0.15 + index * 0.16, ease: OUT }}
       />
