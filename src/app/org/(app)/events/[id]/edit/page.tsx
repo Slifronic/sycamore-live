@@ -8,12 +8,16 @@ import { utcToPacific } from '@/lib/tz';
 import { updateEventFull } from '@/app/org/event-actions';
 import { EventForm } from '@/components/events/EventForm';
 import { PageHeader } from '@/components/PageHeader';
+import { orgEventMeta } from '@/lib/page-meta';
 
-export const metadata = { title: 'Edit event' };
+export async function generateMetadata({ params }: PageProps<'/org/events/[id]/edit'>) {
+  const { id } = await params;
+  return orgEventMeta(id, (t) => ({ title: `Edit ${t}`, description: `Change the name, time, place, notes or tags for ${t}. The public page and calendar feeds pick it up.` }), { title: 'Edit event', description: 'Change an event’s name, time, place, notes or tags. The public page and calendar feeds pick it up.' });
+}
 
 export default async function EditEventPage({ params }: PageProps<'/org/events/[id]/edit'>) {
-  const org = await requireOrg();
   const { id } = await params;
+  const org = await requireOrg(`/org/events/${id}/edit`);
   const event = await getEvent(org.id, id);
   if (!event) notFound();
   if (event.attested_at) redirect(`/org/events/${id}`);

@@ -8,7 +8,7 @@ import p from '../pages.module.css';
 
 export const metadata = pageMeta(
   'How it works',
-  'One volunteer event from start to record: set up, the QR code and live roster, walk-ins, paper sheets, a two-minute verify, hour letters, and the volunteer’s side.',
+  'One volunteer event from start to record: set-up, the QR card and live roster, walk-ins, paper sheets, a two-minute verify and the volunteer’s side.',
   '/how-it-works',
 );
 
@@ -49,9 +49,14 @@ export default function HowItWorks() {
           />
         </FeatureRow>
 
-        <FeatureRow id="walk-ins" eyebrow="During · Walk-ins" title="People who just show up get their own code." art={<ArtWell><div className={p.mockW}><RosterMock /></div></ArtWell>}>
-          <p>A second code signs walk-ins up and checks them in, in one step. They show on the roster as “Signed up at the door”.</p>
-          <Facts items={['Under 13 is refused, and nothing is stored.', 'Make a new link and every old photo or print of it stops working.']} />
+        <FeatureRow id="walk-ins" eyebrow="During · Walk-ins" title="New here? The same QR card signs them up." art={<ArtWell><div className={p.mockW}><RosterMock /></div></ArtWell>}>
+          <p>Flip the QR card from Check in to New here. Scanning it signs a walk-in up and checks them in, in one step. They show on the roster as “Signed up at the door”.</p>
+          <Facts
+            items={[
+              'Walk-ins agree to the Terms and Privacy Policy as they sign up. Under 13 is refused, and nothing is stored.',
+              'Make a new link and every old photo or print of it stops working.',
+            ]}
+          />
         </FeatureRow>
 
         <FeatureRow id="paper" eyebrow="After · Paper sheets" title="Still have a paper sheet? Photograph it." flip art={<Shot name="sheet-import" />}>
@@ -74,15 +79,27 @@ export default function HowItWorks() {
       <Section id="volunteers" well eyebrow="For volunteers" title="Scan in, serve, scan out, share.">
         <FeatureRow id="checkin" eyebrow="At the event" title="Your phone is the sign-in sheet." art={<ArtWell><div className={p.mockW}><CheckInMock /></div></ArtWell>}>
           <p>Scan the code at the table. First time? Join in one step and you land straight back on the check-in.</p>
-          <Facts items={['No app to install: it’s a web page.', 'You never type your hours.']} />
+          <Facts
+            items={[
+              'No app to install: it’s a web page.',
+              'Joining asks you to agree to the Terms and Privacy Policy. Ages 13 to 17 also confirm a parent or guardian knows.',
+              'You never type your hours.',
+            ]}
+          />
         </FeatureRow>
 
         <FeatureRow id="record" eyebrow="After the event" title="Confirmed hours, and a link anyone can check." flip art={<ArtWell><div className={p.mockStack}><MyHoursMock /><ShareMock /></div></ArtWell>}>
           <p>Until the organization verifies, an event shows as waiting, with no number. Then it becomes a record you can share or print.</p>
-          <Facts items={['Under 18? Sharing needs a guardian’s OK first.', 'AI can draft a resume line from the record’s facts. You edit it.']} />
+          <Facts
+            items={[
+              'Each organization you serve with is a folder of your records.',
+              'Under 18? Sharing needs a guardian’s OK first.',
+              'AI can draft a resume line from the record’s facts. You edit it.',
+            ]}
+          />
         </FeatureRow>
 
-        <CardGrid cols={3}>
+        <CardGrid cols={4}>
           <MiniCard icon="compass" title="Discover">
             <p>Upcoming public events from every organization, ranked by what you want to do.</p>
             <p>
@@ -93,7 +110,13 @@ export default function HowItWorks() {
             <p>The system finds who meets a rule; a coordinator signs each badge. No skill claims.</p>
           </MiniCard>
           <MiniCard icon="message" title="Messages">
-            <p>Announcements and event chats in one inbox. Under 18 gets announcements only.</p>
+            <p>Messages from organizations and event chats in one inbox. Announcements only if you opt in. Under 18 gets announcements only.</p>
+          </MiniCard>
+          <MiniCard icon="user" title="Your account">
+            <p>Light or dark theme, a download of your data, and deleting your account, all in Account.</p>
+            <p>
+              <Link href="/data">Your data</Link>
+            </p>
           </MiniCard>
         </CardGrid>
       </Section>

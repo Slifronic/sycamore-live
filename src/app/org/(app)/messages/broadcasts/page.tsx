@@ -14,7 +14,10 @@ import { Help } from '../Help';
 import { BroadcastComposer } from './BroadcastComposer';
 import s from '../messages.module.css';
 
-export const metadata = { title: 'Announcements' };
+export const metadata = {
+  title: 'Broadcasts',
+  description: 'Send one message to a group of volunteers and see what they did next. Announcements reach only volunteers who opted in.',
+};
 
 const pct = (n: number, d: number) => (d ? Math.round((100 * n) / d) : 0);
 
@@ -69,7 +72,7 @@ function MiniFunnel({ b }: { b: BroadcastStats }) {
 }
 
 export default async function BroadcastsPage({ searchParams }: PageProps<'/org/messages/broadcasts'>) {
-  const org = await requireOrg();
+  const org = await requireOrg('/org/messages/broadcasts');
   const sp = await searchParams;
   const ins = await loadOrgInsights(org.id);
   const list = await listBroadcasts(org.id);

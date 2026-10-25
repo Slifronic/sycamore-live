@@ -14,7 +14,10 @@ import { ActiveCard } from './ActiveCard';
 import { GoalCard } from './GoalCard';
 import s from './home.module.css';
 
-export const metadata = { title: 'Home' };
+export const metadata = {
+  title: 'My hours',
+  description: 'Your verified hours, the event you’re checked in to, what’s next, and each organization as a folder of your records.',
+};
 
 // The volunteer's home. One big number (hours the organizations have
 // verified), then what's live (checked in now, waiting to be confirmed, the

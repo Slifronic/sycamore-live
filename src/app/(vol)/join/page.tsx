@@ -6,7 +6,10 @@ import { volSignOut } from '../actions';
 import { JoinForm } from './JoinForm';
 import s from '../pages.module.css';
 
-export const metadata = { title: 'Join' };
+export const metadata = {
+  title: 'Join',
+  description: 'Join as a volunteer with your name, email and birth date to check in at events and keep your verified hours. Ages 13 and up.',
+};
 
 // Contract: /join. Name, email and date of birth on one screen, plus the
 // required "I agree to the Terms and Privacy Policy" (13 to 17 also confirm a
@@ -23,7 +26,7 @@ export default async function JoinPage({ searchParams }: PageProps<'/join'>) {
     <div className={s.join}>
       {sp.deleted === '1' && <ToastOnMount id="deleted" message="Your account was deleted" body="Your hours stay with each organization, with no name attached." />}
       <figure className={s.joinArt}>
-        <Image src="/media/photo/hero-creek-portrait.webp" alt="" fill priority sizes="460px" className={s.joinImg} />
+        <Image src="/media/photo/hero-creek-portrait.webp" alt="" fill preload sizes="460px" className={s.joinImg} />
         <figcaption className={s.joinSteps}>
           <ol>
             <li>

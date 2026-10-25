@@ -10,19 +10,19 @@ export function Photo({
   alt,
   sizes,
   className,
-  priority,
+  preload,
   ratio,
 }: {
   src: string;
   alt: string;
   sizes: string;
   className?: string;
-  priority?: boolean;
+  preload?: boolean;
   ratio?: string;
 }) {
   return (
     <div className={`${s.photo} ${className ?? ''}`} style={ratio ? { aspectRatio: ratio } : undefined}>
-      <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className={s.img} />
+      <Image src={src} alt={alt} fill sizes={sizes} preload={preload} className={s.img} />
     </div>
   );
 }
@@ -48,14 +48,14 @@ export function Shot({
   className,
   sizes = '(min-width: 1024px) 640px, 92vw',
   crop = 0.56,
-  priority,
+  preload,
   host = 'sycamore-live.vercel.app',
 }: {
   name: ScreenName;
   className?: string;
   sizes?: string;
   crop?: number;
-  priority?: boolean;
+  preload?: boolean;
   host?: string;
 }) {
   return (
@@ -69,18 +69,18 @@ export function Shot({
         <span className={s.url}>{host}</span>
       </div>
       <div className={s.view} style={{ aspectRatio: `1 / ${crop}` }}>
-        <Image src={screen(name)} alt="" width={1440} height={900} sizes={sizes} priority={priority} className={s.shotImg} />
+        <Image src={screen(name)} alt="" width={1440} height={900} sizes={sizes} preload={preload} className={s.shotImg} />
       </div>
     </figure>
   );
 }
 
-export function Phone({ name, className, sizes = '(min-width: 1024px) 280px, 60vw', priority }: { name: ScreenName; className?: string; sizes?: string; priority?: boolean }) {
+export function Phone({ name, className, sizes = '(min-width: 1024px) 280px, 60vw', preload }: { name: ScreenName; className?: string; sizes?: string; preload?: boolean }) {
   return (
     <figure className={`${s.phone} ${className ?? ''}`} role="img" aria-label={SCREEN_ALT[name]}>
       <div className={s.phoneScreen}>
         <span className={s.island} aria-hidden="true" />
-        <Image src={screen(name)} alt="" fill sizes={sizes} priority={priority} className={s.img} />
+        <Image src={screen(name)} alt="" fill sizes={sizes} preload={preload} className={s.img} />
       </div>
     </figure>
   );

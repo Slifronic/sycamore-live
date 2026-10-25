@@ -10,7 +10,7 @@ type Quick = { label: string; href: string; icon?: IconName; badge?: { text: str
 /**
  * The event's one action row, on the title line: quiet links (Chat ·
  * Announce · Edit), the page's primary when it has one, and a ⋯ menu for the
- * rare ones ("Close & verify early" while it runs, "Debrief" after).
+ * rare ones ("Verify early" while it runs, "Debrief" after).
  */
 export function EventActions({ quick, primary, more }: { quick: Quick[]; primary?: { label: string; href: string; icon?: IconName; trailing?: boolean }; more: MenuItem[] }) {
   return (

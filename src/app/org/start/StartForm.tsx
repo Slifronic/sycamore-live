@@ -41,7 +41,7 @@ export function StartForm() {
       </p>
       {state?.error && <p className="notice notice-red">{state.error}</p>}
       <button className="btn btn-primary btn-big" disabled={pending}>
-        {pending ? 'Setting up…' : 'Create my dashboard'}
+        {pending ? 'Setting up…' : 'Set up my organization'}
       </button>
     </form>
   );

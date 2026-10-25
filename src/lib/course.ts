@@ -32,10 +32,10 @@ export const LESSONS: Lesson[] = [
     title: 'Run check-in with a QR code',
     minutes: 1,
     why: 'Volunteers scan once when they arrive and once when they leave. No clipboard, no typing hours.',
-    steps: ['Open your event. Tap “Show QR full screen”, or “Print a sign for the table”.', 'Set it at the sign-in table.', 'Watch names appear on the roster as people scan. At the end, “Check out all” closes out anyone still here.'],
-    tip: 'No phone? Tap “Add by name”. Paper sheet at the end? “Import sheet” reads it for you.',
+    steps: ['Open your event. Tap “Show QR full screen”, or “Print a sign for the table” from the QR card’s menu.', 'Set it at the sign-in table.', 'Watch names appear on the roster as people scan. At the end, “Check out all” closes out anyone still here.'],
+    tip: 'No phone? Type their name above the roster and tap Add. Paper sheet at the end? “Import paper sheet” reads it for you.',
     href: '/org/events?learn=checkin_run',
-    coach: 'Open your practice event and tap “Add a practice volunteer” to see the roster fill in.',
+    coach: 'Open your practice event and tap “Practice volunteer” to see the roster fill in.',
   },
   {
     key: 'event_verified',

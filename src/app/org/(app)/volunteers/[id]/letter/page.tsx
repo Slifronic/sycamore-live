@@ -10,8 +10,11 @@ import { fmtDay } from '@/lib/format';
 import { PrintButton } from '../../../reports/PrintButton';
 import s from './letter.module.css';
 import { Icon } from '@/components/shell/icons';
+import { letterMeta } from '@/lib/page-meta';
 
-export const metadata = { title: 'Hour letter' };
+export async function generateMetadata({ params }: PageProps<'/org/volunteers/[id]/letter'>) {
+  return letterMeta((await params).id);
+}
 
 type Row = {
   title: string;
@@ -28,8 +31,8 @@ type Row = {
 // coordinator name and contact, each event with date, role and hours, and when
 // it was verified. Built only from verified attendance, so nobody types an hour.
 export default async function HourLetter({ params }: PageProps<'/org/volunteers/[id]/letter'>) {
-  const org = await requireOrg();
   const { id } = await params;
+  const org = await requireOrg(`/org/volunteers/${id}/letter`);
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const [vol] = (await sql`select id, name from volunteer where id = ${id}`) as unknown as { id: string; name: string }[];
   if (!vol) notFound();

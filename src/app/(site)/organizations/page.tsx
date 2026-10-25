@@ -8,7 +8,7 @@ import p from '../pages.module.css';
 
 export const metadata = pageMeta(
   'For organizations',
-  'For volunteer coordinators: a QR code and live roster on event day, a two-minute verify, hour letters you don’t hand-sign, and a funder report.',
+  'For volunteer coordinators: a QR card and live roster on event day, a two-minute verify, hour letters you don’t hand-sign, and a funder report.',
   '/organizations',
 );
 
@@ -19,7 +19,7 @@ export default function Organizations() {
         eyebrow="For organizations"
         title={['Run the day.', <em key="e">Verify in two minutes.</em>]}
         lede="Built for the coordinator at the sign-in table, who vouches for every hour."
-        art={<Shot name="event-day" priority sizes="(min-width: 960px) 600px, 92vw" />}
+        art={<Shot name="event-day" preload sizes="(min-width: 960px) 600px, 92vw" />}
       >
         <div className={ss.ctas}>
           <Link href="/org/start" className="btn btn-primary btn-big">
@@ -37,10 +37,10 @@ export default function Organizations() {
             <p>Four boxes, then a practice event and a short course that teaches by doing.</p>
           </MiniCard>
           <MiniCard icon="scan" title="No clipboard on the day">
-            <p>A full-screen QR code, a live roster, and Add by name for anyone without a phone.</p>
+            <p>A full-screen QR code, a live roster, and a name box for anyone without a phone.</p>
           </MiniCard>
           <MiniCard icon="users" title="Walk-ins handled">
-            <p>A second code signs walk-ins up and checks them in at once.</p>
+            <p>The QR card’s New here side signs walk-ins up and checks them in at once.</p>
           </MiniCard>
           <MiniCard icon="clipboard" title="Paper sheets imported">
             <p>Photograph a sheet. Claude drafts the rows; you confirm each one.</p>

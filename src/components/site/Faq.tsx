@@ -64,8 +64,9 @@ export const FAQ: QA[] = [
     q: 'What about minors?',
     a: (
       <p>
-        Under 13 can’t join, and nothing is stored. Ages 13 to 17 keep their hours, but sharing a record needs a guardian’s OK. Under 18 gets
-        announcements only: no event group chats and no direct messages. <Link href="/privacy#minors">Privacy for minors</Link>
+        Under 13 can’t join, and nothing is stored. Ages 13 to 17 confirm a parent or guardian knows when they join, keep their hours, and need a
+        guardian’s OK to share a record. Under 18 gets announcements only: no event chats and no direct messages.{' '}
+        <Link href="/privacy#minors">Privacy for minors</Link>
       </p>
     ),
   },
@@ -96,6 +97,26 @@ export const FAQ: QA[] = [
       <p>
         Only if both sides opt in, and even then no coordinates are stored: only when someone left the area and roughly how far. Verifying the event
         wipes it.
+      </p>
+    ),
+  },
+  {
+    id: 'messages',
+    q: 'Will organizations send me marketing?',
+    a: (
+      <p>
+        Only if you opt in. Announcements are off until you turn them on in Account. Event-day notes to the people at an event you’re at, like where
+        to meet, still reach you. SycaMore Live itself sends no marketing email.
+      </p>
+    ),
+  },
+  {
+    id: 'data',
+    q: 'Can I download or delete my data?',
+    a: (
+      <p>
+        Yes, from Account. Download gives you a file of everything we hold about you. Delete removes your account; organizations keep their verified
+        totals with no name attached. <Link href="/data">Your data</Link>
       </p>
     ),
   },

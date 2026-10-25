@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { requireOrg } from '@/lib/session';
+import { currentOrg } from '@/lib/session';
 import { loadOrgInsights } from '@/lib/insights';
 import { courseProgress } from '@/lib/course';
 import { unreadCount } from '@/lib/messages';
@@ -24,7 +24,9 @@ export const metadata: Metadata = { title: { default: 'Coordinator', template: '
 // across the page, a slim icon rail on the left, the page in the middle. On
 // phones the rail becomes a bottom tab bar. ⌘K opens the command palette.
 export default async function OrgShell({ children }: LayoutProps<'/org'>) {
-  const org = await requireOrg();
+  // Signed out, the page itself redirects to the PIN screen with its own path as ?next=.
+  const org = await currentOrg();
+  if (!org) return children;
   const [ins, inboxUnread, chatUnread] = await Promise.all([loadOrgInsights(org.id), unreadCount(org.id), orgChatUnread(org.id)]);
   const course = courseProgress(org.course);
   const now = requestNow();

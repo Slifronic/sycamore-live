@@ -18,7 +18,10 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/shell/icons';
 import { Stagger } from '@/components/motion/Stagger';
 
-export const metadata = { title: 'Messages' };
+export const metadata = {
+  title: 'Inbox',
+  description: 'Direct messages with your volunteers. Filter to the conversations that still need a reply.',
+};
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -39,7 +42,7 @@ function dayLabel(d: Date, now: number) {
 const STATUS_CHIP = { new: ['chip-ink', 'came once'], active: ['chip-green', 'regular'] } as const;
 
 export default async function InboxPage({ searchParams }: PageProps<'/org/messages'>) {
-  const org = await requireOrg();
+  const org = await requireOrg('/org/messages');
   const sp = await searchParams;
   const f = (FILTERS.some((x) => x.key === sp.f) ? sp.f : 'all') as Filter;
   const q = typeof sp.q === 'string' ? sp.q.trim().toLowerCase() : '';
@@ -95,7 +98,7 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
             <p>
               <strong>Write to volunteers inside SycaMore.</strong> They read and reply on their phones, so nobody shares a phone number.
             </p>
-            <p>Volunteers under 18 get announcements only. “Needs reply” lists threads where they wrote last. “Away” is anyone who hasn’t come in 30+ days.</p>
+            <p>Volunteers under 18 get announcements only. “Needs reply” lists threads where they wrote last. “Away” means came at least twice, but not in the last 30 days.</p>
           </Help>
         }
         action={<NewMessage people={startable.map((v) => ({ id: v.volunteer_id!, name: v.name, hours: v.hours }))} />}

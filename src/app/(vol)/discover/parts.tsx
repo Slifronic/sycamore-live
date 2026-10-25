@@ -160,14 +160,14 @@ export function SaveButton({ id, title, wide = false }: { id: string; title: str
   );
 }
 
-export function OpportunityCard({ r, reason = null, priority = false }: { r: Evaluation; reason?: string | null; priority?: boolean }) {
+export function OpportunityCard({ r, reason = null, preload = false }: { r: Evaluation; reason?: string | null; preload?: boolean }) {
   const { tab, hide, saved, toggleSave } = useDiscover();
   const l = listingOf(r);
   const on = saved.has(l.id);
   return (
     <article className={`card hover-lift ${s.card}`}>
       <Link href={`/discover/${l.slug}`} className={s.cardCover} tabIndex={-1} aria-hidden>
-        <Cover cover={listingCover(l)} variant="card" priority={priority} />
+        <Cover cover={listingCover(l)} variant="card" preload={preload} />
       </Link>
       <span className="eyebrow">{l.area ? groups[l.area].name : l.kind}</span>
       <h3 className={s.cardTitle}>

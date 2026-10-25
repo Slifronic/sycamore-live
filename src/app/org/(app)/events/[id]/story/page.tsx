@@ -8,12 +8,16 @@ import { PageHeader } from '@/components/PageHeader';
 import { StoryStudio } from './StoryStudio';
 import { Chip } from '@/components/ui/Chip';
 import { Stagger } from '@/components/motion/Stagger';
+import { orgEventMeta } from '@/lib/page-meta';
 
-export const metadata = { title: 'Event story' };
+export async function generateMetadata({ params }: PageProps<'/org/events/[id]/story'>) {
+  const { id } = await params;
+  return orgEventMeta(id, (t) => ({ title: `Story · ${t}`, description: `Record a voice debrief and add clips for ${t}; Claude drafts a campaign from the verified facts for you to edit and publish.` }), { title: 'Event story', description: 'Record a voice debrief and add clips; Claude drafts a campaign from the verified facts for you to edit and publish.' });
+}
 
 export default async function StoryPage({ params }: PageProps<'/org/events/[id]/story'>) {
-  const org = await requireOrg();
   const { id } = await params;
+  const org = await requireOrg(`/org/events/${id}/story`);
   const event = await getEvent(org.id, id);
   if (!event) notFound();
   const [notes, clips, campaign, facts] = await Promise.all([getNotes(id), getClips(id), getCampaign(id), storyFacts(org, event)]);

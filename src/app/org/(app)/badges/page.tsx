@@ -11,10 +11,13 @@ import { Stagger } from '@/components/motion/Stagger';
 import { HelpTip } from '@/components/media/HelpTip';
 import s from './badges.module.css';
 
-export const metadata = { title: 'Badges' };
+export const metadata = {
+  title: 'Badges',
+  description: 'Sign badges for volunteers who met a rule in your verified events, and see who is almost there.',
+};
 
 export default async function BadgesPage() {
-  const org = await requireOrg();
+  const org = await requireOrg('/org/badges');
   const ins = await loadOrgInsights(org.id);
   const earnedCount = (key: string) => ins.awards.filter((a) => a.badge === key).length;
   const ready = ins.badgeReady.length;

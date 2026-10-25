@@ -8,7 +8,7 @@ import p from '../pages.module.css';
 
 export const metadata = pageMeta(
   'About',
-  'Why SycaMore Live exists: a paper pilot with Our City Forest, coordinators hand-signing hour letters, and a student team that started this build at Cal Hacks 13.0.',
+  'Why SycaMore Live exists: a paper planting pilot, hour letters signed by hand, and a student team that started this build at Cal Hacks 13.0.',
   '/about',
 );
 
@@ -37,7 +37,7 @@ export default function About() {
         lede="A student project, built because we saw where the hours went missing."
         art={
           <figure className={p.figure}>
-            <Photo src={photo('cover-planting')} alt="Young native trees staked along a creek bank" sizes="(min-width: 960px) 560px, 92vw" ratio="4 / 3" priority />
+            <Photo src={photo('cover-planting')} alt="Young native trees staked along a creek bank" sizes="(min-width: 960px) 560px, 92vw" ratio="4 / 3" preload />
             <figcaption>AI-generated illustrative image, not a photo of the pilot.</figcaption>
           </figure>
         }

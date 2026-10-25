@@ -24,12 +24,16 @@ import { coverFor } from '@/lib/covers';
 import { Icon } from '@/components/shell/icons';
 import { Stagger } from '@/components/motion/Stagger';
 import { ToastOnMount } from '@/components/shell/Toast';
+import { orgEventMeta } from '@/lib/page-meta';
 
-export const metadata = { title: 'Event day' };
+export async function generateMetadata({ params }: PageProps<'/org/events/[id]'>) {
+  const { id } = await params;
+  return orgEventMeta(id, (t) => ({ title: t, description: `Event day for ${t}: the check-in QR card, the live roster, walk-in sign-up and paper-sheet import.` }), { title: 'Event', description: 'Event day: the check-in QR card, the live roster, walk-in sign-up and paper-sheet import.' });
+}
 
 export default async function EventPage({ params, searchParams }: PageProps<'/org/events/[id]'>) {
-  const org = await requireOrg();
   const { id } = await params;
+  const org = await requireOrg(`/org/events/${id}`);
   if (!isUuid(id)) notFound();
   const sp = await searchParams;
   const created = sp.created === '1';
@@ -74,7 +78,7 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
   const primary = event.attested_at
     ? { label: 'Tell the story', href: `/org/events/${id}/story`, icon: 'arrow-right' as const, trailing: true }
     : ended || event.is_practice
-      ? { label: 'Close & verify', href: `/org/events/${id}/verify`, icon: 'check' as const }
+      ? { label: 'Verify', href: `/org/events/${id}/verify`, icon: 'check' as const }
       : undefined;
   const more = event.attested_at
     ? []
@@ -84,14 +88,14 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
         : [{ label: 'Debrief', hint: 'Notes and clips for the event story', href: `/org/events/${id}/story`, icon: 'clipboard' as const }]
       : event.is_practice
         ? []
-        : [{ label: 'Close & verify early', hint: 'Ends check-in now and opens the sign-off', href: `/org/events/${id}/verify`, icon: 'check' as const }];
+        : [{ label: 'Verify early', hint: 'Ends check-in now and opens the sign-off', href: `/org/events/${id}/verify`, icon: 'check' as const }];
 
   return (
     <Stagger className={`page ${s.page}`}>
       {saved && <ToastOnMount id={`saved-${id}`} message="Event saved" body="The event page and calendar feeds show the new details." />}
       {created && <ToastOnMount id={`created-${id}`} message="Event created" body="Share the link with volunteers. On the day, show the QR full screen." />}
       {/* The cover band sets the scene before and after the day; while it runs, the roster comes first. */}
-      {!event.is_practice && !live && <Cover cover={coverFor({ title: event.title, activity: event.activity, tags })} variant="band" priority className={`${s.band} no-print`} />}
+      {!event.is_practice && !live && <Cover cover={coverFor({ title: event.title, activity: event.activity, tags })} variant="band" preload className={`${s.band} no-print`} />}
       <PageHeader
         eyebrow={
           <span className={s.eyebrow}>

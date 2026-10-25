@@ -4,7 +4,7 @@ import { pageMeta } from '@/components/site/meta';
 
 export const metadata = pageMeta(
   'Your data',
-  'Download or delete your SycaMore Live data, what deletion keeps, how long each kind of data is kept, our breach response steps, and announcement consent.',
+  'Download or delete your SycaMore Live data, see what deletion keeps and how long each kind of data is kept, and read our breach steps.',
   '/data',
 );
 
@@ -15,7 +15,7 @@ const SECTIONS: LegalSection[] = [
     body: (
       <>
         <p>
-          Signed in as a volunteer, go to <Link href="/me/account">Me</Link> and choose <strong>Download my data</strong>. You get one JSON file with
+          Signed in as a volunteer, go to <Link href="/me/account">Account</Link> and choose <strong>Download my data</strong>. You get one JSON file with
           everything about you: your account, every check-in and its hours, your records and badges, your messages and chat posts, and saved events.
         </p>
         <p>Coordinators can download their funder report as a CSV, and print hour letters, from the app.</p>
@@ -28,7 +28,7 @@ const SECTIONS: LegalSection[] = [
     body: (
       <>
         <p>
-          Go to <Link href="/me/account">Me</Link>, choose <strong>Delete my account</strong>, and type DELETE to confirm. It happens at once and can’t be
+          Go to <Link href="/me/account">Account</Link>, choose <strong>Delete my account</strong>, and type DELETE to confirm. It happens at once and can’t be
           undone, so download your data first if you want a copy.
         </p>
         <DataTable
@@ -78,7 +78,7 @@ const SECTIONS: LegalSection[] = [
       <>
         <p>
           Organizations can send announcements in the app. Getting them is <strong>off until you turn it on</strong> in{' '}
-          <Link href="/me/account">Me</Link>, and we note the time you did. Turn it off the same way, any time.
+          <Link href="/me/account">Account</Link>, and we note the time you did. Turn it off the same way, any time.
         </p>
         <p>
           SycaMore Live doesn’t send marketing email, and we never sell or rent your contact details.

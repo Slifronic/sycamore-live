@@ -103,7 +103,7 @@ export function VolTopBar({ greeting, first, initials, unread }: { greeting: str
   const large = useLargeTitle(path, fallback);
   return (
     <header className={`${s.top} no-print`} data-voltop>
-      <Link href="/me" className={s.brand} aria-label="SycaMore, home">
+      <Link href="/me" className={s.brand} aria-label="SycaMore Live, home">
         <Leaf size={22} color="var(--canopy)" />
         <span className={s.brandText}>SycaMore</span>
       </Link>

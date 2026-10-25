@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { sql } from '@/lib/db';
 import { pin } from '@/lib/codes';
-import { clearOrgCookie, requireOrg, setOrgCookie } from '@/lib/session';
+import { clearOrgCookie, requireOrg, safeOrgNext, setOrgCookie } from '@/lib/session';
 import { addManual, attestEvent, checkOutAll, checkOutAttendance, createEvent, getEvent, markLesson, RuleError, type AttestRow } from '@/lib/org-data';
 import { loadOrgInsights } from '@/lib/insights';
 import { badgeByKey, type BadgeKey } from '@/lib/badges';
@@ -55,7 +55,7 @@ export async function signIn(_: FormState, form: FormData): Promise<FormState> {
   const [org] = await sql`select id from org where coordinator_pin = ${code}`;
   if (!org) return { error: 'That PIN doesn’t match an organization. Check the welcome email or set one up.' };
   await setOrgCookie(org.id);
-  redirect('/org');
+  redirect(safeOrgNext(form.get('next')));
 }
 
 export async function signOut() {

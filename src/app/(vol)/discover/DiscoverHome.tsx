@@ -260,7 +260,7 @@ export function DiscoverHome() {
                   transition={spring}
                   className={s.cell}
                 >
-                  <OpportunityCard r={r} reason={reasons.get(r.opportunity.id) ?? null} priority={i < 3} />
+                  <OpportunityCard r={r} reason={reasons.get(r.opportunity.id) ?? null} preload={i < 3} />
                 </motion.div>
               ))}
             </AnimatePresence>

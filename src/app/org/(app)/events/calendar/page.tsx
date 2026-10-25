@@ -15,7 +15,10 @@ import { TagMenu } from '../TagMenu';
 import { Subscribe } from './Subscribe';
 import s from './calendar.module.css';
 
-export const metadata = { title: 'Calendar' };
+export const metadata = {
+  title: 'Calendar',
+  description: 'Your events by month, with links to subscribe in Google, Apple or Outlook Calendar. Practice events stay off the feed.',
+};
 
 // The org's events on a month grid (an agenda list on phones), filtered by
 // tag, plus the subscribe links that put them in Google, Apple or Outlook.
@@ -25,7 +28,7 @@ const ymdOf = (y: number, m: number, d: number) => new Date(Date.UTC(y, m - 1, d
 
 export default async function CalendarPage({ searchParams }: PageProps<'/org/events/calendar'>) {
   await connection();
-  const org = await requireOrg();
+  const org = await requireOrg('/org/events/calendar');
   const sp = await searchParams;
   const tag = typeof sp.tag === 'string' ? sp.tag.slice(0, 32) : null;
   const today = utcToPacific(new Date()).ymd;

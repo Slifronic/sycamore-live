@@ -10,6 +10,7 @@ import { Seal } from '@/components/media/Seal';
 import { Leaf } from '@/components/media/Leaf';
 import { PrintButton } from '@/app/org/(app)/reports/PrintButton';
 import s from '../../[code]/verify.module.css';
+import { OG_IMAGE, clip } from '@/components/site/meta';
 
 // Public badge check, the badge twin of /v/<code>: no cookie, no login, not
 // indexed. It shows who signed the badge, when, the coordinator's evidence note
@@ -19,8 +20,14 @@ export async function generateMetadata({ params }: PageProps<'/v/b/[code]'>): Pr
   const b = await badgeByCode((await params).code);
   if (!b) return { title: 'No badge with this code', robots: { index: false, follow: false } };
   const title = `${b.volunteer_name} · ${b.def.name} badge`;
-  const description = `Signed by ${b.signed_by} at ${b.org.name}.`;
-  return { title, description, openGraph: { title, description }, robots: { index: false, follow: false } };
+  const description = clip(`${b.def.name} badge for ${b.volunteer_name}, signed by ${b.signed_by} at ${b.org.name}. Anyone with this link can check it, and nobody can edit it.`);
+  return {
+    title,
+    description,
+    openGraph: { title, description, images: [OG_IMAGE] },
+    twitter: { card: 'summary_large_image', title, description, images: [OG_IMAGE] },
+    robots: { index: false, follow: false },
+  };
 }
 
 const longDay = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'long', day: 'numeric', year: 'numeric' });

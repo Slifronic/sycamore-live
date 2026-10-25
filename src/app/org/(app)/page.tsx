@@ -16,7 +16,10 @@ import { HomeChart } from './HomeChart';
 import { LessonHint } from './LessonHint';
 import s from './home.module.css';
 
-export const metadata = { title: 'Home' };
+export const metadata = {
+  title: 'Home',
+  description: 'What needs you now: events waiting to be verified, your verified hours and volunteers, hours by event, and what’s happening today.',
+};
 
 const DAY = 86_400_000;
 const fmtH = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
@@ -27,7 +30,7 @@ const fmtH = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 1
 // lives on its own page (volunteers: away and milestones; reports: value of
 // volunteer time; learn: the course).
 export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
-  const org = await requireOrg();
+  const org = await requireOrg('/org');
   const ins = await loadOrgInsights(org.id);
   const course = courseProgress(org.course);
   const welcome = (await searchParams).welcome === '1';

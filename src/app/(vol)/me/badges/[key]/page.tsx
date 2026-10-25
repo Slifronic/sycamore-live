@@ -13,8 +13,11 @@ import { PrintButton } from '@/app/org/(app)/reports/PrintButton';
 import { BadgeSharePanel } from './BadgeSharePanel';
 import { LinkedInPanel } from './LinkedInPanel';
 import s from '../badges.module.css';
+import { badgeMeta } from '@/lib/page-meta';
 
-export const metadata = { title: 'Badge' };
+export async function generateMetadata({ params }: PageProps<'/me/badges/[key]'>) {
+  return badgeMeta((await params).key);
+}
 
 // One badge. Signed: the certificate (issuer, signer, date, the coordinator's
 // evidence note, the attested service behind it), the public verification link,

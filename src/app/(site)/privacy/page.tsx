@@ -4,7 +4,7 @@ import { pageMeta } from '@/components/site/meta';
 
 export const metadata = pageMeta(
   'Privacy policy',
-  'What SycaMore Live collects, why, who it’s shared with (including Anthropic and OpenAI for AI drafts), how minors are protected, how long it’s kept, and your rights.',
+  'What SycaMore Live collects and why, who else sees it (including Anthropic and OpenAI for AI drafts), how minors are protected, and your rights.',
   '/privacy',
 );
 
@@ -231,10 +231,10 @@ const SECTIONS: LegalSection[] = [
         <p>Wherever you live, you can:</p>
         <ul>
           <li>
-            <strong>See and download</strong> everything about you: <Link href="/me/account">Me → Download my data</Link> gives you a JSON file.
+            <strong>See and download</strong> everything about you: <Link href="/me/account">Account → Download my data</Link> gives you a JSON file.
           </li>
           <li>
-            <strong>Delete</strong> your account: <Link href="/me/account">Me → Delete my account</Link>.
+            <strong>Delete</strong> your account: <Link href="/me/account">Account → Delete my account</Link>.
           </li>
           <li>
             <strong>Correct</strong> your name or email: ask the organization or us. Hours are corrected by the organization that confirmed them.

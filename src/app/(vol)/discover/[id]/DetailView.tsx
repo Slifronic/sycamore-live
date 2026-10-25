@@ -47,7 +47,7 @@ export function DetailView({ eventId }: { eventId: string }) {
       </Link>
 
       <section className="stack" style={{ gap: 10 }}>
-        <Cover cover={listingCover(l)} variant="hero" priority>
+        <Cover cover={listingCover(l)} variant="hero" preload>
           <span className={s.heroEyebrow}>Upcoming event · {l.kind}</span>
           <h1 className={s.heroTitle}>
             {l.title}

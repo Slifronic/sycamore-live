@@ -175,7 +175,7 @@ export async function loadOrgInsights(orgId: string, now = new Date()) {
       weight: 0.35,
       score: retention,
       detail: eligible.length ? `${returned.length} of ${eligible.length} volunteers came back for a second event` : 'Needs volunteers whose first event was 2+ weeks ago',
-      how: 'Invite first-timers back within two weeks. The “Haven’t come in 30+ days” list shows who to message.',
+      how: 'Invite first-timers back within two weeks. The “Away 30+ days” list on Volunteers shows who to message.',
     },
     {
       key: 'efficiency',

@@ -211,7 +211,7 @@ export function audienceOptions(ins: OrgInsights, opted?: Set<string>) {
     ['all', 'Everyone with verified hours', withAccount],
     ['regulars', 'Regulars (2+ events)', withAccount.filter((v) => v.status === 'active')],
     ['new', 'Came once (1 event so far)', withAccount.filter((v) => v.status === 'new')],
-    ['away', 'Haven’t come in 30+ days', withAccount.filter((v) => v.status === 'away')],
+    ['away', 'Away 30+ days', withAccount.filter((v) => v.status === 'away')],
   ];
   return groups.map(([key, label, list]) => ({ key, label, count: list.length, optedIn: opt(list) }));
 }
@@ -225,7 +225,7 @@ export async function resolveAudience(orgId: string, audience: string, ins: OrgI
   if (audience === 'all') return pick(() => true, 'Everyone with verified hours');
   if (audience === 'regulars') return pick((v) => v.status === 'active', 'Regulars (2+ events)');
   if (audience === 'new') return pick((v) => v.status === 'new', 'Came once (1 event so far)');
-  if (audience === 'away') return pick((v) => v.status === 'away', 'Haven’t come in 30+ days');
+  if (audience === 'away') return pick((v) => v.status === 'away', 'Away 30+ days');
   const m = /^event:([0-9a-f-]{36})$/.exec(audience);
   if (m) {
     const ev = ins.events.find((e) => e.id === m[1]);

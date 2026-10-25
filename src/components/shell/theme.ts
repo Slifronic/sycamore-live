@@ -1,6 +1,6 @@
 // Light / dark theme. The choice lives per browser in localStorage; with no
 // choice stored, the system setting decides (the no-flash script in
-// app/layout.tsx applies it before first paint). Everything visual hangs off
+// shell/ThemeScript.tsx applies it before first paint). Everything visual hangs off
 // `data-theme` on <html>, so a theme change is one attribute write.
 
 export type Theme = 'light' | 'dark';

@@ -12,7 +12,7 @@ import p from '../pages.module.css';
 
 export const metadata = pageMeta(
   'Trust and the record',
-  'What a SycaMore Live record says, line by line: who is vouching, captured and adjusted hours, revocation, what AI does and doesn’t do, and how minors are protected.',
+  'What a SycaMore Live record says, line by line: who vouches for it, captured and adjusted hours, revocation, what AI does, and how minors are protected.',
   '/trust',
 );
 
@@ -165,10 +165,10 @@ export default async function Trust() {
             <p>Refused at sign-up, at the door and online. Nothing is stored.</p>
           </MiniCard>
           <MiniCard icon="share" title="Ages 13 to 17">
-            <p>They keep their hours; a record can’t be shared without a guardian’s OK.</p>
+            <p>They confirm a parent or guardian knows when they join, keep their hours, and can’t share a record without a guardian’s OK.</p>
           </MiniCard>
           <MiniCard icon="message" title="Messages">
-            <p>Announcements only for minors. No group chats, no direct messages.</p>
+            <p>Announcements only for minors. No event chats, no direct messages.</p>
           </MiniCard>
           <MiniCard icon="pin" title="Location">
             <p>Opt-in on both sides. No coordinates stored, and verifying wipes it.</p>

@@ -4,7 +4,7 @@ import { pageMeta } from '@/components/site/meta';
 
 export const metadata = pageMeta(
   'Terms of use',
-  'The plain-language terms for using SycaMore Live: who can use it, accounts, what coordinators attest to, acceptable use, your content, AI drafts, and the demo’s limits.',
+  'Plain-language terms for SycaMore Live: who can use it, accounts, what coordinators attest to, acceptable use, AI drafts and the demo’s limits.',
   '/terms',
 );
 
@@ -45,7 +45,7 @@ const SECTIONS: LegalSection[] = [
         <li>Coordinators: keep your PIN private. Anyone with it can act as your organization.</li>
         <li>Don’t sign in as someone else, or check someone else in or out.</li>
         <li>
-          You can delete your volunteer account at any time from <Link href="/me/account">Me</Link>. What deletion keeps is explained on{' '}
+          You can delete your volunteer account at any time from <Link href="/me/account">Account</Link>. What deletion keeps is explained on{' '}
           <Link href="/data">Your data</Link>.
         </li>
       </ul>

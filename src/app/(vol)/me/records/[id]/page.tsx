@@ -11,8 +11,11 @@ import { Icon } from '@/components/shell/icons';
 import { orgInitials } from '@/components/vol/org-color';
 import { RecordActions } from './RecordActions';
 import s from './record.module.css';
+import { recordMeta } from '@/lib/page-meta';
 
-export const metadata = { title: 'Record' };
+export async function generateMetadata({ params }: PageProps<'/me/records/[id]'>) {
+  return recordMeta((await params).id);
+}
 
 // One record, as a certificate: the exact record wording, captured versus
 // adjusted when the coordinator changed it, then two actions: Share (link, QR,

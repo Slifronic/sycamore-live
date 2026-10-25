@@ -70,13 +70,19 @@ export default async function Volunteers() {
           }
         >
           <p>Whoever opens it sees VERIFIED or REVOKED, the organization’s statement and how the hours were captured. No account needed.</p>
-          <Facts items={['Print any record or save it as a PDF.', 'Until the organization confirms, an event shows as waiting, with no number.']} />
+          <Facts
+            items={[
+              'Each organization you serve with is a folder of your records.',
+              'Print any record or save it as a PDF.',
+              'Until the organization confirms, an event shows as waiting, with no number.',
+            ]}
+          />
           <TextLink href={record?.code ? `/v/${record.code}` : '/trust'}>Open a verified record</TextLink>
         </FeatureRow>
       </Section>
 
       <Section id="more" eyebrow="And also" title="Find events, earn signed badges.">
-        <CardGrid cols={2}>
+        <CardGrid cols={3}>
           <MiniCard icon="compass" title="Discover">
             <p>Upcoming public events from every organization, ranked in your browser by what you want: use your experience, learn something new, or follow your interests.</p>
             <p>
@@ -85,6 +91,12 @@ export default async function Volunteers() {
           </MiniCard>
           <MiniCard icon="award" title="Badges">
             <p>Signed by a coordinator, not handed out by an algorithm. A badge shows the rule, the signer and their note, and makes no skill claims.</p>
+          </MiniCard>
+          <MiniCard icon="user" title="Your data">
+            <p>Announcements stay off until you opt in. Download your data or delete your account at any time.</p>
+            <p>
+              <Link href="/data">How it works</Link>
+            </p>
           </MiniCard>
         </CardGrid>
       </Section>
@@ -98,7 +110,7 @@ export default async function Volunteers() {
             <p>Ages 13 to 17 keep their hours; sharing needs a guardian’s OK.</p>
           </MiniCard>
           <MiniCard icon="message" title="Messages">
-            <p>Announcements only. No group chats or direct messages.</p>
+            <p>Announcements only. No event chats or direct messages.</p>
           </MiniCard>
           <MiniCard icon="pin" title="Location">
             <p>Off unless you turn it on. No coordinates stored.</p>

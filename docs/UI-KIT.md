@@ -33,7 +33,7 @@ Dark theme: `:root[data-theme='dark']` redefines every token. Add `.force-light`
 
 ## Theme
 
-- `shell/theme.ts`: `setTheme('dark' | 'light', originEl?)`, `toggleTheme(originEl?)`, `currentTheme()`, `subscribeTheme(cb)`. The choice is stored in localStorage (`sycamore-theme`); the inline script in `app/layout.tsx` applies it before first paint.
+- `shell/theme.ts`: `setTheme('dark' | 'light', originEl?)`, `toggleTheme(originEl?)`, `currentTheme()`, `subscribeTheme(cb)`. The choice is stored in localStorage (`sycamore-theme`); `<ThemeScript>` (`shell/ThemeScript.tsx`, in the root layout) applies it before first paint, also on client-rendered 404 shells.
 - `<ThemeToggle variant="icon" | "row" | "inline" tooltip="right" />` (`shell/ThemeToggle.tsx`). The circular wipe grows from the button you pressed. Under reduced motion, or without the View Transitions API, the swap is instant.
 
 ## Coordinator shell (`app/org/(app)/layout.tsx`)
@@ -43,7 +43,7 @@ The top bar, the rail and the phone tab bar come from the layout, so pages rende
 - **Navigation map**: `shell/org-nav.ts`. `RAIL`, `MORE`, `TABS`, `TAB_MORE`, `PAGES` (the palette's page list) and `SECTION_VIEWS`. Add a page here and it shows up in the rail, the tab bar and ⌘K.
 - **Sub-view switcher**: `SECTION_VIEWS` puts a small pill `Segmented` in the top bar on the paths where it applies (Events: List / Calendar; Messages: Inbox / Event chats / Broadcasts / Automations). **Remove the duplicate tabs from your page** (for example `MessagesTabs`, the "Calendar" button on Events). If a page needs its own data-driven control there, use `<TopBarSlot>{control}</TopBarSlot>` (`shell/TopBarSlot.tsx`). It replaces the default while the page is shown, but it appears only after hydration, so prefer `SECTION_VIEWS`.
 - **Bell**: lists events that ended and are not verified (`/org/events/{id}/verify`), plus badges ready to sign.
-- **+ New**: New event, Broadcast, and Import paper sheet → `/org/events/{id}?import=1#import` (the live event, else the latest unverified one). **The events agent should give the sheet import an `id="import"` and open it when `?import=1` is present.**
+- **+ New**: New event (`/org/events/new`), Broadcast (the composer, `/org/messages/broadcasts?new=1`), and Import paper sheet → `/org/events/{id}?import=1#import` (the live event, else the latest unverified one; the sheet import opens when `?import=1` is present). The palette's Actions group has the same three.
 - **Avatar**: greeting in Pacific time; the account panel holds the masked PIN (`PinReveal`), theme, Learn and Sign out.
 - **Command palette**: ⌘K / Ctrl+K or `/`. Use `openCommandPalette()` from `shell/CommandPalette.tsx` to open it from a button. The data comes from `GET /api/org/search`, scoped to the coordinator cookie.
 
@@ -54,7 +54,7 @@ There is no Settings page yet, so More holds Badges and Learn.
 - Phones: a greeting bar (first name, Check in button, avatar) and a bottom tab bar: **Home** `/me`, **Discover** `/discover`, **Messages** `/me/messages`, **Me** `/me/account`.
 - Desktop: one sticky top bar with the brand, the same four tabs as a sliding pill, Check in and the avatar, over a centred column (max 980px).
 - The Me tab is active on `/me/account`, `/me/badges` and `/me/journey`. Home is active on `/me`, `/me/records/*` and `/checkin`.
-- `/me/account` is a **placeholder** (links to Badges, Journey, Check in, Privacy and Terms, plus the theme switch and Sign out). The volunteer agent replaces it.
+- `/me/account` (titled Account) holds the name and email, the theme switch, the announcements opt-in (off until the volunteer turns it on), Download my data (JSON), Delete my account (type DELETE), links to Badges, Journey, Privacy, Terms and Deletion and retention (`/data`), and Sign out on this device.
 - Sign out lives on `/me/account`; the shell has no sign-out button.
 
 ## PageHeader (`components/PageHeader.tsx`)

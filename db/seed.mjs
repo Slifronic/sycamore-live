@@ -18,12 +18,27 @@ const pick = (xs) => xs[Math.floor(rand() * xs.length)];
 const FIRST = ['Ana', 'Marcus', 'Jordan', 'Priya', 'Diego', 'Mei', 'Tariq', 'Sofia', 'Ethan', 'Leila', 'Kai', 'Noor', 'Mateo', 'Hana', 'Owen', 'Isabel', 'Ravi', 'Chloe', 'Andre', 'Yuna', 'Luis', 'Grace', 'Samir', 'Elena', 'Theo', 'Amara', 'Jonah', 'Lina', 'Dev', 'Rosa', 'Caleb', 'Mina', 'Felix', 'Aisha', 'Hugo', 'Tara', 'Ben', 'Zara', 'Nico', 'Iris', 'Omar', 'Lucia', 'Ezra', 'Maya', 'Arjun', 'Nadia', 'Leo', 'Kiara', 'Sam', 'Vera'];
 const LAST = ['Reyes', 'Tran', 'Lee', 'Shah', 'Morales', 'Chen', 'Haddad', 'Rossi', 'Nguyen', 'Kaur', 'Park', 'Okafor', 'Silva', 'Kim', 'Brooks', 'Diaz', 'Patel', 'Martin', 'Lopez', 'Sato', 'Garcia', 'Ali', 'Wong', 'Novak', 'Hayes', 'Mendes', 'Cruz', 'Ito', 'Baker', 'Flores'];
 
-// Pacific-time timestamp N days from today at h:m.
+// Pacific-time timestamp N days from today at h:m, correct across daylight
+// saving (a fixed -07:00 put November events an hour early). Same two-pass
+// conversion as zonedToUtc in src/lib/tz.ts, inlined so the seed stays plain JS.
+const TZ = 'America/Los_Angeles';
+const partsFmt = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const offsetMinutes = (d) => {
+  const p = Object.fromEntries(partsFmt.formatToParts(d).map((x) => [x.type, x.value]));
+  return Math.round((Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - d.getTime()) / 60_000);
+};
+const pacificToUtc = (ymd, h, m) => {
+  const [y, mo, da] = ymd.split('-').map(Number);
+  const guess = Date.UTC(y, mo - 1, da, h, m);
+  let t = guess - offsetMinutes(new Date(guess)) * 60_000;
+  t = guess - offsetMinutes(new Date(t)) * 60_000;
+  return new Date(t);
+};
 const today = new Date();
 const at = (daysFromToday, h, m = 0) => {
   const d = new Date(today.getTime() + daysFromToday * 86_400_000);
-  const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(d);
-  return new Date(`${ymd}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00-07:00`);
+  const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(d);
+  return pacificToUtc(ymd, h, m);
 };
 const addMin = (d, m) => new Date(d.getTime() + m * 60_000);
 

@@ -17,13 +17,16 @@ import { coverFor } from '@/lib/covers';
 import { TagMenu } from './TagMenu';
 import l from './list.module.css';
 
-export const metadata = { title: 'Events' };
+export const metadata = {
+  title: 'Events',
+  description: 'Every event in one list: live now, needs verification, upcoming and verified, filtered by tag. Open one to run check-in or verify.',
+};
 
 type Row = EventRow & { people: number; hours: number };
 type Show = 'all' | 'waiting' | 'upcoming' | 'verified';
 
 export default async function EventsPage({ searchParams }: PageProps<'/org/events'>) {
-  const org = await requireOrg();
+  const org = await requireOrg('/org/events');
   const sp = await searchParams;
   const tag = typeof sp.tag === 'string' ? sp.tag.slice(0, 32) : null;
   const show: Show = sp.show === 'waiting' || sp.show === 'upcoming' || sp.show === 'verified' ? sp.show : 'all';

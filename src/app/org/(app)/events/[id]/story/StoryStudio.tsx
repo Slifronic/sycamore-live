@@ -661,7 +661,7 @@ function CampaignPanel({
           <ul className={s.factList}>
             <li><strong className="num">{shownFacts.volunteers}</strong> volunteers</li>
             <li><strong className="num">{shownFacts.verified_hours}</strong> hours</li>
-            {shownFacts.first_timers > 0 && <li><strong className="num">{shownFacts.first_timers}</strong> first-timers</li>}
+            {shownFacts.first_timers > 0 && <li><strong className="num">{shownFacts.first_timers}</strong> came for the first time</li>}
             {shownFacts.leaders > 0 && <li><strong className="num">{shownFacts.leaders}</strong> in lead roles</li>}
             <li><strong className="num">${shownFacts.volunteer_value_usd.toLocaleString()}</strong> of volunteer time at ${shownFacts.rate.usd}/hr ({shownFacts.rate.label})</li>
           </ul>

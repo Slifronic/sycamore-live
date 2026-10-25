@@ -9,7 +9,10 @@ import { accountSettings } from '@/app/api/vol/_account';
 import { DeleteAccount, MarketingSwitch } from './AccountClient';
 import s from './account.module.css';
 
-export const metadata = { title: 'Me' };
+export const metadata = {
+  title: 'Account',
+  description: 'Your name and email, light or dark theme, announcements opt-in, a download of your data, and deleting your account.',
+};
 
 // The Me tab: who you are, your settings, your data. Grouped rows like a
 // phone's settings screen. Badges and Journey live here too, one tap away.

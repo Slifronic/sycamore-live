@@ -1,20 +1,21 @@
 /* Volunteer app shell (app/(vol)/layout.tsx + VolNav.tsx). Mobile first. */
-.shell { min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; --tabbar-h: calc(69px + env(safe-area-inset-bottom)); }
+.shell { min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; grid-template-columns: minmax(0, 1fr); --tabbar-h: calc(69px + env(safe-area-inset-bottom)); }
 .main { width: 100%; max-width: 980px; margin: 0 auto; padding: 16px 16px calc(100px + env(safe-area-inset-bottom)); min-width: 0; }
 .main:focus { outline: none; }
 
 /* Top bar. Phones: greeting left, Check in and avatar right. */
 .top {
-  position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 8px 16px;
+  position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 8px 16px; min-width: 0;
   background: var(--glass); backdrop-filter: saturate(1.4) blur(14px);
   border-bottom: 1px solid var(--rule-soft);
 }
 .brand { display: none; align-items: center; gap: 8px; min-height: 44px; color: var(--canopy); text-decoration: none; font-family: var(--font-display), Georgia, serif; font-size: 19px; font-weight: 600; flex: none; }
-.hello { display: grid; line-height: 1.2; min-width: 0; }
+/* Both shrink to fit: a long page title ends in an ellipsis instead of widening the shell. */
+.hello { display: grid; line-height: 1.2; min-width: 0; flex: 1 1 0; overflow: hidden; }
 .helloGreet { font-size: 12.5px; color: var(--ink-3); }
 .helloName { font-family: var(--font-display), Georgia, serif; font-size: 20px; font-weight: 600; color: var(--canopy); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .barTitle {
-  font-family: var(--font-display), Georgia, serif; font-size: 18px; font-weight: 600; color: var(--canopy); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  font-family: var(--font-display), Georgia, serif; font-size: 18px; font-weight: 600; color: var(--canopy); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 0;
   opacity: 0; transform: translateY(6px); transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
 }
 .barTitle[data-show] { opacity: 1; transform: none; }
@@ -78,7 +79,7 @@
 }
 
 /* Signed out (/join): the brand and a sign-in link, then a centred column. */
-.bare { min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; }
+.bare { min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; grid-template-columns: minmax(0, 1fr); }
 .bareHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 20px; border-bottom: 1px solid var(--rule-soft); background: var(--glass); }
 .bareHead .brand { display: inline-flex; }
 .bareRight { display: flex; align-items: center; gap: 4px; }

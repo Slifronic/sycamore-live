@@ -10,14 +10,18 @@ import { PageHeader } from '@/components/PageHeader';
 import { Stagger } from '@/components/motion/Stagger';
 import Link from 'next/link';
 import s from './sign.module.css';
+import { orgEventMeta } from '@/lib/page-meta';
 
-export const metadata = { title: 'Check-in sign' };
+export async function generateMetadata({ params }: PageProps<'/org/events/[id]/sign'>) {
+  const { id } = await params;
+  return orgEventMeta(id, (t) => ({ title: `Check-in sign · ${t}`, description: `A printable sign for ${t}: the check-in QR code and typed code, and the walk-in sign-up code.` }), { title: 'Check-in sign', description: 'A printable sign for the sign-in table: the check-in QR code and typed code, and the walk-in sign-up code.' });
+}
 
 // A one-page sign to tape to the sign-in table, for when there's no screen to
 // prop up. Same QR and code as the event-day screen.
 export default async function SignPage({ params }: PageProps<'/org/events/[id]/sign'>) {
-  const org = await requireOrg();
   const { id } = await params;
+  const org = await requireOrg(`/org/events/${id}/sign`);
   const event = await getEvent(org.id, id);
   if (!event) notFound();
   const url = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/checkin?code=${event.checkin_code}`;

@@ -5,7 +5,7 @@ import p from '../pages.module.css';
 
 export const metadata = pageMeta(
   'FAQ',
-  'Straight answers about SycaMore Live: cost, forgotten check-outs, inflated hours, what schools see, minors, AI, location and paper sheets.',
+  'Straight answers about SycaMore Live: cost, forgotten check-outs, what schools see, minors, AI, location, announcements and deleting your data.',
   '/faq',
 );
 

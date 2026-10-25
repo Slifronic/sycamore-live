@@ -4,10 +4,11 @@ import { useActionState } from 'react';
 import { signIn } from '../actions';
 import s from '../auth.module.css';
 
-export function LoginForm() {
+export function LoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(signIn, null);
   return (
     <form action={action} className="stack">
+      {next !== '/org' && <input type="hidden" name="next" value={next} />}
       <label htmlFor="pin" className="small" style={{ fontWeight: 600 }}>PIN</label>
       <input
         id="pin"

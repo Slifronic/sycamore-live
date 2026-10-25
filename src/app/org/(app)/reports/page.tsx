@@ -14,7 +14,10 @@ import { Icon } from '@/components/shell/icons';
 import s from './report.module.css';
 import { requestNow } from '@/lib/format';
 
-export const metadata = { title: 'Funder report' };
+export const metadata = {
+  title: 'Funder report',
+  description: 'Verified hours, unique volunteers, events and the value of volunteer time for any period. Print it, save it as a PDF or download the CSV.',
+};
 
 const PERIODS = [
   { key: '90', label: 'Last 90 days', short: '90 days', days: 90 },
@@ -23,7 +26,7 @@ const PERIODS = [
 ] as const;
 
 export default async function ReportPage({ searchParams }: PageProps<'/org/reports'>) {
-  const org = await requireOrg();
+  const org = await requireOrg('/org/reports');
   const sp = await searchParams;
   const period = PERIODS.find((p) => p.key === sp.period) ?? PERIODS[0];
   // California orgs default to the California rate; either can be picked.

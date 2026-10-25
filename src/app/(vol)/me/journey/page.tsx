@@ -11,7 +11,10 @@ import { EmptyState } from '@/components/media/EmptyState';
 import { CountUp } from '@/components/motion/CountUp';
 import s from './journey.module.css';
 
-export const metadata = { title: 'My journey' };
+export const metadata = {
+  title: 'My journey',
+  description: 'Every verified event, role and hour in order, with your firsts and the badges signed along the way.',
+};
 
 // The first screenful arrives in a quick stagger; later items rise as they scroll in.
 const enter = (i: number) => (i < 5 ? { className: 'rise', style: { ['--d' as string]: `${0.12 + i * 0.07}s` } } : { className: 'reveal', style: {} });

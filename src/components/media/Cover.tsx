@@ -11,14 +11,14 @@ import s from './media.module.css';
 export function Cover({
   cover,
   variant = 'card',
-  priority = false,
+  preload = false,
   className = '',
   children,
   sizes,
 }: {
   cover: CoverT;
   variant?: 'hero' | 'card' | 'thumb' | 'band';
-  priority?: boolean;
+  preload?: boolean;
   className?: string;
   children?: ReactNode;
   sizes?: string;
@@ -30,7 +30,7 @@ export function Cover({
         src={small ? cover.srcSm : cover.src}
         alt={children ? '' : cover.alt}
         fill
-        priority={priority}
+        preload={preload}
         sizes={sizes ?? (variant === 'thumb' ? '72px' : variant === 'card' ? '(max-width: 700px) 100vw, 420px' : '(max-width: 900px) 100vw, 1100px')}
         className={s.img}
       />

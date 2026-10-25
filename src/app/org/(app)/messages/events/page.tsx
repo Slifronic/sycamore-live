@@ -9,12 +9,15 @@ import { Chip } from '@/components/ui/Chip';
 import s from '../messages.module.css';
 import { EmptyState } from '@/components/ui/EmptyState';
 
-export const metadata = { title: 'Event chats' };
+export const metadata = {
+  title: 'Event chats',
+  description: 'A group chat for each event with the volunteers who checked in. Volunteers under 18 aren’t in event chats.',
+};
 
 const TZ = 'America/Los_Angeles';
 
 export default async function EventChatsPage() {
-  const org = await requireOrg();
+  const org = await requireOrg('/org/messages/events');
   const chats = await orgChats(org.id);
   const now = requestNow();
   const active = chats.filter((c) => c.messages > 0 || c.members > 0);

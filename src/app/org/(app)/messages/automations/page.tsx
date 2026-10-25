@@ -8,10 +8,13 @@ import { Icon } from '@/components/shell/icons';
 import { AutomationRow } from './AutomationForm';
 import s from '../messages.module.css';
 
-export const metadata = { title: 'Automatic messages' };
+export const metadata = {
+  title: 'Automations',
+  description: 'Messages that send themselves, like reminders before an event and a note when a record is ready. Turn each on or off and edit it.',
+};
 
 export default async function AutomationsPage() {
-  const org = await requireOrg();
+  const org = await requireOrg('/org/messages/automations');
   const rules = await listAutomations(org);
   const on = rules.filter((r) => r.enabled).length;
 

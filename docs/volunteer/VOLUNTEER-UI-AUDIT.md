@@ -24,7 +24,10 @@ The weekend shared contract (`build/00-SHARED-CONTRACT.md`) governs integration;
 | Discover | Fictional fixtures, saved IDs in localStorage | Real upcoming public events, ported engine, saved list on the server. See `DISCOVER.md` |
 | Leave-the-area check | Not built | Opt-in toggle on the active session, only when the coordinator set a site; no coordinates stored |
 | Guardian controls | UI-only share restrictions | UI and server: minors can't share records or badges and don't see LinkedIn; the blurb stays available (it's private) |
-| Desktop and phone | Preview switch | Sidebar on desktop, five bottom tabs on phones (My hours, Check in, Discover, Badges, Messages) |
+| Desktop and phone | Preview switch | One top bar on desktop with the tabs as a sliding pill; on phones a greeting bar and four bottom tabs (Home, Discover, Messages, Me), with Check in in the bar. Light and dark themes |
+| Join consent | Not built | Required "I agree to the Terms and Privacy Policy" at `/join` and walk-in; 13 to 17 also confirm a parent or guardian knows (`terms_accepted_at`, `guardian_ack_at`) |
+| My hours by organization | Not built | Home shows each organization as a folder of its records |
+| Account | Not built | `/me/account`: theme, announcements opt-in (off by default), Download my data (JSON), Delete my account |
 
 ## Deliberately not built
 

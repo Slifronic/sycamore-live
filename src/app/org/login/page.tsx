@@ -1,12 +1,17 @@
 import Link from 'next/link';
 import { Icon } from '@/components/shell/icons';
+import { safeOrgNext } from '@/lib/session';
 import { LoginForm } from './LoginForm';
 import { AuthArt } from '../AuthArt';
 import s from '../auth.module.css';
 
-export const metadata = { title: 'Coordinator sign in' };
+export const metadata = {
+  title: 'Coordinator sign in',
+  description: 'Sign in with your organization’s 6-digit PIN to run events, verify hours and message your volunteers.',
+};
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: PageProps<'/org/login'>) {
+  const next = safeOrgNext((await searchParams).next);
   return (
     // Not a <main> element: after sign-in the app keeps this page mounted (hidden) for back
     // navigation, and the org shell has its own <main>. The role keeps the landmark here.
@@ -19,7 +24,7 @@ export default function LoginPage() {
           </Link>
           <h1>Coordinator sign in</h1>
           <p className="muted">Enter your organization’s 6-digit PIN.</p>
-          <LoginForm />
+          <LoginForm next={next} />
           <p className="small muted">
             New here?{' '}
             <Link href="/org/start" className={s.cta}>

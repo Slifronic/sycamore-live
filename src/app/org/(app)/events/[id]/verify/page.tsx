@@ -12,12 +12,16 @@ import { ToastOnMount } from '@/components/shell/Toast';
 import { FocusOnMount } from './FocusOnMount';
 import { VerifyConsole } from './VerifyConsole';
 import s from './verify.module.css';
+import { orgEventMeta } from '@/lib/page-meta';
 
-export const metadata = { title: 'Verify hours' };
+export async function generateMetadata({ params }: PageProps<'/org/events/[id]/verify'>) {
+  const { id } = await params;
+  return orgEventMeta(id, (t) => ({ title: `Verify ${t}`, description: `Check the hours for ${t}, fill in anyone who didn’t scan out, and verify & close to issue every record.` }), { title: 'Verify hours', description: 'Check the hours, fill in anyone who didn’t scan out, and verify & close to issue every record.' });
+}
 
 export default async function VerifyPage({ params, searchParams }: PageProps<'/org/events/[id]/verify'>) {
-  const org = await requireOrg();
   const { id } = await params;
+  const org = await requireOrg(`/org/events/${id}/verify`);
   const event = await getEvent(org.id, id);
   if (!event) notFound();
   const roster = await getRoster(id);

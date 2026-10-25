@@ -10,6 +10,7 @@ import { coverFor } from '@/lib/covers';
 import { PublicFrame } from '@/components/site/PublicFrame';
 import { StaticMap } from './StaticMap';
 import s from './event-page.module.css';
+import { clip } from '@/components/site/meta';
 
 // Public event page: the one link a coordinator drops in a group chat.
 // What, when, where (map and one-tap directions), add to calendar, what to
@@ -19,12 +20,17 @@ const longDay = (d: Date) => new Date(d).toLocaleDateString('en-US', { timeZone:
 
 export async function generateMetadata({ params }: PageProps<'/e/[slug]'>): Promise<Metadata> {
   const e = await publicEvent((await params).slug);
-  if (!e) return { title: 'Event not found' };
+  if (!e) return { title: 'Event not found', robots: { index: false, follow: false } };
   const when = `${longDay(e.starts_at)}, ${fmtTime(e.starts_at)} to ${fmtTime(e.ends_at)}`;
+  const base = `${when}${e.place_name ?? e.location ? ` at ${e.place_name ?? e.location}` : ''}. Hosted by ${e.org_name}.`;
+  const more = ' Directions, calendar links and how check-in works.';
+  const description = clip(base.length + more.length <= 155 ? base + more : base);
+  // Shared by link in group chats; kept out of search results.
   return {
     title: `${e.title} · ${e.org_name}`,
-    description: `${when}${e.place_name ?? e.location ? ` at ${e.place_name ?? e.location}` : ''}. Hosted by ${e.org_name}.`,
+    description,
     openGraph: { title: e.title, description: `${when} · ${e.org_name}` },
+    twitter: { card: 'summary_large_image', title: e.title, description: `${when} · ${e.org_name}` },
     robots: { index: false },
   };
 }
@@ -42,7 +48,7 @@ export default async function PublicEventPage({ params }: PageProps<'/e/[slug]'>
     <PublicFrame>
     <div className={s.page}>
       <header className={s.head}>
-        <Cover cover={coverFor(e)} variant="hero" priority className={`settle ${s.hero}`}>
+        <Cover cover={coverFor(e)} variant="hero" preload className={`settle ${s.hero}`}>
           <p className={`${s.org} rise`}>{e.org_name}</p>
           <h1 className={`${s.title} rise`} style={{ ['--d' as string]: '0.08s' }}>
             {e.title}

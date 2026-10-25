@@ -11,12 +11,16 @@ import { coverFor } from '@/lib/covers';
 import { PublicFrame } from '@/components/site/PublicFrame';
 import s from './walkin.module.css';
 
-// Walk-in sign-up, the page behind an event's second QR code. Someone with no
+// Walk-in sign-up, the page behind the "New here" side of an event's QR card. Someone with no
 // account signs up and is checked in to this event in one step. Someone who
 // already signed up on this phone checks in with one tap, and comes back here
 // to check out.
 
-export const metadata: Metadata = { title: 'Sign up and check in', robots: { index: false, follow: false } };
+export const metadata: Metadata = {
+  title: 'Sign up and check in',
+  description: 'New here? Sign up with your name, email and birth date, and you’re checked in to this event in the same step.',
+  robots: { index: false, follow: false },
+};
 
 export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
   const { token } = await params;
@@ -40,7 +44,7 @@ export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
         <PublicFrame width={440}>
           <div className={s.page}>
             <header className={s.head}>
-              <Cover cover={coverFor({ title: active.title })} variant="band" priority className={s.hero}>
+              <Cover cover={coverFor({ title: active.title })} variant="band" preload className={s.hero}>
                 <p className={s.org}>{active.org_name}</p>
                 <h1 className={s.title}>
                   {active.title}
@@ -95,7 +99,7 @@ export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
     <PublicFrame width={440}>
       <div className={s.page}>
         <header className={s.head}>
-          <Cover cover={coverFor(event)} variant="band" priority className={s.hero}>
+          <Cover cover={coverFor(event)} variant="band" preload className={s.hero}>
             <p className={s.org}>{org.name}</p>
             <h1 className={s.title}>
               {event.title}

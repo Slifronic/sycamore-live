@@ -14,9 +14,16 @@ export async function currentOrg(): Promise<Org | null> {
   return org ?? null;
 }
 
-export async function requireOrg(): Promise<Org> {
+/** Coordinator-only path for a ?next= round trip through sign-in; anything else is /org. */
+export function safeOrgNext(raw: unknown): string {
+  const s = typeof raw === 'string' ? raw : '';
+  return /^\/org(\/|\?|$)/.test(s) && !s.startsWith('/org/login') && !s.startsWith('/org/start') ? s : '/org';
+}
+
+/** For pages: signed out goes to the PIN screen, which comes back to `next` after sign-in. */
+export async function requireOrg(next?: string): Promise<Org> {
   const org = await currentOrg();
-  if (!org) redirect('/org/login');
+  if (!org) redirect(next && next !== '/org' ? `/org/login?next=${encodeURIComponent(safeOrgNext(next))}` : '/org/login');
   return org;
 }
 

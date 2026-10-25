@@ -11,7 +11,10 @@ import { Composer, LiveThread } from './MessagesClient';
 import { EmptyState } from '@/components/media/EmptyState';
 import s from './messages.module.css';
 
-export const metadata = { title: 'Messages' };
+export const metadata = {
+  title: 'Messages',
+  description: 'Messages from the organizations you volunteer with, and the group chat for each event you checked in to.',
+};
 
 // Messages, the volunteer's half of the coordinator inbox. One thread per
 // organization (direct notes, broadcasts, automatic messages) and one group

@@ -123,8 +123,8 @@ export function CommandPalette({ importHref }: { importHref: string | null }) {
   const entries = useMemo<Entry[]>(() => {
     const actions: Entry[] = [
       { id: 'a-new', group: 'Actions', label: 'New event', icon: 'calendar-plus', href: '/org/events/new', keywords: 'create add schedule' },
-      { id: 'a-bc', group: 'Actions', label: 'Send a broadcast', icon: 'megaphone', href: '/org/messages/broadcasts', keywords: 'message everyone announce' },
-      ...(importHref ? [{ id: 'a-imp', group: 'Actions' as const, label: 'Import a paper sheet', icon: 'clipboard' as const, href: importHref, keywords: 'photo sign-in sheet scan' }] : []),
+      { id: 'a-bc', group: 'Actions', label: 'New broadcast', icon: 'megaphone', href: '/org/messages/broadcasts?new=1', keywords: 'message everyone announce' },
+      ...(importHref ? [{ id: 'a-imp', group: 'Actions' as const, label: 'Import paper sheet', icon: 'clipboard' as const, href: importHref, keywords: 'photo sign-in sheet scan' }] : []),
       { id: 'a-theme', group: 'Actions', label: 'Switch light / dark theme', icon: 'moon', run: () => toggleTheme(), keywords: 'dark mode appearance' },
     ];
     const pages: Entry[] = PAGES.map((p) => ({ id: `p-${p.href}`, group: 'Pages', label: p.label, icon: p.icon, href: p.href, keywords: p.keywords }));

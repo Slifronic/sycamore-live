@@ -8,6 +8,7 @@ import { coverFor } from '@/lib/covers';
 import { PublicFrame } from '@/components/site/PublicFrame';
 import { Icon } from '@/components/shell/icons';
 import s from './campaign.module.css';
+import { clip } from '@/components/site/meta';
 
 // Public campaign page. Numbers come from the snapshot of the attested record
 // taken when the campaign was last saved; only consented clips play.
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }: PageProps<'/c/[slug]'>): Prom
   // Stories can show volunteers, some of them minors, so they're shared by link and kept out of search results.
   return {
     title,
-    description: draft.subhead,
+    description: clip(draft.subhead),
     openGraph: { title, description: draft.subhead, type: 'article' },
     twitter: { card: 'summary_large_image', title, description: draft.subhead },
     robots: { index: false, follow: false },
@@ -59,7 +60,7 @@ export default async function CampaignPage({ params }: PageProps<'/c/[slug]'>) {
       {shots.length === 0 ? (
         // No consented clips to play: a cover photo for the kind of work carries the header.
         <header className={s.head}>
-          <Cover cover={coverFor({ title: facts.event.title })} variant="hero" priority className="settle">
+          <Cover cover={coverFor({ title: facts.event.title })} variant="hero" preload className="settle">
             <p className={`${s.org} ${s.onPhoto} rise`}>{facts.org.name}</p>
             <h1 className={`${s.title} ${s.onPhoto} rise`} style={{ ['--d' as string]: '0.08s' }}>
               {draft.headline}

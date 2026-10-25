@@ -8,11 +8,14 @@ import { createEventFull } from '@/app/org/event-actions';
 import { EventForm } from '@/components/events/EventForm';
 import { PageHeader } from '@/components/PageHeader';
 
-export const metadata = { title: 'New event' };
+export const metadata = {
+  title: 'New event',
+  description: 'Create an event by hand or from a pasted message, link, calendar invite or flyer photo, and get its check-in QR code.',
+};
 
 export default async function NewEventPage({ searchParams }: PageProps<'/org/events/new'>) {
   await connection(); // "today" is the request's date, not the build's
-  const org = await requireOrg();
+  const org = await requireOrg('/org/events/new');
   const today = utcToPacific(new Date()).ymd;
   const asked = (await searchParams).date;
   const date = typeof asked === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(asked) && asked >= today ? asked : today;

@@ -154,7 +154,7 @@ export function OrgTopBar({
           panelClassName={s.newMenu}
           items={[
             { label: 'New event', hint: 'Schedule it, get a check-in code', href: '/org/events/new', icon: 'calendar-plus' },
-            { label: 'Broadcast', hint: 'Message everyone who signed up', href: '/org/messages/broadcasts', icon: 'megaphone' },
+            { label: 'Broadcast', hint: 'One message to a group of volunteers', href: '/org/messages/broadcasts?new=1', icon: 'megaphone' },
             ...(importHref ? [{ label: 'Import paper sheet', hint: 'Photo of a sign-in sheet', href: importHref, icon: 'clipboard' as const }] : []),
           ]}
           trigger={(p) => (

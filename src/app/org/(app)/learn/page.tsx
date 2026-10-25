@@ -11,10 +11,13 @@ import { Stagger } from '@/components/motion/Stagger';
 import { PinReveal } from '@/components/PinReveal';
 import s from './learn.module.css';
 
-export const metadata = { title: 'Learn' };
+export const metadata = {
+  title: 'Learn',
+  description: 'A 7-minute course. Each lesson opens the real screen and completes itself when you do the action.',
+};
 
 export default async function LearnPage() {
-  const org = await requireOrg();
+  const org = await requireOrg('/org/learn');
   const flags = org.course;
   const p = courseProgress(flags);
   const pct = Math.round((100 * p.done) / p.total);

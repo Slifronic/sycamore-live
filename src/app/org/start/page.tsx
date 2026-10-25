@@ -4,7 +4,10 @@ import { StartForm } from './StartForm';
 import { AuthArt } from '../AuthArt';
 import s from '../auth.module.css';
 
-export const metadata = { title: 'Set up your organization' };
+export const metadata = {
+  title: 'Set up your organization',
+  description: 'Set up your organization in about a minute: four boxes, then a practice event and a short course that teaches by doing.',
+};
 
 export default function StartPage() {
   return (

@@ -7,7 +7,10 @@ import { Stagger } from '@/components/motion/Stagger';
 import { Icon } from '@/components/shell/icons';
 import s from './score.module.css';
 
-export const metadata = { title: 'Score' };
+export const metadata = {
+  title: 'SycaMore Index',
+  description: 'The composite SycaMore Index for your organization. It isn’t shown in the app yet; Home and Reports show the observed facts.',
+};
 
 const TIERS = [
   { name: 'Platinum', from: 90 },
@@ -17,7 +20,7 @@ const TIERS = [
 ];
 
 export default async function IndexPage() {
-  const org = await requireOrg();
+  const org = await requireOrg('/org/score');
   const ins = await loadOrgInsights(org.id);
   const lowest = ins.index.parts.filter((p) => p.score != null).sort((a, b) => (a.score ?? 0) - (b.score ?? 0))[0];
   const score = ins.index.score;

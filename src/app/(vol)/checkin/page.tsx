@@ -4,7 +4,10 @@ import { PageHeader } from '@/components/PageHeader';
 import { CheckinForm, LiveSession } from './CheckinClient';
 import s from '../pages.module.css';
 
-export const metadata = { title: 'Check in' };
+export const metadata = {
+  title: 'Check in',
+  description: 'Scan an event’s QR code or type its 6-character code to check in, then check out when you leave.',
+};
 
 // Contract: /checkin. The org's event QR encodes /checkin?code=<checkin_code>;
 // typing the 6 characters is the fallback. Signed out, /join brings them back

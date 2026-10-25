@@ -29,7 +29,7 @@ const TABS = [
 ] as const;
 
 export default async function VolunteersPage({ searchParams }: PageProps<'/org/volunteers'>) {
-  const org = await requireOrg();
+  const org = await requireOrg('/org/volunteers');
   const sp = await searchParams;
   const tab = (typeof sp.tab === 'string' ? sp.tab : 'all') as (typeof TABS)[number]['key'];
   const q = typeof sp.q === 'string' ? sp.q.trim().toLowerCase() : '';

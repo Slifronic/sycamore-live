@@ -135,7 +135,7 @@ export function NeedsYouMock() {
       <span className="chip chip-amber">Needs verification</span>
       <p className={s.miniTitle}>Santa Teresa Planting, Phase 2</p>
       <p className={s.miniSub}>Ended yesterday · 4 didn’t scan out</p>
-      <span className={s.btn}>Verify now</span>
+      <span className={s.btn}>Verify</span>
     </div>
   );
 }

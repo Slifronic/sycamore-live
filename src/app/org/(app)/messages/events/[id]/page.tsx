@@ -14,8 +14,12 @@ import { LiveInbox } from '../../LiveInbox';
 import { ChatComposer } from '../ChatComposer';
 import s from '../../messages.module.css';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { orgEventMeta } from '@/lib/page-meta';
 
-export const metadata = { title: 'Event chat' };
+export async function generateMetadata({ params }: PageProps<'/org/messages/events/[id]'>) {
+  const { id } = await params;
+  return orgEventMeta(id, (t) => ({ title: `Chat · ${t}`, description: `The group chat for ${t}, with everyone who checked in. Message any of them privately from the member list.` }), { title: 'Event chat', description: 'The group chat for one event, with everyone who checked in. Message any of them privately from the member list.' });
+}
 
 function dayLabel(d: Date, now: number) {
   const day = fmtDay(d);
@@ -27,8 +31,8 @@ function dayLabel(d: Date, now: number) {
 const STATUS = { checked_in: 'here now', checked_out: 'checked out', attested: 'verified' } as Record<string, string>;
 
 export default async function EventChatPage({ params }: PageProps<'/org/messages/events/[id]'>) {
-  const org = await requireOrg();
   const { id } = await params;
+  const org = await requireOrg(`/org/messages/events/${id}`);
   const event = await getEvent(org.id, id);
   if (!event || event.is_practice) notFound();
   const now = requestNow();

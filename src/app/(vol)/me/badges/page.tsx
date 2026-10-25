@@ -11,7 +11,10 @@ import { longDay, targetLine } from '@/components/vol/badge-format';
 import { EmptyState } from '@/components/media/EmptyState';
 import s from './badges.module.css';
 
-export const metadata = { title: 'Badges' };
+export const metadata = {
+  title: 'My badges',
+  description: 'Badges organizations have signed for you, and how close you are to the rest.',
+};
 
 // The badge gallery. Signed means an organization signed a badge_award row;
 // "in progress" and "ready" are computed from attested hours with the rules in

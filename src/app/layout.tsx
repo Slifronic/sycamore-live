@@ -3,7 +3,7 @@ import { Fraunces, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { MotionRoot } from '@/components/motion/MotionRoot';
 import { Toaster } from '@/components/shell/Toast';
-import { THEME_KEY } from '@/components/shell/theme';
+import { ThemeScript } from '@/components/shell/ThemeScript';
 
 const display = Fraunces({ variable: '--font-display', subsets: ['latin'], weight: ['400', '500', '600'], style: ['normal', 'italic'] });
 const sans = Plus_Jakarta_Sans({ variable: '--font-sans', subsets: ['latin'] });
@@ -27,16 +27,12 @@ export const viewport: Viewport = {
   colorScheme: 'light dark',
 };
 
-// Runs before first paint: the stored choice, else the system setting, so a
-// dark-mode visitor never sees a flash of parchment. Kept tiny and inline.
-const NO_FLASH = `(function(){try{var t=localStorage.getItem('${THEME_KEY}');if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();`;
-
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     // data-theme is set by the script before React hydrates, so it differs from the server HTML on purpose.
     <html lang="en" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: NO_FLASH }} />
+        <ThemeScript />
       </head>
       <body>
         <MotionRoot>{children}</MotionRoot>
