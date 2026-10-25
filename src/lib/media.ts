@@ -8,7 +8,8 @@ import { pipeline } from 'node:stream/promises';
 
 // Event-story media (voice notes, videos, posters) lives on local disk for the
 // weekend build. Files are never served from /public: every read goes through
-// an /api/media route that checks who is asking.
+// an /api/media route that checks who is asking. The turbopackIgnore comments
+// keep the build from tracing the whole project into the server bundle.
 
 const MEDIA_DIR = process.env.MEDIA_DIR ?? path.join(process.cwd(), '.media');
 
@@ -33,21 +34,21 @@ export async function saveUpload(file: Blob): Promise<string> {
   if (!ext) throw new Error(`Unsupported media type ${file.type}`);
   await mkdir(MEDIA_DIR, { recursive: true });
   const name = `${randomUUID()}.${ext}`;
-  await pipeline(Readable.fromWeb(file.stream() as never), createWriteStream(path.join(MEDIA_DIR, name)));
+  await pipeline(Readable.fromWeb(file.stream() as never), createWriteStream(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ MEDIA_DIR, name)));
   return name;
 }
 
 export async function removeMedia(name: string | null | undefined) {
   if (!name) return;
-  await unlink(path.join(MEDIA_DIR, path.basename(name))).catch(() => {});
+  await unlink(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ MEDIA_DIR, path.basename(name))).catch(() => {});
 }
 
 // Serve a stored file with HTTP range support, which Safari needs to play video.
 export async function serveMedia(req: Request, name: string, mime: string): Promise<Response> {
-  const file = path.join(MEDIA_DIR, path.basename(name));
+  const file = path.join(/*turbopackIgnore: true*/ MEDIA_DIR, path.basename(name));
   let size: number;
   try {
-    size = (await stat(file)).size;
+    size = (await stat(/*turbopackIgnore: true*/ file)).size;
   } catch {
     return new Response('Not found', { status: 404 });
   }
@@ -64,12 +65,12 @@ export async function serveMedia(req: Request, name: string, mime: string): Prom
     end = Math.min(end, size - 1);
     start = Math.min(start, end);
     if (start >= size) return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${size}` } });
-    const body = Readable.toWeb(createReadStream(file, { start, end })) as unknown as ReadableStream;
+    const body = Readable.toWeb(createReadStream(/*turbopackIgnore: true*/ file, { start, end })) as unknown as ReadableStream;
     return new Response(body, {
       status: 206,
       headers: { ...headers, 'Content-Range': `bytes ${start}-${end}/${size}`, 'Content-Length': String(end - start + 1) },
     });
   }
-  const body = Readable.toWeb(createReadStream(file)) as unknown as ReadableStream;
+  const body = Readable.toWeb(createReadStream(/*turbopackIgnore: true*/ file)) as unknown as ReadableStream;
   return new Response(body, { headers: { ...headers, 'Content-Length': String(size) } });
 }
