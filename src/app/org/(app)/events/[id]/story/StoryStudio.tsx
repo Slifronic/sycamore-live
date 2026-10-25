@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { Campaign, CampaignDraft, ClipDescription, NumberFlag, StoryFacts } from '@/lib/story';
 import { Reel, type Shot } from '@/components/Reel';
+import { Icon } from '@/components/shell/icons';
+import { Chip } from '@/components/ui/Chip';
+import { toast } from '@/components/shell/Toast';
 import s from './story.module.css';
 
 type Note = { id: string; transcript: string; source: 'voice' | 'typed'; audio_path: string | null; duration_s: number | null; created_at: string };
@@ -51,9 +54,7 @@ export function StoryStudio({ eventId, eventTitle, verified, aiEnabled, initial 
           <span className="chip chip-ink">{notes.length ? `${notes.length} note${notes.length === 1 ? '' : 's'}` : 'No notes yet'}</span>
         </div>
         <div className="card-pad stack">
-          <p className="muted small">
-            Talk like you would to your board: what you set out to do, what got done, a moment that stuck with you, who stepped up (roles, not names), and what’s next. A minute or two is plenty.
-          </p>
+          <p className="muted small">Like you’d tell your board: what got done, a moment that stuck, who stepped up (roles, not names), what’s next.</p>
           <VoiceRecorder base={base} onSaved={(n) => setNotes((ns) => [...ns, n])} />
           {notes.map((n) => (
             <NoteCard key={n.id} note={n} onDelete={async () => {
@@ -259,7 +260,7 @@ function VoiceRecorder({ base, onSaved }: { base: string; onSaved: (n: Note) => 
       ) : (
         <div className={s.recRow}>
           <button type="button" className="btn btn-big btn-primary" onClick={start} disabled={busy}>
-            🎙 {phase === 'review' ? 'Keep talking' : 'Record a voice note'}
+            <span className={s.micDot} aria-hidden /> {phase === 'review' ? 'Keep talking' : 'Record a voice note'}
           </button>
           {phase === 'idle' && (
             <button type="button" className="btn btn-quiet btn-sm" onClick={() => setPhase('review')}>
@@ -304,7 +305,7 @@ function NoteCard({ note, onDelete }: { note: Note; onDelete: () => Promise<void
     <article className={s.note}>
       <div className="row between wrap">
         <span className="small muted">
-          {note.source === 'voice' ? '🎙 Voice note' : '✎ Typed note'}
+          {note.source === 'voice' ? 'Voice note' : 'Typed note'}
           {note.duration_s ? ` · ${secs(note.duration_s)}` : ''} ·{' '}
           {new Date(note.created_at).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' })}
         </span>
@@ -422,11 +423,13 @@ function ClipUploader({ base, onAdded }: { base: string; onAdded: (c: Clip) => v
     <div className="stack">
       <label className={s.drop}>
         <input ref={input} type="file" accept="video/mp4,video/quicktime,video/webm,video/*" multiple className="sr-only" onChange={(e) => onFiles(e.target.files)} />
-        <span className={s.dropIcon} aria-hidden>🎬</span>
+        <span className={s.dropIcon} aria-hidden>
+          <Icon name="plus" size={20} />
+        </span>
         <span>
           <strong>Add videos from the event</strong>
           <br />
-          <span className="small muted">MP4, MOV or WebM, up to 300 MB each. Claude reads a few still frames to describe each clip; the video isn’t sent to it.</span>
+          <span className="small muted">MP4, MOV or WebM, up to 300 MB. Claude reads a few still frames, never the video.</span>
         </span>
       </label>
       {uploads.map((u) => (
@@ -592,14 +595,18 @@ function CampaignPanel({
       setCampaign(c);
       setDraft(c.draft);
       setDirty(false);
+      toast.success(c.flags?.length ? 'Saved, with numbers to check' : 'Edits saved');
     });
   const publish = (on: boolean) =>
     act('publish', async () => {
       const { campaign: c } = await api<{ campaign: CampaignState }>(`${base}/campaign/publish`, { method: on ? 'POST' : 'DELETE' });
       setCampaign(c);
+      if (on) toast.success('Campaign page published', { action: c.slug ? { label: 'Open', href: `/c/${c.slug}` } : undefined });
+      else toast('Campaign page taken down');
     });
   const copy = async (key: string, text: string) => {
     await navigator.clipboard.writeText(text);
+    toast.success(key === 'url' ? 'Link copied' : 'Post copied');
     setCopied(key);
     setTimeout(() => setCopied(null), 1500);
   };
@@ -638,7 +645,11 @@ function CampaignPanel({
           <h2 id="step-campaign" className={s.h2}>Package it into a campaign</h2>
         </div>
         <div className="row wrap" style={{ gap: 8 }}>
-          {live && <span className="chip chip-green">● Published</span>}
+          {live && (
+            <Chip tone="green" icon="live">
+              Published
+            </Chip>
+          )}
           <button type="button" className={draft ? 'btn' : 'btn btn-primary btn-big'} onClick={generate} disabled={!hasInput || !aiEnabled || !!busy}>
             {busy === 'generate' ? 'Claude is drafting…' : draft ? 'Redraft with Claude' : 'Draft the campaign with Claude'}
           </button>
@@ -654,7 +665,7 @@ function CampaignPanel({
             {shownFacts.leaders > 0 && <li><strong className="num">{shownFacts.leaders}</strong> in lead roles</li>}
             <li><strong className="num">${shownFacts.volunteer_value_usd.toLocaleString()}</strong> of volunteer time at ${shownFacts.rate.usd}/hr ({shownFacts.rate.label})</li>
           </ul>
-          <p className="small muted">Claude may only use these numbers and the ones you said in your notes. Anything else gets flagged below.</p>
+          <p className="small muted">Claude may only use these and the numbers in your notes. Anything else gets flagged.</p>
         </div>
 
         {!hasInput && <p className="muted">Record a note or add a video first. Claude writes from what you tell it.</p>}
@@ -700,7 +711,7 @@ function CampaignPanel({
                   <div key={p.key} className={s.post}>
                     <div className="row between">
                       <strong className="small">{p.label}</strong>
-                      <button type="button" className="btn btn-sm" onClick={() => copy(p.key, text)}>{copied === p.key ? 'Copied ✓' : 'Copy'}</button>
+                      <button type="button" className="btn btn-sm" onClick={() => copy(p.key, text)}>{copied === p.key ? 'Copied' : 'Copy'}</button>
                     </div>
                     <textarea
                       className={`input ${flagFor(p.label).length || over ? s.flagged : ''}`}
@@ -741,9 +752,9 @@ function CampaignPanel({
                       </span>
                       {!c?.consent && <span className="chip chip-amber">Not cleared</span>}
                       <span className="row" style={{ gap: 2 }}>
-                        <button type="button" className="btn btn-quiet btn-sm" onClick={() => move(-1)} disabled={i === 0} aria-label="Move up">↑</button>
-                        <button type="button" className="btn btn-quiet btn-sm" onClick={() => move(1)} disabled={i === draft.storyboard.length - 1} aria-label="Move down">↓</button>
-                        <button type="button" className="btn btn-quiet btn-sm" onClick={() => edit({ storyboard: draft.storyboard.filter((_, j) => j !== i) })} aria-label="Remove shot">✕</button>
+                        <button type="button" className="btn btn-quiet btn-sm" onClick={() => move(-1)} disabled={i === 0} aria-label="Move up"><Icon name="chevron-down" size={16} style={{ transform: 'rotate(180deg)' }} /></button>
+                        <button type="button" className="btn btn-quiet btn-sm" onClick={() => move(1)} disabled={i === draft.storyboard.length - 1} aria-label="Move down"><Icon name="chevron-down" size={16} /></button>
+                        <button type="button" className="btn btn-quiet btn-sm" onClick={() => edit({ storyboard: draft.storyboard.filter((_, j) => j !== i) })} aria-label="Remove shot"><Icon name="x" size={16} /></button>
                       </span>
                     </div>
                   );
@@ -759,8 +770,8 @@ function CampaignPanel({
               <span className={s.spacer} />
               {live ? (
                 <>
-                  <a className="btn" href={`/c/${campaign!.slug}`} target="_blank" rel="noreferrer">Open public page ↗</a>
-                  {publicUrl && <button type="button" className="btn btn-sm" onClick={() => copy('url', publicUrl)}>{copied === 'url' ? 'Copied ✓' : 'Copy link'}</button>}
+                  <a className="btn" href={`/c/${campaign!.slug}`} target="_blank" rel="noreferrer">Open public page <Icon name="arrow-up-right" size={16} /></a>
+                  {publicUrl && <button type="button" className="btn btn-sm" onClick={() => copy('url', publicUrl)}>{copied === 'url' ? 'Copied' : 'Copy link'}</button>}
                   <button type="button" className="btn btn-quiet btn-sm" onClick={() => publish(false)} disabled={!!busy}>Unpublish</button>
                 </>
               ) : (

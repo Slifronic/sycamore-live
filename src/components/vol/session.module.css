@@ -10,11 +10,11 @@
 .btn { height: 56px; border-radius: 999px; border: 1.5px solid var(--line-2); background: var(--paper); color: var(--ink); font: 700 17px var(--font-sans), system-ui, sans-serif; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 .btn:disabled { opacity: 0.6; cursor: default; }
 .btn:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
-.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.primary { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
 .links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .link { color: var(--primary); font: 600 15px var(--font-sans), system-ui, sans-serif; text-decoration: underline; padding: 0; display: inline-flex; align-items: center; min-height: 44px; }
-.notice { background: var(--amber-soft); color: #6b4107; border-radius: 10px; padding: 12px 14px; font-size: 15px; }
-.error { background: var(--red-soft); color: #7d2219; border-radius: 10px; padding: 12px 14px; font-size: 15px; }
+.notice { background: var(--amber-soft); color: var(--amber); border-radius: 10px; padding: 12px 14px; font-size: 15px; }
+.error { background: var(--red-soft); color: var(--red); border-radius: 10px; padding: 12px 14px; font-size: 15px; }
 .fine { font-size: 13px; color: var(--ink-3); }
 
 /* Confirmation: the card lands with a small press-and-release (like a haptic

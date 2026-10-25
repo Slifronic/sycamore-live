@@ -63,6 +63,10 @@ export function Composer({ volunteerId, firstName }: { volunteerId: string; firs
           ))}
         </div>
         <div className="row" style={{ gap: 10 }}>
+          <span className={s.composeHint} aria-hidden>
+            <span className="kbd">⌘</span>
+            <span className="kbd">↵</span>
+          </span>
           <span className={s.count} aria-live="polite">
             {text.length.toLocaleString()} / {MAX.toLocaleString()}
           </span>
@@ -71,9 +75,6 @@ export function Composer({ volunteerId, firstName }: { volunteerId: string; firs
           </button>
         </div>
       </div>
-      <p className="small muted" style={{ margin: 0 }}>
-        Arrives in {firstName}’s SycaMore app. No phone number needed. ⌘ + Enter sends.
-      </p>
     </form>
   );
 }

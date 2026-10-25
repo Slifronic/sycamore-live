@@ -33,10 +33,12 @@ export function StartForm() {
         </div>
         <div className="field" style={{ flex: '1 1 160px' }}>
           <label htmlFor="phone">Contact phone</label>
-          <input className="input" id="phone" name="phone" type="tel" autoComplete="tel" required />
+          <input className="input" id="phone" name="phone" type="tel" autoComplete="tel" required aria-describedby="phone-hint" />
         </div>
       </div>
-      <p className="small muted">Schools and scholarship committees call this number if they have a question about an hour record.</p>
+      <p id="phone-hint" style={{ marginTop: -8, fontSize: 13, color: 'var(--ink-3)' }}>
+        Schools call this number if they have a question about an hour record.
+      </p>
       {state?.error && <p className="notice notice-red">{state.error}</p>}
       <button className="btn btn-primary btn-big" disabled={pending}>
         {pending ? 'Setting up…' : 'Create my dashboard'}

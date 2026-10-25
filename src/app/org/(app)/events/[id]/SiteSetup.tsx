@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Icon } from '@/components/shell/icons';
+import { HelpTip } from '@/components/media/HelpTip';
 import s from './event.module.css';
 
 type Site = { lat: number | null; lng: number | null; radius_m: number };
@@ -61,23 +63,34 @@ export function SiteSetup({ eventId, initial }: { eventId: string; initial: Site
     }
   }
 
+  // Optional and rarely changed: a closed row until the coordinator opens it.
   return (
-    <section className={`card ${s.site}`} aria-labelledby="site-h">
-      <div className="card-head">
-        <div>
-          <p className="eyebrow">Leave-the-area check · optional</p>
-          <h2 id="site-h" className={s.siteTitle}>
-            {on ? `On: ${site.radius_m} m around the site` : 'Suggest check-outs for people who leave'}
-          </h2>
+    <details className={`card ${s.site}`} aria-labelledby="site-h" open={!!error}>
+      <summary className={s.siteSum}>
+        <span className={s.siteIcon} aria-hidden>
+          <Icon name="pin" size={16} />
+        </span>
+        <span className={s.siteText}>
+          <span id="site-h" className={s.siteTitle}>
+            Leave-the-area check
+          </span>
+          <span className={s.siteSub}>{on ? `On · ${site.radius_m} m around the site` : 'Optional · suggests check-outs for people who leave'}</span>
+        </span>
+        {on && (
+          <span className="chip chip-green">
+            <Icon name="check" size={14} strokeWidth={2} /> On
+          </span>
+        )}
+        <Icon name="chevron-down" size={16} className={s.siteChev} />
+      </summary>
+      <div className="card-pad stack" style={{ paddingTop: 4 }}>
+        <div className="small muted row" style={{ gap: 6, alignItems: 'center' }}>
+          Opted-in phones get a “Check out?” prompt after 10 minutes outside the circle.
+          <HelpTip label="How the leave-the-area check works">
+            Volunteers who opt in see a prompt after 10 minutes outside this circle, and you see a suggested check-out time when you verify. Nobody is checked out
+            automatically, no location history is kept, and the suggestion is deleted once the event is verified. Phones only report while the check-in page is open.
+          </HelpTip>
         </div>
-        {on && <span className="chip chip-green">● On</span>}
-      </div>
-      <div className="card-pad stack">
-        <p className="small muted">
-          Volunteers who opt in on their phone get a “Looks like you’ve left. Check out?” prompt after 10 minutes outside this circle, and you see a
-          suggested check-out time when you verify. Nobody is checked out automatically, no location history is kept, and the suggestion is deleted
-          once the event is verified. Phones only report while the check-in page is open.
-        </p>
         <div className="row wrap" style={{ gap: 8 }}>
           <span className="small" style={{ fontWeight: 600 }}>Radius</span>
           <div className="seg" role="group" aria-label="Radius">
@@ -99,7 +112,7 @@ export function SiteSetup({ eventId, initial }: { eventId: string; initial: Site
         </div>
         <div className="row wrap" style={{ gap: 8 }}>
           <button type="button" className="btn btn-primary" onClick={useHere} disabled={busy}>
-            📍 {on ? 'Re-center on where I am' : 'Use where I’m standing'}
+            <Icon name="pin" size={16} /> {on ? 'Re-center on where I am' : 'Use where I’m standing'}
           </button>
           <span className="small muted">or</span>
           <input
@@ -116,7 +129,7 @@ export function SiteSetup({ eventId, initial }: { eventId: string; initial: Site
           {on && (
             <>
               <a className="btn btn-quiet btn-sm" href={`https://www.google.com/maps?q=${site.lat},${site.lng}`} target="_blank" rel="noreferrer">
-                Check on map ↗
+                Check on map <Icon name="arrow-up-right" size={14} />
               </a>
               <button type="button" className="btn btn-quiet btn-sm" onClick={turnOff} disabled={busy}>
                 Turn off
@@ -127,6 +140,6 @@ export function SiteSetup({ eventId, initial }: { eventId: string; initial: Site
         {note && !error && <p className="small" style={{ color: 'var(--verified)' }} role="status">{note}</p>}
         {error && <p className="notice notice-red">{error}</p>}
       </div>
-    </section>
+    </details>
   );
 }

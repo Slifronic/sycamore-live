@@ -7,13 +7,14 @@ import { isUuid } from '@/lib/ids';
 import { ago, fmtDay, fmtTime, initials, lastCame, plural, requestNow } from '@/lib/format';
 import { ROLE_LABEL } from '@/lib/types';
 import { PageHeader } from '@/components/PageHeader';
-import { orgChatUnread } from '@/lib/event-chat';
 import { MINOR_MESSAGES_OFF, minorIds } from '@/lib/minors';
-import { MessagesTabs } from './MessagesTabs';
+import { Help } from './Help';
 import { Composer } from './Composer';
 import { LiveInbox } from './LiveInbox';
 import s from './messages.module.css';
-import { EmptyState } from '@/components/media/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Icon } from '@/components/shell/icons';
+import { Stagger } from '@/components/motion/Stagger';
 
 export const metadata = { title: 'Messages' };
 
@@ -21,7 +22,7 @@ const FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'unread', label: 'Unread' },
   { key: 'reply', label: 'Needs reply' },
-  { key: 'away', label: 'Haven’t come in 30+ days' },
+  { key: 'away', label: 'Away 30+ days' },
 ] as const;
 type Filter = (typeof FILTERS)[number]['key'];
 
@@ -83,20 +84,32 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
   };
 
   return (
-    <div className="page" style={{ gap: 18 }}>
+    <Stagger className="page" style={{ gap: 18 }}>
       <PageHeader
-        eyebrow={`People · ${plural(threads.length, 'conversation')}${unreadTotal ? ` · ${unreadTotal} unread` : ''}`}
-        title="Messages"
-        lede="Write to your volunteers inside SycaMore. They read and reply on their phones; nobody shares a phone number."
-        action={<MessagesTabs on="inbox" unread={unreadTotal} chatUnread={await orgChatUnread(org.id)} />}
+        eyebrow={`${plural(threads.length, 'conversation')}${unreadTotal ? ` · ${unreadTotal} unread` : ''}`}
+        title="Inbox"
+        controls={
+          <Help label="About messages" placement="bottom-end">
+            <p>
+              <strong>Write to volunteers inside SycaMore.</strong> They read and reply on their phones, so nobody shares a phone number.
+            </p>
+            <p>Volunteers under 18 get announcements only. “Needs reply” lists threads where they wrote last.</p>
+          </Help>
+        }
+        action={
+          <Link className="btn" href="/org/messages/broadcasts?new=1">
+            <Icon name="megaphone" size={16} /> New broadcast
+          </Link>
+        }
       />
 
       <div className={`card ${s.inbox} ${openId ? s.hasThread : ''}`}>
         <div className={s.listCol}>
           <div className={s.listHead}>
-            <form role="search" className="row" style={{ gap: 8 }}>
+            <form role="search" className={s.search}>
               {f !== 'all' && <input type="hidden" name="f" value={f} />}
-              <input className="input" style={{ height: 38, flex: 1 }} name="q" defaultValue={q} placeholder="Search name or message" aria-label="Search name or message" />
+              <Icon name="search" size={16} />
+              <input className="input" name="q" defaultValue={q} placeholder="Search name or message" aria-label="Search name or message" />
             </form>
             <form className="row" style={{ gap: 8 }} action="/org/messages">
               <select className="select" name="v" aria-label="Start a conversation with" style={{ height: 36, flex: 1, fontSize: 13 }} defaultValue="">
@@ -127,11 +140,7 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                   <span style={{ minWidth: 0 }}>
                     <span className={s.tName}>
                       <span>{t.name}</span>
-                      {t.is_minor && (
-                        <span className="chip chip-ink" style={{ height: 18, fontSize: 10.5, padding: '0 7px' }}>
-                          under 18
-                        </span>
-                      )}
+                      {t.is_minor && <span className={`chip chip-ink ${s.mini18}`}>under 18</span>}
                     </span>
                     <span className={`${s.tPreview} ${t.unread ? s.unreadText : ''}`} style={{ display: 'block' }}>
                       {t.last_direction === 'out' ? 'You: ' : ''}
@@ -141,9 +150,9 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                       <span className={`${s.dot} ${t.last_source === 'automation' ? s.dotAuto : t.last_source === 'broadcast' ? s.dotBroadcast : ''}`} aria-hidden />
                       {t.last_source === 'automation' ? 'Automation' : t.last_source === 'broadcast' ? 'Broadcast' : 'In app'}
                       {t.status === 'away' && t.last_seen ? (
-                        <span className="chip chip-ink" style={{ height: 18, fontSize: 10.5, padding: '0 7px' }}>{lastCame(t.last_seen, new Date(now))}</span>
+                        <span className={`chip chip-ink ${s.mini18}`}>{lastCame(t.last_seen, new Date(now))}</span>
                       ) : t.status && t.status !== 'away' ? (
-                        <span className={`chip ${STATUS_CHIP[t.status][0]}`} style={{ height: 18, fontSize: 10.5, padding: '0 7px' }}>{STATUS_CHIP[t.status][1]}</span>
+                        <span className={`chip ${STATUS_CHIP[t.status][0]} ${s.mini18}`}>{STATUS_CHIP[t.status][1]}</span>
                       ) : null}
                     </span>
                   </span>
@@ -159,7 +168,16 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
                 </Link>
               </li>
             ))}
-            {shown.length === 0 && <li className="small muted" style={{ padding: 16 }}>{threads.length === 0 ? 'No conversations yet. Start one above, or send a broadcast.' : 'Nothing matches.'}</li>}
+            {shown.length === 0 && (
+              <li>
+                <EmptyState
+                  compact
+                  icon={threads.length === 0 ? 'message' : 'search'}
+                  title={threads.length === 0 ? 'No conversations yet' : 'Nothing matches'}
+                  hint={threads.length === 0 ? 'Start one above, or send a broadcast.' : undefined}
+                />
+              </li>
+            )}
           </ul>
         </div>
 
@@ -168,8 +186,8 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
             <>
               <div className={s.convoHead}>
                 <div className={s.convoWho}>
-                  <Link href={qs({ v: null })} className="btn btn-quiet btn-sm" aria-label="Back to all conversations" style={{ paddingInline: 8 }}>
-                    ←
+                  <Link href={qs({ v: null })} className={`btn btn-quiet btn-sm ${s.back}`} aria-label="Back to all conversations">
+                    <Icon name="chevron-left" size={18} />
                   </Link>
                   <span className="avatar">{initials(named.name)}</span>
                   <div style={{ minWidth: 0 }}>
@@ -199,9 +217,12 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
               <div className={s.stream} id="stream" aria-live="polite">
                 {messages.length === 0 && (
                   <div className={s.empty}>
-                    <EmptyState compact illo="envelope" title={openIsMinor ? `No announcements to ${named.name.split(' ')[0]} yet.` : `No messages with ${named.name.split(' ')[0]} yet.`}>
-                      {openIsMinor ? 'Broadcasts and automatic notices reach them here.' : 'Say hello below.'}
-                    </EmptyState>
+                    <EmptyState
+                      compact
+                      icon="message"
+                      title={openIsMinor ? `No announcements to ${named.name.split(' ')[0]} yet` : `No messages with ${named.name.split(' ')[0]} yet`}
+                      hint={openIsMinor ? 'Broadcasts and automatic notices reach them here.' : 'Say hello below.'}
+                    />
                   </div>
                 )}
                 {messages.map((m, i) => {
@@ -241,15 +262,13 @@ export default async function InboxPage({ searchParams }: PageProps<'/org/messag
             </>
           ) : (
             <div className={s.empty} style={{ gridRow: '1 / -1' }}>
-              <EmptyState compact illo="envelope" title="Pick a conversation">
-                Replies from volunteers land here. Threads that need an answer are under “Needs reply”.
-              </EmptyState>
+              <EmptyState compact icon="inbox" title="Pick a conversation" hint="Threads that need an answer are under “Needs reply”." />
             </div>
           )}
         </section>
       </div>
       <LiveInbox openId={openId} lastUnreadId={messages.findLast((m) => m.direction === 'in' && !m.read_at)?.id ?? null} streamId="stream" />
-    </div>
+    </Stagger>
   );
 }
 

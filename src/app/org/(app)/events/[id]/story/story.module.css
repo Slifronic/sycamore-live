@@ -4,8 +4,8 @@
 /* Step 1 */
 .recorder { display: grid; gap: 12px; padding: 16px; border-radius: 12px; background: var(--primary-soft); }
 .recRow { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.stop { background: var(--red); border-color: var(--red); color: #fff; }
-.recDot { width: 10px; height: 10px; border-radius: 50%; background: #fff; animation: pulse 1.2s ease-in-out infinite; }
+.stop { background: var(--red); border-color: var(--red); color: var(--paper); }
+.recDot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; animation: pulse 1.2s ease-in-out infinite; }
 .audio { height: 36px; max-width: 100%; }
 .note { display: grid; gap: 8px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--paper); }
 .noteText { margin: 0; white-space: pre-wrap; line-height: 1.55; }
@@ -17,7 +17,8 @@
 }
 .drop:hover { border-color: var(--sap); }
 .drop:focus-within { outline: 3px solid var(--sap); outline-offset: 2px; }
-.dropIcon { font-size: 28px; }
+.dropIcon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--paper); color: var(--canopy); box-shadow: var(--shadow); }
+.micDot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 3px color-mix(in srgb, var(--red) 25%, transparent); }
 .upload { display: grid; gap: 6px; padding: 10px 14px; border-radius: 10px; background: var(--parchment); }
 .clipGrid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 .clip { display: grid; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--paper); align-content: start; }
@@ -29,7 +30,7 @@
 .consent input { margin-top: 2px; width: 18px; height: 18px; flex: none; accent-color: var(--primary); }
 
 /* Step 3 */
-.facts { padding: 14px 16px; border-radius: 12px; background: var(--verified-soft); color: #145230; display: grid; gap: 6px; }
+.facts { padding: 14px 16px; border-radius: 12px; background: var(--verified-soft); color: var(--verified); display: grid; gap: 6px; }
 .facts p { margin: 0; }
 .factList { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; margin: 0; padding: 0; }
 .flagList { margin: 6px 0 0; padding-left: 18px; }

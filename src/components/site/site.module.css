@@ -1,141 +1,132 @@
-/* Shared layout for the marketing site. Tokens come from globals.css. */
+/* Shared layout for the marketing site. Every colour is a token from
+   globals.css, so each piece works in the light and the dark theme. */
 
 .shell { min-height: 100dvh; display: flex; flex-direction: column; overflow-x: clip; }
 .main { flex: 1; display: block; }
 .main:focus { outline: none; }
 
 .wrap { width: min(100% - 32px, 1240px); margin-inline: auto; }
-.narrow { width: min(100% - 32px, 880px); margin-inline: auto; }
+.narrow { width: min(100% - 32px, 760px); margin-inline: auto; }
 
-.section { padding-block: clamp(72px, 10vw, 136px); }
-.sectionTight { padding-block: clamp(48px, 7vw, 88px); }
+/* ── Section rhythm: eyebrow, title, one-line lede, content ─ */
+.section { padding-block: clamp(64px, 8vw, 112px); }
+.section + .section { padding-top: 0; }
+.well { background: var(--surface-2); }
+.section.well + .section { padding-top: clamp(64px, 8vw, 112px); }
+
+.head { display: grid; gap: 14px; margin-bottom: clamp(32px, 4vw, 52px); max-width: 760px; }
+.headRow { max-width: none; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 14px 40px; }
+.headText { display: grid; gap: 14px; justify-items: start; }
 
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--primary);
 }
-.eyebrow::before { content: ''; width: 18px; height: 1.5px; background: currentColor; opacity: 0.6; }
 
 .h2 {
-  font-size: clamp(32px, 4.4vw, 58px);
-  line-height: 1.04;
+  font-size: clamp(30px, 3.6vw, 46px);
+  line-height: 1.06;
   letter-spacing: -0.03em;
   font-weight: 500;
-  max-width: 18ch;
+  max-width: 22ch;
   text-wrap: balance;
 }
 .h3 {
-  font-family: var(--font-display), Georgia, serif;
-  font-size: clamp(21px, 2vw, 26px);
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  font-weight: 600;
-  color: var(--canopy);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  color: var(--ink);
 }
-.lede { font-size: clamp(17px, 1.5vw, 19px); line-height: 1.6; color: var(--ink-2); max-width: 58ch; text-wrap: pretty; }
-.body { font-size: 16px; line-height: 1.65; color: var(--ink-2); text-wrap: pretty; }
+.lede { font-size: clamp(16px, 1.4vw, 18px); line-height: 1.55; color: var(--ink-2); max-width: 60ch; text-wrap: pretty; }
+.body { font-size: 15px; line-height: 1.6; color: var(--ink-2); text-wrap: pretty; }
 
-.head { display: grid; gap: 18px; margin-bottom: clamp(36px, 5vw, 64px); }
-.headSplit { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px 64px; align-items: end; }
-
-.ctas { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.ctas { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .textLink {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-height: 44px;
   font-weight: 700;
+  font-size: 15px;
   color: var(--primary);
   text-decoration: none;
-  background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(100% - 10px) / 0% 1.5px;
-  transition: background-size 0.35s var(--out);
 }
-.textLink:hover { background-size: 100% 1.5px; }
-.textLink span { transition: transform 0.25s var(--out); }
-.textLink:hover span { transform: translateX(3px); }
-
-/* Buttons on a dark band: white, never the decorative colour. */
-.btnLight { background: #fff; border-color: #fff; color: var(--ink); }
-.btnLight:hover { background: #f1f4ef; }
-.btnGhostLight { background: transparent; border-color: rgba(255, 255, 255, 0.32); color: #fff; }
-.btnGhostLight:hover { background: rgba(255, 255, 255, 0.08); }
+.textLink:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+.textLink svg { transition: transform var(--dur-2) var(--ease-out); }
+.textLink:hover svg { transform: translateX(3px); }
 
 /* ── Sub-page hero ───────────────────────────────────────── */
-.pageHero { padding: clamp(56px, 8vw, 112px) 0 clamp(40px, 6vw, 80px); position: relative; }
-.pageHeroGrid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 40px 72px; align-items: center; }
-.pageHeroText { display: grid; gap: 22px; align-content: start; }
+.pageHero { padding: clamp(48px, 7vw, 96px) 0 clamp(48px, 6vw, 80px); }
+.pageHeroGrid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 40px 64px; align-items: center; }
+.pageHeroText { display: grid; gap: 20px; align-content: start; justify-items: start; }
 .pageTitle {
-  font-size: clamp(42px, 6vw, 84px);
-  line-height: 0.98;
-  letter-spacing: -0.04em;
+  font-size: clamp(40px, 5.4vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.035em;
   font-weight: 500;
   text-wrap: balance;
+  max-width: 15ch;
 }
 .pageTitle em { font-style: normal; color: var(--primary); }
-.pageHeroArt { position: relative; }
+.pageHeroArt { position: relative; min-width: 0; }
 
-/* Masked line rise (hero-entrance.md), shared by every page title. */
-.ln { display: block; overflow: hidden; padding: 0 0.12em 0.1em 0; margin-bottom: -0.1em; }
-.ln > span { display: inline-block; animation: rise 1s cubic-bezier(0.2, 0.75, 0.15, 1) both; animation-delay: calc(var(--i, 0) * 0.12s); }
-.fade { animation: fadeUp 0.8s var(--d, 0s) cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-@keyframes rise { from { transform: translateY(108%) rotate(2deg); } }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } }
+/* Masked line rise (hero-entrance.md). The first frame already shows each line
+   most of the way up inside its mask, so nothing is blank at first paint, and
+   the whole entrance is over in about 0.7s. CSS only, so a slow script can't
+   hold it back; reduced motion skips it. */
+.ln { display: block; overflow: hidden; padding: 0 0.12em 0.12em 0; margin-bottom: -0.12em; }
+.ln > span { display: inline-block; }
+@media (prefers-reduced-motion: no-preference) {
+  .ln > span { animation: rise 0.62s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms); }
+}
+@keyframes rise { from { transform: translateY(42%); opacity: 0.3; } }
 
-/* ── CTA band (call-to-action/one, on the canopy band) ───── */
-.cta { padding: clamp(24px, 4vw, 48px) 0 clamp(72px, 9vw, 120px); }
+/* ── CTA band: a dark contrast panel in both themes ──────── */
+.cta { padding: 0 0 clamp(64px, 8vw, 104px); }
 .ctaCard {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  border-radius: 32px;
-  background: var(--band);
-  color: #fff;
-  padding: clamp(44px, 7vw, 96px) clamp(24px, 6vw, 88px);
+  border-radius: 24px;
+  background: var(--ink-panel);
+  color: var(--on-ink-panel);
+  padding: clamp(40px, 6vw, 72px) clamp(24px, 5vw, 64px);
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 32px 56px;
+  grid-template-columns: minmax(0, 1.3fr) auto;
+  gap: 28px 48px;
   align-items: end;
+  box-shadow: var(--shadow);
 }
 .ctaCard::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(60% 90% at 100% 0%, rgba(111, 191, 144, 0.28), transparent 60%),
-    radial-gradient(40% 60% at 0% 100%, rgba(217, 169, 60, 0.12), transparent 70%);
+  background: radial-gradient(70% 120% at 100% 0%, rgba(111, 191, 144, 0.2), transparent 60%);
 }
-.ctaCard::after {
-  content: '';
-  position: absolute;
-  right: -60px;
-  bottom: -90px;
-  width: 340px;
-  aspect-ratio: 1;
-  z-index: -1;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 40px rgba(255, 255, 255, 0.02), 0 0 0 80px rgba(255, 255, 255, 0.015);
-}
-.ctaTitle { color: #fff; font-size: clamp(34px, 4.6vw, 60px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 500; text-wrap: balance; }
-.ctaText { color: rgba(255, 255, 255, 0.78); font-size: 17px; line-height: 1.6; margin-top: 18px; max-width: 46ch; }
+.ctaTitle { color: var(--on-ink-panel); font-size: clamp(30px, 3.8vw, 48px); line-height: 1.04; letter-spacing: -0.03em; font-weight: 500; text-wrap: balance; max-width: 18ch; }
+.ctaText { color: color-mix(in srgb, var(--on-ink-panel) 76%, transparent); font-size: 16px; line-height: 1.55; margin-top: 14px; max-width: 48ch; }
 .ctaActions { display: grid; gap: 12px; justify-items: start; }
-.ctaActions .ctas { justify-content: flex-start; }
-.ctaNote { font-size: 13px; color: rgba(255, 255, 255, 0.62); }
+.ctaNote { font-size: 13px; color: color-mix(in srgb, var(--on-ink-panel) 66%, transparent); }
+
+/* Buttons on the dark panel. The panel is dark in both themes, so these are
+   fixed light-on-dark values rather than theme tokens. */
+.btnLight { background: #f4f6f2; border-color: #f4f6f2; color: #0f261b; }
+.btnLight:hover { background: #ffffff; border-color: #ffffff; }
+.btnGhostLight { background: transparent; border-color: rgba(255, 255, 255, 0.28); color: #f4f6f2; }
+.btnGhostLight:hover { background: rgba(255, 255, 255, 0.08); }
+.btnLight:focus-visible, .btnGhostLight:focus-visible { outline-color: #6fcf97; }
 
 /* ── Cards ───────────────────────────────────────────────── */
-.paper {
-  position: relative;
-  background: var(--paper);
-  border-radius: 22px;
-  box-shadow: var(--shadow);
-}
+.paper { position: relative; background: var(--paper); border-radius: 16px; box-shadow: var(--shadow); }
 .spot { isolation: isolate; overflow: hidden; }
 .spot::before {
   content: '';
@@ -143,40 +134,42 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(360px 260px at var(--mx, -999px) var(--my, -999px), rgba(44, 138, 87, 0.09), transparent 70%);
+  background: radial-gradient(320px 240px at var(--mx, -999px) var(--my, -999px), color-mix(in srgb, var(--sap) 11%, transparent), transparent 70%);
 }
-.lifted { transition: transform 0.35s var(--out), box-shadow 0.35s var(--out); }
-.lifted:hover { transform: translateY(-4px); box-shadow: var(--shadow-hi); }
 
-.illo { display: block; position: relative; width: 112px; aspect-ratio: 1; border-radius: 26px; overflow: hidden; background: #efeee6; flex: none; }
-.illo img { object-fit: contain; }
-
-.check {
+.icon {
   flex: none;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: inline-grid;
   place-items: center;
-  background: var(--verified-soft);
-  color: var(--verified);
-  font-size: 13px;
-  font-weight: 800;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
-.dash { background: #ecebe5; color: var(--ink-2); }
 
-.numberList { list-style: none; margin: 0; padding: 0; counter-reset: n; display: grid; }
+/* A plain list of short facts with a check icon. */
+.facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.facts li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+.facts li > svg { color: var(--sap); margin-top: 2px; }
+.facts b, .facts strong { color: var(--ink); font-weight: 650; }
 
 @media (max-width: 960px) {
-  .headSplit, .pageHeroGrid, .ctaCard { grid-template-columns: minmax(0, 1fr); }
+  .pageHeroGrid, .ctaCard { grid-template-columns: minmax(0, 1fr); }
+  .headRow { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
   .ctas > a { flex: 1 1 auto; }
-  .ctaCard { border-radius: 24px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ln > span, .fade { animation: none; }
+  .ctaCard { border-radius: 20px; }
+  .ctaActions { justify-items: stretch; }
+  .ctaActions .ctas { display: grid; }
 }
 
 /* The global skip link, made a full 44px target on the marketing pages. */
 .shell :global(.skip) { min-height: 44px; display: inline-flex; align-items: center; }
+
+.illo { display: block; position: relative; aspect-ratio: 1; border-radius: 20px; overflow: hidden; background: #efeee6; flex: none; }
+.illo img { object-fit: contain; }
+
+/* The first section after a sub-page hero doesn't need a full gap above it. */
+.pageHero + .section:not(.well) { padding-top: clamp(16px, 3vw, 32px); }

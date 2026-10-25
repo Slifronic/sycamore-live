@@ -1,9 +1,11 @@
 import { requireOrg } from '@/lib/session';
-import { listAutomations, unreadCount } from '@/lib/messages';
-import { orgChatUnread } from '@/lib/event-chat';
+import { listAutomations } from '@/lib/messages';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
-import { MessagesTabs } from '../MessagesTabs';
+import { Help } from '../Help';
+import { Stagger } from '@/components/motion/Stagger';
+import { Icon } from '@/components/shell/icons';
+import { Chip } from '@/components/ui/Chip';
 import { AutomationForm } from './AutomationForm';
 import s from '../messages.module.css';
 
@@ -11,20 +13,24 @@ export const metadata = { title: 'Automatic messages' };
 
 export default async function AutomationsPage() {
   const org = await requireOrg();
-  const [rules, unread, chatUnread] = await Promise.all([listAutomations(org), unreadCount(org.id), orgChatUnread(org.id)]);
+  const rules = await listAutomations(org);
   const on = rules.filter((r) => r.enabled).length;
 
   return (
-    <div className="page" style={{ gap: 20 }}>
+    <Stagger className="page" style={{ gap: 20 }}>
       <PageHeader
-        eyebrow={`People · ${on} of ${rules.length} automations on`}
+        eyebrow={`${on} of ${rules.length} on`}
         title="Automations"
-        lede="Messages that send themselves when something happens at your events. Each person gets each one once, and every number in it comes from your verified records."
-        action={<MessagesTabs on="automations" unread={unread} chatUnread={chatUnread} />}
+        lede="Messages that send themselves when something happens at your events."
+        controls={
+          <Help label="How automations run" placement="bottom-end">
+            <p>
+              <strong>Each person gets each message once,</strong> and every number in it comes from your verified records.
+            </p>
+            <p>For the demo they run when you press “Run now”. Deployed, they run every 15 minutes. “Due” is who would get one right now.</p>
+          </Help>
+        }
       />
-      <p className="notice notice-amber small">
-        For the demo these run when you press “Run now”. Deployed, they run every 15 minutes. “Due” is who would get a message right now.
-      </p>
       <div className={s.autoGrid}>
         {rules.map((r) => (
           <article key={r.key} className={`card ${s.autoCard}`} aria-labelledby={`auto-${r.key}`}>
@@ -33,7 +39,9 @@ export default async function AutomationsPage() {
                 <h2 id={`auto-${r.key}`} style={{ fontSize: 18 }}>
                   {r.name}
                 </h2>
-                <span className={`chip ${r.enabled ? 'chip-green' : 'chip-ink'}`}>{r.enabled ? 'Running' : 'Off'}</span>
+                <Chip tone={r.enabled ? 'green' : 'ink'} icon={r.enabled ? 'check' : undefined}>
+                  {r.enabled ? 'Running' : 'Off'}
+                </Chip>
               </div>
               <div className={s.stats}>
                 <span className={s.stat}>
@@ -60,7 +68,7 @@ export default async function AutomationsPage() {
             <div className={s.flow} aria-label={`How “${r.name}” works`}>
               <div className={`${s.step} ${s.stepTrigger}`}>
                 <span className={s.stepIcon} aria-hidden>
-                  ⚑
+                  <Icon name="live" size={16} />
                 </span>
                 <div>
                   <div className={s.stepKind}>Trigger</div>
@@ -70,7 +78,7 @@ export default async function AutomationsPage() {
               <span className={s.link} aria-hidden />
               <div className={s.step}>
                 <span className={s.stepIcon} aria-hidden>
-                  ◷
+                  <Icon name="hourglass" size={16} />
                 </span>
                 <div>
                   <div className={s.stepKind}>Step 1 · Wait</div>
@@ -80,7 +88,7 @@ export default async function AutomationsPage() {
               <span className={s.link} aria-hidden />
               <div className={s.step}>
                 <span className={s.stepIcon} aria-hidden>
-                  ➤
+                  <Icon name="message" size={16} />
                 </span>
                 <div>
                   <div className={s.stepKind}>Step 2 · Send in-app message</div>
@@ -92,7 +100,7 @@ export default async function AutomationsPage() {
               <span className={s.link} aria-hidden />
               <div className={s.step}>
                 <span className={s.stepIcon} aria-hidden>
-                  ⑂
+                  <Icon name="route" size={16} />
                 </span>
                 <div>
                   <div className={s.stepKind}>Step 3 · Then</div>
@@ -100,12 +108,14 @@ export default async function AutomationsPage() {
                 </div>
               </div>
               <span className={s.link} aria-hidden />
-              <span className={s.endPill}>✓ End of flow</span>
+              <span className={s.endPill}>
+                <Icon name="check" size={14} strokeWidth={2} /> End of flow
+              </span>
             </div>
           </article>
         ))}
       </div>
-    </div>
+    </Stagger>
   );
 }
 

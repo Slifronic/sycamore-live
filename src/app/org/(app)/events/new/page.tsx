@@ -27,7 +27,7 @@ export default async function NewEventPage({ searchParams }: PageProps<'/org/eve
       <PageHeader
         eyebrow="Run events"
         title="New event"
-        lede="Bring it in from a calendar invite, a link, a message or a flyer, or just type it. Keep using your usual sign-up tool for who’s coming."
+        lede="Paste an invite, a link or a flyer, or just type it."
       />
       <EventForm
         mode="new"

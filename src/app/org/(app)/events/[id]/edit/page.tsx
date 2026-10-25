@@ -27,7 +27,7 @@ export default async function EditEventPage({ params }: PageProps<'/org/events/[
 
   return (
     <div className="page" style={{ gap: 20 }}>
-      <PageHeader eyebrow={<Link href={`/org/events/${id}`}>{event.title}</Link>} title="Edit details" lede="Changes show on the shared event page and in everyone’s calendar on its next refresh." />
+      <PageHeader eyebrow={<Link href={`/org/events/${id}`}>{event.title}</Link>} title="Edit details" lede="Changes reach the shared page and calendars on their next refresh." />
       <EventForm
         mode="edit"
         action={updateEventFull.bind(null, id)}

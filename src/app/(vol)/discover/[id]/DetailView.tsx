@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Icon } from '@/components/shell/icons';
 import { evaluate } from '@/lib/discover/match';
 import { useDiscover } from '../DiscoverState';
 import { FitBreakdown, FitDonut, SaveButton, briefReasons, dateLine, listingCover, statusLabel } from '../parts';
@@ -18,7 +19,7 @@ export function DetailView({ eventId }: { eventId: string }) {
     return (
       <div className={s.page}>
         <Link href="/discover" className={s.textlink}>
-          ← All events
+          <Icon name="chevron-left" size={16} /> All events
         </Link>
         <div className="card">
           <EmptyState
@@ -42,8 +43,31 @@ export function DetailView({ eventId }: { eventId: string }) {
   return (
     <div className={s.page}>
       <Link href="/discover" className={s.textlink}>
-        ← All events
+        <Icon name="chevron-left" size={16} /> All events
       </Link>
+
+      <section className="stack" style={{ gap: 10 }}>
+        <Cover cover={listingCover(l)} variant="hero" priority>
+          <span className={s.heroEyebrow}>Upcoming event · {l.kind}</span>
+          <h1 className={s.heroTitle}>
+            {l.title}
+          </h1>
+          <p className={s.heroSub}>
+            {dateLine(l)}
+            {l.place ? ` · ${l.place}` : ''}
+          </p>
+        </Cover>
+        <div className="row wrap" style={{ gap: 6 }}>
+          {l.cause && <span className={s.cause}>{l.cause}</span>}
+          <span className="chip chip-ink">In person</span>
+          <span className="chip chip-ink">One event</span>
+          <span className="chip chip-ink">{l.day}</span>
+          <span className="chip chip-ink">{l.level}</span>
+        </div>
+        <div className={s.mobileSave}>
+          <SaveButton id={l.id} title={l.title} wide />
+        </div>
+      </section>
 
       <section className={s.orgBanner} aria-label="The organization">
         <div className="stack" style={{ gap: 4 }}>
@@ -60,28 +84,6 @@ export function DetailView({ eventId }: { eventId: string }) {
         </div>
       </section>
 
-      <section className="stack" style={{ gap: 10 }}>
-        <Cover cover={listingCover(l)} variant="hero" priority className="settle">
-          <span className={`${s.heroEyebrow} rise`}>Upcoming event · {l.kind}</span>
-          <h1 className={`${s.heroTitle} rise`} style={{ ['--d' as string]: '0.08s' }}>
-            {l.title}
-          </h1>
-          <p className={`${s.heroSub} rise`} style={{ ['--d' as string]: '0.16s' }}>
-            {dateLine(l)}
-            {l.place ? ` · ${l.place}` : ''}
-          </p>
-        </Cover>
-        <div className="row wrap" style={{ gap: 6 }}>
-          {l.cause && <span className={s.cause}>{l.cause}</span>}
-          <span className="chip chip-ink">In person</span>
-          <span className="chip chip-ink">One event</span>
-          <span className="chip chip-ink">{l.day}</span>
-          <span className="chip chip-ink">{l.level}</span>
-        </div>
-        <div className={s.mobileSave}>
-          <SaveButton id={l.id} title={l.title} wide />
-        </div>
-      </section>
 
       <div className={s.detail}>
         <section className="card card-pad stack">
@@ -123,8 +125,7 @@ export function DetailView({ eventId }: { eventId: string }) {
           <div className={s.join}>
             <h3>How to join</h3>
             <p className="small">
-              There’s nothing to sign up for here. Open the event page for the map, directions and add-to-calendar. On the day, check in at the sign-in table: scan the QR code or type the 6-character code the coordinator
-              shows, and check out when you leave. {l.org} confirms everyone’s hours after the event.
+              No sign-up. On the day, scan the QR at the sign-in table and check out when you leave. {l.org} confirms your hours.
             </p>
             <div className="row wrap" style={{ gap: 8 }}>
               <a className="btn btn-primary" href={`/e/${l.slug}`} target="_blank" rel="noopener">

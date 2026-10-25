@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Icon } from '@/components/shell/icons';
 import { LoginForm } from './LoginForm';
 import { AuthArt } from '../AuthArt';
 import s from '../auth.module.css';
@@ -14,7 +15,7 @@ export default function LoginPage() {
         <AuthArt line="Your events, your roster, your verified hours." />
         <div className={`${s.box} rise`}>
           <Link href="/" className={s.back}>
-            ← SycaMore Live
+            <Icon name="chevron-left" size={16} /> SycaMore Live
           </Link>
           <h1>Coordinator sign in</h1>
           <p className="muted">Enter your organization’s 6-digit PIN.</p>

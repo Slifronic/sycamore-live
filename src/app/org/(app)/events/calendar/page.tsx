@@ -8,8 +8,11 @@ import { utcToPacific, zonedToUtc } from '@/lib/tz';
 import { fmtTime, requestNow } from '@/lib/format';
 import type { EventRow } from '@/lib/types';
 import { PageHeader } from '@/components/PageHeader';
-import { Segmented } from '@/components/Segmented';
-import { CopyField } from '@/components/events/CopyField';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Icon } from '@/components/shell/icons';
+import { Stagger } from '@/components/motion/Stagger';
+import { TagMenu } from '../TagMenu';
+import { Subscribe } from './Subscribe';
 import s from './calendar.module.css';
 
 export const metadata = { title: 'Calendar' };
@@ -74,7 +77,7 @@ export default async function CalendarPage({ searchParams }: PageProps<'/org/eve
         <span className={s.evTitle}>{e.title}</span>
         {e.attested_at && (
           <span className={s.evDone}>
-            <span aria-hidden>✓</span>
+            <Icon name="check" size={12} strokeWidth={2.5} />
             <span className="sr-only">Verified</span>
           </span>
         )}
@@ -83,41 +86,41 @@ export default async function CalendarPage({ searchParams }: PageProps<'/org/eve
   };
 
   return (
-    <div className="page" style={{ gap: 20 }}>
+    <Stagger className="page">
       <PageHeader
-        eyebrow={<Link href={`/org/events${tag ? `?tag=${encodeURIComponent(tag)}` : ''}`}>Events</Link>}
+        eyebrow="Run events"
         title="Calendar"
-        lede="Everything you’re running, by month. Subscribe once and it stays in sync with your own calendar."
+        controls={
+          <div className={s.monthNav}>
+            <Link className={s.navBtn} href={href(shift(-1), tag)} aria-label="Previous month">
+              <Icon name="chevron-left" size={16} />
+            </Link>
+            <span className={s.month}>{title}</span>
+            <Link className={s.navBtn} href={href(shift(1), tag)} aria-label="Next month">
+              <Icon name="chevron-right" size={16} />
+            </Link>
+            {month !== today.slice(0, 7) && (
+              <Link className="btn btn-sm btn-quiet" href={href(null, tag)}>
+                Today
+              </Link>
+            )}
+          </div>
+        }
         action={
-          <Link className="btn btn-primary btn-big" href="/org/events/new">
-            + New event
-          </Link>
+          <>
+            {tags.some((t) => t.uses > 0) && (
+              <TagMenu
+                current={tag}
+                items={[
+                  { label: 'All tags', href: href(month, null), count: 0, color: '', on: !tag },
+                  ...tags.filter((t) => t.uses > 0).map((t) => ({ label: t.name, href: href(month, t.name), count: t.uses, color: t.color, on: t.name.toLowerCase() === tag?.toLowerCase() })),
+                ]}
+              />
+            )}
+            <Subscribe feeds={feeds} tag={tag} />
+          </>
         }
       />
-
-      <div className="row between wrap">
-        <div className="row" style={{ gap: 6 }}>
-          <Link className="btn btn-sm" href={href(shift(-1), tag)} aria-label="Previous month">
-            ←
-          </Link>
-          <h2 style={{ minWidth: 170, textAlign: 'center' }}>{title}</h2>
-          <Link className="btn btn-sm" href={href(shift(1), tag)} aria-label="Next month">
-            →
-          </Link>
-          {month !== today.slice(0, 7) && (
-            <Link className="btn btn-sm btn-quiet" href={href(null, tag)}>
-              Today
-            </Link>
-          )}
-        </div>
-        {tags.length > 0 && (
-          <Segmented
-            id="cal-tags"
-            label="Show one tag"
-            items={[{ href: href(month, null), label: 'All', on: !tag }, ...tags.filter((t) => t.uses > 0).map((t) => ({ href: href(month, t.name), label: t.name, on: t.name.toLowerCase() === tag?.toLowerCase() }))]}
-          />
-        )}
-      </div>
 
       <div className={`card ${s.grid}`} role="grid" aria-label={title}>
         {WEEKDAYS.map((w) => (
@@ -134,22 +137,22 @@ export default async function CalendarPage({ searchParams }: PageProps<'/org/eve
                 <span className={s.num}>{Number(d.slice(8))}</span>
                 {!out && d >= today && (
                   <Link className={s.add} href={`/org/events/new?date=${d}`} aria-label={`New event on ${d}`}>
-                    +
+                    <Icon name="plus" size={14} />
                   </Link>
                 )}
               </div>
               <div className={s.evs}>
                 {list.slice(0, 3).map(chip)}
-                {list.length > 3 && <span className="small muted">+{list.length - 3} more</span>}
+                {list.length > 3 && <span className={s.more}>+{list.length - 3} more</span>}
               </div>
             </div>
           );
         })}
       </div>
 
-      <div className={s.agenda}>
+      <div className={`card ${s.agenda}`}>
         {agenda.length === 0 ? (
-          <p className="muted">No events in {title}.</p>
+          <EmptyState compact icon="calendar" title={`No events in ${title}`} action={<Link className="btn btn-sm" href="/org/events/new">New event</Link>} />
         ) : (
           agenda.map((d) => (
             <div key={d} className={s.agendaDay}>
@@ -159,30 +162,7 @@ export default async function CalendarPage({ searchParams }: PageProps<'/org/eve
           ))
         )}
       </div>
-
-      <section className="card card-pad stack" aria-labelledby="sub">
-        <div>
-          <h2 id="sub" style={{ fontSize: 18 }}>
-            Subscribe{tag ? ` to “${tag}” events` : ''}
-          </h2>
-          <p className="small muted">
-            Adds {tag ? `every event tagged ${tag}` : 'all your events'} to your calendar app and keeps it updated (new events, changed times and places). Share it with volunteers or co-leads who want everything in their own calendar. Practice events never appear.
-          </p>
-        </div>
-        <div className="row wrap" style={{ gap: 8 }}>
-          <a className="btn" href={feeds.google} target="_blank" rel="noopener">
-            Google Calendar
-          </a>
-          <a className="btn" href={feeds.webcal}>
-            Apple Calendar
-          </a>
-          <a className="btn" href={feeds.outlook} target="_blank" rel="noopener">
-            Outlook
-          </a>
-        </div>
-        <CopyField label="Calendar address (for any other app)" value={feeds.https} />
-      </section>
-    </div>
+    </Stagger>
   );
 }
 

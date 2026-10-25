@@ -19,7 +19,7 @@ export function CopyField({ label, value }: { label: string; value: string }) {
             setTimeout(() => setDone(false), 2000);
           }}
         >
-          {done ? '✓ Copied' : 'Copy'}
+          {done ? 'Copied' : 'Copy'}
         </button>
       </div>
     </div>

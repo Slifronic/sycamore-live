@@ -1,216 +1,180 @@
 import Link from 'next/link';
-import { activeSession, pendingAttendance, requireVolunteer, volunteerRecords } from '@/lib/vol-data';
-import { volunteerThreads } from '@/lib/messages';
+import { activeSession, pendingAttendance, requireVolunteer, volunteerRecords, type VolRecord } from '@/lib/vol-data';
 import { sql } from '@/lib/db';
-import { volunteerChats } from '@/lib/event-chat';
 import { fmtHours } from '@/lib/hours';
-import { fmtDay, fmtTime, plural } from '@/lib/format';
+import { fmtTime, plural, requestNow } from '@/lib/format';
 import { ROLE_LABEL } from '@/lib/types';
-import { PageHeader } from '@/components/PageHeader';
-import { GoalCard } from './GoalCard';
 import { CountUp } from '@/components/motion/CountUp';
-import { Cover } from '@/components/media/Cover';
-import { EmptyState } from '@/components/media/EmptyState';
-import { coverFor } from '@/lib/covers';
-import { volSignOut } from '../actions';
-import s from '../pages.module.css';
+import { Stagger } from '@/components/motion/Stagger';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Icon } from '@/components/shell/icons';
+import { OrgFolders, type Folder } from '@/components/vol/OrgFolders';
+import { orgColor, orgInitials } from '@/components/vol/org-color';
+import { ActiveCard } from './ActiveCard';
+import { GoalCard } from './GoalCard';
+import s from './home.module.css';
 
-export const metadata = { title: 'My hours' };
+export const metadata = { title: 'Home' };
 
-// Contract: "My hours". The active session on top, then what's attested
-// (totals, the personal goal, one card per record) and what's still waiting
-// for the organization, shown with no hour number because nothing is official
-// until it's attested. Only this volunteer's rows, never practice events.
+// The volunteer's home. One big number (hours the organizations have
+// verified), then what's live (checked in now, waiting to be confirmed, the
+// next saved event), then each organization as a folder of its records.
+// Pending check-ins never show an hour number: nothing is official until the
+// organization attests it. Practice events never appear.
 
-const month = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'short' }).toUpperCase();
-const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', day: 'numeric' });
+const TZ = 'America/Los_Angeles';
+const part = (iso: string | Date, o: Intl.DateTimeFormatOptions) => new Date(iso).toLocaleDateString('en-US', { timeZone: TZ, ...o });
+const ym = (iso: string | number) => new Date(iso).toLocaleDateString('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit' });
+const decimals = (n: number) => (Number.isInteger(n) ? 0 : Number.isInteger(n * 10) ? 1 : 2);
 
-export default async function MyHours() {
+function folders(records: VolRecord[]): Folder[] {
+  const by = new Map<string, VolRecord[]>();
+  for (const r of records) by.set(r.org_id, [...(by.get(r.org_id) ?? []), r]);
+  return [...by.entries()]
+    .map(([orgId, rs]) => {
+      const hours = rs.filter((r) => r.status === 'active').reduce((n, r) => n + r.hours_total, 0);
+      const first = rs.at(-1)!; // records come newest first
+      const folder: Folder = {
+        orgId,
+        name: rs[0]!.org.name,
+        initials: orgInitials(rs[0]!.org.name),
+        color: orgColor(orgId),
+        hours: fmtHours(hours),
+        hoursLabel: `${fmtHours(hours)} verified ${hours === 1 ? 'hour' : 'hours'}`,
+        count: rs.length,
+        since: `since ${part(first.starts_at, { month: 'short', year: 'numeric' })}`,
+        records: rs.map((r) => ({
+          id: r.id,
+          title: r.event.title,
+          month: part(r.starts_at, { month: 'short' }).toUpperCase(),
+          day: part(r.starts_at, { day: 'numeric' }),
+          when: part(r.starts_at, { month: 'short', day: 'numeric', year: 'numeric' }),
+          role: ROLE_LABEL[r.role],
+          hours: fmtHours(r.hours_total),
+          revoked: r.status !== 'active',
+          shared: !!r.code,
+          adjusted: r.hours_adjusted != null,
+        })),
+      };
+      return { folder, hours };
+    })
+    .sort((a, b) => b.hours - a.hours)
+    .map((x) => x.folder);
+}
+
+type UpNext = { title: string; slug: string; starts_at: Date; ends_at: Date; place: string | null; org_name: string };
+
+export default async function Home() {
   const vol = await requireVolunteer('/me');
-  const [active, records, pending, threads, chats] = await Promise.all([
+  const [active, records, pending, upNextRows] = await Promise.all([
     activeSession(vol.id),
     volunteerRecords(vol.id),
     pendingAttendance(vol.id),
-    volunteerThreads(vol.id),
-    volunteerChats(vol.id),
+    sql`
+      select e.title, e.public_slug as slug, e.starts_at, e.ends_at, coalesce(e.place_name, e.location) as place, o.name as org_name
+      from saved_event s join event e on e.id = s.event_id join org o on o.id = e.org_id
+      where s.volunteer_id = ${vol.id} and e.ends_at > now() and e.attested_at is null and not e.is_practice
+      order by e.starts_at limit 1` as unknown as Promise<UpNext[]>,
   ]);
-  const signedBadges = ((await sql`select count(*)::int as n from badge_award where volunteer_id = ${vol.id}`) as unknown as { n: number }[])[0]?.n ?? 0;
-  const hours = records.reduce((n, r) => n + r.hours_total, 0);
-  const orgs = new Set(records.map((r) => r.org_id)).size;
-  const unread = threads.reduce((n, t) => n + t.unread, 0) + chats.reduce((n, c) => n + c.unread, 0);
-  const first = vol.name.split(' ')[0];
+  const upNext = upNextRows[0];
+
+  const live = records.filter((r) => r.status === 'active');
+  const hours = live.reduce((n, r) => n + r.hours_total, 0);
+  const thisMonth = ym(requestNow());
+  const monthHours = live.filter((r) => ym(r.starts_at) === thisMonth).reduce((n, r) => n + r.hours_total, 0);
+  const orgCount = new Set(records.map((r) => r.org_id)).size;
+  const pendingOrgs = [...new Set(pending.map((p) => p.org.name))];
 
   return (
-    <div className={s.page}>
-      <PageHeader
-        eyebrow="My hours"
-        title={records.length ? `Welcome back, ${first}.` : `Welcome, ${first}.`}
-        lede="Hours your organizations have confirmed. Always yours to keep."
-        action={
-          !active && (
-            <Link href="/checkin" className="btn btn-primary btn-big">
-              Check in to an event
-            </Link>
-          )
-        }
-      />
-
-      {active && (
-        <Link href="/checkin" className={s.live}>
-          <div className="stack" style={{ gap: 6 }}>
-            <span className={s.liveTop}>
-              <span className={s.pulse} aria-hidden /> Checked in now
-            </span>
-            <span className={s.liveTitle}>{active.event.title}</span>
-            <span className="small" style={{ color: '#b8d4c2' }}>
-              {active.org.name} · since {fmtTime(active.checked_in_at)}
-            </span>
-          </div>
-          <span className={s.liveCta}>Open to check out →</span>
-        </Link>
-      )}
-
-      <section className={s.band} aria-label="Attested so far">
-        <div className={s.kpi}>
-          <span className={s.kpiLabel}>Attested hours</span>
-          <span className={s.kpiNum}>
-            <CountUp value={hours} decimals={Number.isInteger(hours) ? 0 : Number.isInteger(hours * 10) ? 1 : 2} duration={1.1} />
-          </span>
-          <span className={s.kpiSub}>Confirmed by the organization</span>
-        </div>
-        <div className={s.kpi}>
-          <span className={s.kpiLabel}>Events</span>
-          <span className={s.kpiNum}>
-            <CountUp value={records.length} delay={0.1} />
-          </span>
-          <span className={s.kpiSub}>{pending.length ? `${pending.length} more waiting to be confirmed` : 'With an attested record'}</span>
-        </div>
-        <div className={s.kpi}>
-          <span className={s.kpiLabel}>Organizations</span>
-          <span className={s.kpiNum}>
-            <CountUp value={orgs} delay={0.2} />
-          </span>
-          <span className={s.kpiSub}>That vouch for your time</span>
-        </div>
+    <Stagger className={s.page}>
+      <section className={s.hero} aria-labelledby="hero-label">
+        <p id="hero-label" className={s.heroLabel}>
+          Verified hours
+        </p>
+        <p className={s.heroNum}>
+          <CountUp value={hours} decimals={decimals(hours)} duration={1.1} />
+        </p>
+        <p className={s.heroSub}>
+          {monthHours > 0 && <span className={s.delta}>+{fmtHours(monthHours)} this month</span>}
+          <span>{records.length ? `${plural(records.length, 'record')} · ${plural(orgCount, 'organization')}` : 'Confirmed by the organizations you serve'}</span>
+        </p>
+        <GoalCard goal={vol.hours_goal} attested={hours} />
       </section>
 
-      <div className={s.cols}>
-        <div className={s.col}>
-          {pending.length > 0 && (
-            <>
-              <div className={s.sectionHead}>
-                <h2>Waiting for confirmation</h2>
-                <span className="small muted">No hours shown until it’s attested</span>
-              </div>
-              {pending.map((p) => (
-                <div key={p.id} className={s.pending}>
-                  <span className="chip chip-amber" style={{ justifySelf: 'start' }}>
-                    Pending
-                  </span>
-                  <p className={s.recordTitle}>{p.event.title}</p>
-                  <p className="small muted">
-                    {fmtDay(p.event.starts_at)}
-                    {p.checked_out_at ? ` · checked out at ${fmtTime(p.checked_out_at)}` : ''}
-                  </p>
-                  <p className="small">Waiting for {p.org.name} to confirm.</p>
-                </div>
-              ))}
-            </>
-          )}
-
-          <div className={s.sectionHead}>
-            <h2>Attested records</h2>
-            <span className="small muted">{plural(records.length, 'record')}</span>
-          </div>
-          {records.length === 0 ? (
-            <div className="card">
-              <EmptyState
-                illo="sapling"
-                title="Your record starts at your next event."
-                action={
-                  <>
-                    <Link href="/checkin" className="btn btn-primary">
-                      Check in to an event
-                    </Link>
-                    <Link href="/discover" className="btn">
-                      Find an event
-                    </Link>
-                  </>
-                }
-              >
-                Check in when you arrive and check out when you leave. Once the organization confirms the event, your record shows up here, ready to share.
-              </EmptyState>
+      {(active || pending.length > 0 || upNext) && (
+        <div className={s.now}>
+          {active && <ActiveCard id={active.id} title={active.event.title} org={active.org.name} since={active.checked_in_at} sinceLabel={fmtTime(active.checked_in_at)} />}
+          {pendingOrgs.map((org) => (
+            <div key={org} className={s.pending}>
+              <span className={s.pendingIcon} aria-hidden>
+                <Icon name="hourglass" size={20} />
+              </span>
+              <span className={s.pendingText}>
+                <b>Waiting for {org} to confirm</b>
+                <span>
+                  {pending
+                    .filter((p) => p.org.name === org)
+                    .map((p) => p.event.title)
+                    .join(', ')}
+                </span>
+              </span>
             </div>
-          ) : (
-            records.map((r, i) => (
-              <Link key={r.id} href={`/me/records/${r.id}`} className={`card fade-in ${s.record}`} style={{ ['--d' as string]: `${Math.min(i, 6) * 0.05}s` }}>
-                <span className={s.thumbWrap} aria-hidden>
-                  <Cover cover={coverFor({ title: r.event.title })} variant="thumb" className={s.thumb} sizes="64px" />
-                  <span className={s.dateTag}>
-                    {month(r.starts_at)} <b>{day(r.starts_at)}</b>
-                  </span>
+          ))}
+          {upNext && (
+            <Link href={`/discover/${upNext.slug}`} className={`${s.next} hover-lift`}>
+              <span className={s.nextDate} aria-hidden>
+                <span>{part(upNext.starts_at, { month: 'short' }).toUpperCase()}</span>
+                <b>{part(upNext.starts_at, { day: 'numeric' })}</b>
+              </span>
+              <span className={s.nextBody}>
+                <span className={s.nextEyebrow}>Up next</span>
+                <span className={s.nextTitle}>{upNext.title}</span>
+                <span className={s.nextMeta}>
+                  {part(upNext.starts_at, { weekday: 'short' })} {fmtTime(upNext.starts_at)} · {upNext.org_name}
                 </span>
-                <span className={s.recordBody}>
-                  <span className={s.recordTitle}>{r.event.title}</span>
-                  <span className="small muted">
-                    {r.org.name}
-                    {r.event.location ? ` · ${r.event.location}` : ''}
-                  </span>
-                  <span className="row wrap" style={{ gap: 6 }}>
-                    <span className={`chip ${r.status === 'active' ? 'chip-green' : 'chip-red'}`}>{r.status === 'active' ? '✓ Attested' : 'Revoked'}</span>
-                    <span className="chip chip-ink">{ROLE_LABEL[r.role]}</span>
-                    {r.code && r.status === 'active' && <span className="chip chip-ink">Shared</span>}
-                  </span>
-                </span>
-                <span className={s.recordHours}>
-                  <span className="figure">
-                    {fmtHours(r.hours_total)}
-                    <span className="figure-unit">h</span>
-                  </span>
-                  {r.hours_adjusted != null && <span className="small muted">adjusted</span>}
-                </span>
-              </Link>
-            ))
+              </span>
+              <Icon name="chevron-right" size={20} className={s.nextChev} />
+            </Link>
           )}
         </div>
+      )}
 
-        <aside className={s.col}>
-          <GoalCard goal={vol.hours_goal} attested={hours} />
-          {vol.is_minor && (
-            <div className="card card-pad stack" style={{ gap: 6 }}>
-              <h3>Sharing needs a guardian’s OK</h3>
-              <p className="small muted">You can check in and see every record. Because you’re under 18, share links will open once guardian consent is added.</p>
-            </div>
+      <section className={s.orgs} aria-labelledby="orgs-title">
+        <div className={s.sectionHead}>
+          <h2 id="orgs-title" className={s.h2}>
+            Your organizations
+          </h2>
+          {records.length > 0 && (
+            <Link href="/me/journey" className={s.headLink}>
+              Journey <Icon name="arrow-right" size={16} />
+            </Link>
           )}
-          <Link href="/me/badges" className="card card-pad stack lift" style={{ gap: 6, textDecoration: 'none' }}>
-            <span className="row between">
-              <h3>Badges and journey</h3>
-              {signedBadges > 0 && <span className="chip chip-green">{signedBadges} signed</span>}
-            </span>
-            <span className="small muted">Recognition your organizations signed, and the events and roles behind it.</span>
-          </Link>
-          <Link href="/me/messages" className="card card-pad stack lift" style={{ gap: 6, textDecoration: 'none' }}>
-            <span className="row between">
-              <h3>Messages</h3>
-              {unread > 0 && <span className="chip chip-amber">{unread} new</span>}
-            </span>
-            <span className="small muted">
-              {threads.length || chats.length ? 'Notes from your coordinators and your event group chats.' : 'Coordinators can write to you here after your first event.'}
-            </span>
-          </Link>
-          <div className="card card-pad stack" style={{ gap: 6, background: 'var(--primary-soft)', boxShadow: 'none' }}>
-            <h3>Who confirms my hours?</h3>
-            <p className="small muted">
-              The organization does, when it closes the event. SycaMore records your check-in and check-out and never lets anyone type hours in. If a number looks wrong, message the coordinator: any change they make shows with its reason.
-            </p>
+        </div>
+        {records.length ? (
+          <OrgFolders folders={folders(records)} />
+        ) : (
+          <div className="card">
+            <EmptyState
+              icon="leaf"
+              title="Your first record starts at your next event"
+              hint="Check in when you arrive. Once the organization confirms your hours, the record lands here."
+              action={
+                <span className="row wrap" style={{ gap: 8, justifyContent: 'center' }}>
+                  {!active && (
+                    <Link href="/checkin" className="btn btn-primary">
+                      Check in
+                    </Link>
+                  )}
+                  <Link href="/discover" className={active ? 'btn btn-primary' : 'btn'}>
+                    Find an event
+                  </Link>
+                </span>
+              }
+            />
           </div>
-          <form action={volSignOut} className="row between small muted" style={{ padding: '0 4px' }}>
-            <span>Signed in as {vol.email}</span>
-            <button className="btn btn-quiet btn-sm">Sign out</button>
-          </form>
-        </aside>
-      </div>
-    </div>
+        )}
+      </section>
+    </Stagger>
   );
 }
 

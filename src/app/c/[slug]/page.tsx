@@ -5,6 +5,8 @@ import { getPublishedCampaign } from '@/lib/story';
 import { Reel, type Shot } from '@/components/Reel';
 import { Cover } from '@/components/media/Cover';
 import { coverFor } from '@/lib/covers';
+import { PublicFrame } from '@/components/site/PublicFrame';
+import { Icon } from '@/components/shell/icons';
 import s from './campaign.module.css';
 
 // Public campaign page. Numbers come from the snapshot of the attested record
@@ -32,9 +34,17 @@ async function load(slug: string) {
 
 export async function generateMetadata({ params }: PageProps<'/c/[slug]'>): Promise<Metadata> {
   const data = await load((await params).slug);
-  if (!data) return { title: 'Campaign not found' };
+  if (!data) return { title: 'Story not found', robots: { index: false, follow: false } };
   const { draft, facts } = data.campaign;
-  return { title: `${draft.headline} · ${facts.org.name}`, description: draft.subhead };
+  const title = `${draft.headline} · ${facts.org.name}`;
+  // Stories can show volunteers, some of them minors, so they're shared by link and kept out of search results.
+  return {
+    title,
+    description: draft.subhead,
+    openGraph: { title, description: draft.subhead, type: 'article' },
+    twitter: { card: 'summary_large_image', title, description: draft.subhead },
+    robots: { index: false, follow: false },
+  };
 }
 
 export default async function CampaignPage({ params }: PageProps<'/c/[slug]'>) {
@@ -44,7 +54,8 @@ export default async function CampaignPage({ params }: PageProps<'/c/[slug]'>) {
   const { draft, facts } = campaign;
 
   return (
-    <main className={s.page}>
+    <PublicFrame note="Story published by the organization with SycaMore Live.">
+    <div className={s.page}>
       {shots.length === 0 ? (
         // No consented clips to play: a cover photo for the kind of work carries the header.
         <header className={s.head}>
@@ -73,7 +84,9 @@ export default async function CampaignPage({ params }: PageProps<'/c/[slug]'>) {
       {shots.length > 0 && <Reel shots={shots} label={`Highlights from ${facts.event.title}`} />}
 
       <section className={`${s.verified} rise`} style={{ ['--d' as string]: '0.24s' }} aria-label="Verified record">
-        <span className={s.check} aria-hidden>✓</span>
+        <span className={s.check} aria-hidden>
+          <Icon name="check" size={16} strokeWidth={2.25} />
+        </span>
         <div>
           <p className={s.vLine}>
             <strong className="num">{facts.volunteers}</strong> volunteers · <strong className="num">{facts.verified_hours}</strong> verified hours ·{' '}
@@ -113,9 +126,9 @@ export default async function CampaignPage({ params }: PageProps<'/c/[slug]'>) {
         <p className="small muted">
           Story drafted with Claude from the coordinator’s own debrief and videos, then reviewed and published by {facts.org.name}. Every number on this page comes from the organization’s attested record or the coordinator’s own words.
         </p>
-        <p className="small muted">Recorded with SycaMore Live</p>
       </footer>
-    </main>
+    </div>
+    </PublicFrame>
   );
 }
 

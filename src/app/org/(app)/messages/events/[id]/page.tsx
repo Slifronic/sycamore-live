@@ -3,15 +3,17 @@ import { notFound } from 'next/navigation';
 import { requireOrg } from '@/lib/session';
 import { sql } from '@/lib/db';
 import { getEvent } from '@/lib/org-data';
-import { unreadCount } from '@/lib/messages';
-import { chatForOrg, chatMembers, orgChatUnread } from '@/lib/event-chat';
+import { chatForOrg, chatMembers } from '@/lib/event-chat';
 import { fmtDay, fmtTime, initials, plural, requestNow } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
-import { MessagesTabs } from '../../MessagesTabs';
+import { Help } from '../../Help';
+import { Stagger } from '@/components/motion/Stagger';
+import { Icon } from '@/components/shell/icons';
+import { Chip } from '@/components/ui/Chip';
 import { LiveInbox } from '../../LiveInbox';
 import { ChatComposer } from '../ChatComposer';
 import s from '../../messages.module.css';
-import { EmptyState } from '@/components/media/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export const metadata = { title: 'Event chat' };
 
@@ -30,36 +32,36 @@ export default async function EventChatPage({ params }: PageProps<'/org/messages
   const event = await getEvent(org.id, id);
   if (!event || event.is_practice) notFound();
   const now = requestNow();
-  const [messages, members, unread, chatUnread] = await Promise.all([chatForOrg(id), chatMembers(id), unreadCount(org.id), orgChatUnread(org.id)]);
+  const [messages, members] = await Promise.all([chatForOrg(id), chatMembers(id)]);
   const [read] = (await sql`select last_read_at from event_chat_read where event_id = ${id} and reader = 'org'`) as unknown as { last_read_at: Date }[];
   const unreadMsgs = messages.filter((m) => m.author.kind === 'volunteer' && (!read || m.created_at > read.last_read_at));
   const firstUnread = unreadMsgs[0]?.id;
   const live = new Date(event.starts_at).getTime() <= now && new Date(event.ends_at).getTime() > now;
 
   return (
-    <div className="page" style={{ gap: 18 }}>
+    <Stagger className="page" style={{ gap: 18 }}>
       <PageHeader
         eyebrow={
-          <Link href="/org/messages/events" style={{ color: 'inherit' }}>
-            ← Event chats
+          <Link href="/org/messages/events" className={s.crumb}>
+            <Icon name="chevron-left" size={14} strokeWidth={2} /> Event chats
           </Link>
         }
         title={event.title}
         lede={`${fmtDay(event.starts_at)} · ${fmtTime(event.starts_at)} to ${fmtTime(event.ends_at)}${event.location ? ` · ${event.location}` : ''}`}
-        action={<MessagesTabs on="events" unread={unread} chatUnread={chatUnread} />}
+        controls={
+          <Help label="About group chats" placement="bottom-end">
+            <p>
+              <strong>Everyone in the chat sees every post.</strong> For a one-to-one message, tap a member to open the inbox.
+            </p>
+            <p>Volunteers under 18 aren’t in group chats; an announcement reaches them.</p>
+          </Help>
+        }
+        action={
+          <Link className="btn" href={`/org/events/${id}`}>
+            Event page
+          </Link>
+        }
       />
-      <div className={`card ${s.announce}`}>
-        <span className="small" style={{ flex: 1, minWidth: 220 }}>
-          <strong>Group chat</strong> · {plural(members.length, 'member')}
-          {live ? ' · live now' : ''}. Everyone here sees every post. For a one-to-one message, use the inbox. Volunteers under 18 aren’t in group chats; an announcement reaches them.
-        </span>
-        <Link className="btn btn-sm" href={`/org/messages/broadcasts?new=1&event=${id}`}>
-          Send an announcement instead
-        </Link>
-        <Link className="btn btn-sm btn-quiet" href={`/org/events/${id}`}>
-          Event page
-        </Link>
-      </div>
 
       <div className={`card ${s.chatLayout}`}>
         <section className={s.convo} aria-label="Group chat">
@@ -68,23 +70,32 @@ export default async function EventChatPage({ params }: PageProps<'/org/messages
               <span className="avatar" aria-hidden>
                 {initials(event.title)}
               </span>
-              <div>
-                <strong>{event.title}</strong>
+              <div style={{ minWidth: 0 }}>
+                <span className="row" style={{ gap: 8 }}>
+                  <strong>Group chat</strong>
+                  {live && (
+                    <Chip tone="green" icon="live" className={s.mini18}>
+                      Live now
+                    </Chip>
+                  )}
+                </span>
                 <div className={s.facts}>
                   <span>
                     <b>{members.length}</b> volunteers + you
                   </span>
-                  <span>{messages.length} messages</span>
+                  <span>{plural(messages.length, 'message')}</span>
                 </div>
               </div>
             </div>
+            <Link className="btn btn-sm" href={`/org/messages/broadcasts?new=1&event=${id}`} aria-label="Send an announcement instead">
+              <Icon name="megaphone" size={16} />
+              <span className={s.hideNarrow}>Announce instead</span>
+            </Link>
           </div>
           <div className={s.stream} id="chat-stream" aria-live="polite">
             {messages.length === 0 && (
               <div className={s.empty}>
-                <EmptyState compact illo="envelope" title="No posts yet.">
-                  Say hi, share where to park, or post a thank-you after.
-                </EmptyState>
+                <EmptyState compact icon="message" title="No posts yet" hint="Say hi, share where to park, or post a thank-you after." />
               </div>
             )}
             {messages.map((m, i) => {
@@ -130,7 +141,7 @@ export default async function EventChatPage({ params }: PageProps<'/org/messages
         </aside>
       </div>
       <LiveInbox openId={id} lastUnreadId={unreadMsgs.at(-1)?.id ?? null} streamId="chat-stream" kind="chat" />
-    </div>
+    </Stagger>
   );
 }
 

@@ -80,7 +80,13 @@ create table volunteer (
   signup_event_id uuid references event(id),
   -- volunteer addition: a private personal target ("40 hours this year"). It is
   -- never a claim of hours served; only attested records count toward it.
-  hours_goal integer check (hours_goal between 1 and 2000)
+  hours_goal integer check (hours_goal between 1 and 2000),
+  -- volunteer additions (account): when they ticked "I agree to the Terms and
+  -- Privacy Policy" at join or walk-in, and their announcements opt-in
+  -- (marketing consent: off until they turn it on in Me, with the time).
+  terms_accepted_at timestamptz,
+  marketing_opt_in boolean not null default false,
+  marketing_opt_in_at timestamptz
 );
 
 create table attendance (
@@ -251,10 +257,17 @@ create index on event_chat (event_id, created_at);
 create index on story_note (event_id, created_at);
 create index on story_clip (event_id, created_at);
 
--- After attestation nothing is edited in place.
+-- After attestation nothing is edited in place. One exception: a volunteer who
+-- deletes their account is unlinked from the row (volunteer_id to null, the
+-- name to "Former volunteer"), so the organization's attested totals survive
+-- as anonymous rows. Every other column, hours included, must stay the same.
 create or replace function lock_attested() returns trigger language plpgsql as $$
 begin
   if old.status = 'attested' then
+    if new.volunteer_id is null and new.display_name = 'Former volunteer'
+       and (to_jsonb(new) - 'volunteer_id' - 'display_name') = (to_jsonb(old) - 'volunteer_id' - 'display_name') then
+      return new;
+    end if;
     raise exception 'attested attendance is read-only';
   end if;
   return new;

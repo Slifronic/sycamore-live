@@ -1,316 +1,303 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { requireOrg } from '@/lib/session';
 import { loadOrgInsights } from '@/lib/insights';
 import { LESSONS, courseProgress } from '@/lib/course';
 import { badgeByKey } from '@/lib/badges';
-import { HOUR_RATES, money, rateKeyFor } from '@/lib/value';
-import { ago, fmtDay, plural } from './util';
-import { FactsCard } from '@/components/FactsCard';
-import { PageHeader } from '@/components/PageHeader';
-import { CountUp } from '@/components/motion/CountUp';
-import { Sparkline } from '@/components/motion/Sparkline';
-import { HoursChart } from '@/components/motion/HoursChart';
-import s from './home.module.css';
-import { lastCame, requestNow } from '@/lib/format';
+import { ago, fmtDay, fmtTime, plural } from './util';
+import { requestNow } from '@/lib/format';
 import { sql } from '@/lib/db';
-import { milestoneThanks } from '@/lib/mailto';
-import { EmptyState } from '@/components/media/EmptyState';
+import { StatCard } from '@/components/ui/StatCard';
+import { CardHeader } from '@/components/ui/Card';
+import { Icon } from '@/components/shell/icons';
+import { Stagger } from '@/components/motion/Stagger';
+import { Sparkline } from '@/components/motion/Sparkline';
+import { HomeChart } from './HomeChart';
+import { LessonHint } from './LessonHint';
+import s from './home.module.css';
 
 export const metadata = { title: 'Home' };
 
+const DAY = 86_400_000;
+const fmtH = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
+
+// Home (REDESIGN-2026-10-25): a welcome card that says what needs you, three
+// stat cards, the one chart, and what's happening now or next. Everything else
+// lives on its own page (volunteers: away and milestones; reports: value of
+// volunteer time; learn: the course).
 export default async function OrgHome({ searchParams }: PageProps<'/org'>) {
   const org = await requireOrg();
   const ins = await loadOrgInsights(org.id);
   const course = courseProgress(org.course);
   const welcome = (await searchParams).welcome === '1';
+  const hideLesson = (await cookies()).get('sm-hide-lesson')?.value === '1';
   const now = requestNow();
+
   const live = ins.events.filter((e) => !e.attested_at && new Date(e.starts_at).getTime() <= now && new Date(e.ends_at).getTime() >= now);
   const upcoming = ins.events.filter((e) => new Date(e.starts_at).getTime() > now && !e.is_practice).slice(-3).reverse();
-  const ids = ins.milestones.map((v) => v.volunteer_id).filter(Boolean) as string[];
-  const emails = new Map(
-    ((await sql`select id, email from volunteer where id = any(${ids})`) as unknown as { id: string; email: string }[]).map((r) => [r.id, r.email]),
-  );
   const hereNow = new Map(
     ((await sql`select event_id, count(*)::int as n from attendance where event_id = any(${live.map((e) => e.id)}) and status = 'checked_in' group by event_id`) as unknown as {
       event_id: string;
       n: number;
     }[]).map((r) => [r.event_id, r.n]),
   );
-  const hourRate = HOUR_RATES[rateKeyFor(org.city)];
-  const value = ins.totals.verifiedHours * hourRate.usd;
-  const hour = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', hour12: false });
-  const greet = Number(hour) < 12 ? 'Good morning' : Number(hour) < 18 ? 'Good afternoon' : 'Good evening';
-  const today = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'long', day: 'numeric' });
-  const needs = ins.awaiting.length + (ins.badgeReady.length ? 1 : 0) + (ins.away.length ? 1 : 0);
 
-  // Running totals per verified event, for the band's sparklines.
-  const running = (xs: number[]) => xs.reduce<number[]>((acc, x) => [...acc, (acc.at(-1) ?? 0) + x], []);
-  const hoursRun = running(ins.series.map((p) => p.hours));
-  const peopleRun = running(ins.series.map((p) => p.people));
-  const valueRun = hoursRun.map((x) => x * hourRate.usd);
+  const first = org.coordinator_name.split(' ')[0];
+  const today = new Date(now).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'short', day: 'numeric' });
+  const clock = new Date(now).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
+
+  // What needs you: oldest unverified event first, then badges to sign. At most two rows.
+  const awaiting = [...ins.awaiting].sort((a, b) => +new Date(a.ends_at) - +new Date(b.ends_at));
+  const badges = ins.badgeReady;
+  const asks: string[] = [];
+  if (awaiting.length) asks.push(`${plural(awaiting.length, 'event')} waiting to be verified`);
+  if (badges.length) asks.push(`${plural(badges.length, 'badge')} ready to sign`);
+  const next = upcoming[0];
+  const sentence = asks.length
+    ? `${asks.join(' and ')}.`
+    : next
+      ? `Nothing needs you right now. Next up: ${next.title}, ${fmtDay(next.starts_at)}.`
+      : 'Nothing needs you right now.';
+
+  // Stat cards. Sparklines are running totals across verified events, oldest first.
+  const since = now - 30 * DAY;
+  const hours30 = ins.series.filter((p) => p.date.getTime() >= since).reduce((n, p) => n + p.hours, 0);
+  const hoursRun = ins.series.reduce<number[]>((acc, p) => [...acc, (acc.at(-1) ?? 0) + p.hours], []);
+  const peopleRun = ins.series.map((p) => ins.volunteers.filter((v) => v.first_seen.getTime() <= p.date.getTime()).length);
+  const new30 = ins.volunteers.filter((v) => v.first_seen.getTime() >= since).length;
+  const verifiedByDate = [...ins.verified].sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at));
+  const pips = verifiedByDate.slice(-8).map((e) => new Date(e.attested_at!).getTime() - new Date(e.ends_at).getTime() <= DAY);
   const chart = ins.series.slice(-8).map((p) => ({ ...p, date: p.date.toISOString() }));
+  const chartHours = chart.reduce((n, p) => n + p.hours, 0);
 
   return (
-    <div className={s.page}>
-      <PageHeader
-        className={s.header}
-        eyebrow={today}
-        title={`${greet}, ${org.coordinator_name.split(' ')[0]}`}
-        lede={needs === 0 ? 'Nothing needs you right now.' : `${plural(needs, 'thing')} need${needs === 1 ? 's' : ''} you today.`}
-        action={
-          <Link className="btn btn-primary btn-big" href="/org/events/new">
-            + New event
-          </Link>
-        }
-      />
+    <Stagger className={s.home}>
+      {/* 1 · Welcome: the day, one sentence, at most two things to do. */}
+      <section className={`card ${s.welcome}`} aria-labelledby="home-title">
+        <p className={s.dateChip}>
+          <span className={s.dateDot} aria-hidden />
+          {today} · {clock}
+        </p>
+        <h1 id="home-title" className={s.hello}>
+          Welcome back, {first}
+        </h1>
+        <p className={s.sentence}>{sentence}</p>
 
-      {welcome && (
-        <div className={`notice notice-green ${s.welcome}`}>
-          <strong>You’re set up.</strong> Your sign-in PIN is <strong className="num">{org.coordinator_pin}</strong>. Write it down; that’s the only
-          thing to remember. We made a practice event so you can try everything without real volunteers.
-        </div>
-      )}
+        {welcome && (
+          <p className={s.setup}>
+            <Icon name="key" size={16} />
+            <span>
+              You’re set up. Your sign-in PIN is <strong className="num">{org.coordinator_pin}</strong>; write it down. A practice event is ready to try.
+            </span>
+          </p>
+        )}
 
-      {/* The one saturated band: headline numbers on canopy. */}
-      <section className={s.band} aria-label="Totals">
-        <Kpi label="Verified hours" value={ins.totals.verifiedHours} decimals={ins.totals.verifiedHours % 1 ? 2 : 0} sub={`${ins.totals.attendances.toLocaleString()} attendances`} spark={hoursRun} />
-        <Kpi label="Volunteers" value={ins.totals.uniqueVolunteers} sub={`${ins.totals.standouts} standouts starred`} spark={peopleRun} delay={0.08} />
-        <Kpi
-          label="Events verified"
-          value={ins.totals.verifiedEvents}
-          sub={ins.awaiting.length ? `${ins.awaiting.length} waiting for you` : 'all caught up'}
-          warn={ins.awaiting.length > 0}
-          spark={ins.series.map((_, i) => i + 1)}
-          delay={0.16}
-        />
-        <Kpi label="Value of volunteer time" value={value} prefix="$" sub={`at ${money(hourRate.usd)}/hr (${hourRate.label})`} spark={valueRun} delay={0.24} />
+        {(awaiting.length > 0 || badges.length > 0) && (
+          <ul className={s.asks}>
+            {awaiting.length > 0 && (
+              <li className={s.ask}>
+                <span className={s.askIcon} data-tone="amber" aria-hidden>
+                  <Icon name="clock" size={16} />
+                </span>
+                <span className={s.askText}>
+                  <strong>{awaiting[0].title}</strong>
+                  <span>
+                    Ended {ago(awaiting[0].ends_at, new Date(now))}
+                    {awaiting.length > 1 ? ` · ${awaiting.length - 1} more after this` : ' · takes about 2 min'}
+                  </span>
+                </span>
+                <Link className="btn btn-primary btn-sm" href={`/org/events/${awaiting[0].id}/verify`}>
+                  Verify
+                </Link>
+              </li>
+            )}
+            {badges.length > 0 && (
+              <li className={s.ask}>
+                <span className={s.askIcon} data-tone="gold" aria-hidden>
+                  <Icon name="award" size={16} />
+                </span>
+                <span className={s.askText}>
+                  <strong>{plural(badges.length, 'badge')} to sign</strong>
+                  <span>
+                    {badges
+                      .slice(0, 2)
+                      .map((b) => `${b.v.name.split(' ')[0]} · ${badgeByKey[b.badge].name}`)
+                      .join(', ')}
+                    {badges.length > 2 ? ` +${badges.length - 2}` : ''}
+                  </span>
+                </span>
+                <Link className={`btn btn-sm ${awaiting.length ? '' : 'btn-primary'}`} href="/org/badges">
+                  Review
+                </Link>
+              </li>
+            )}
+          </ul>
+        )}
+
+        {!course.complete && course.next && !hideLesson && (
+          <LessonHint n={LESSONS.indexOf(course.next) + 1} total={course.total} title={course.next.title} minutes={course.next.minutes} href={course.next.href} />
+        )}
       </section>
 
-      {!course.complete && course.next && (
-        <section className={`card ${s.lesson}`}>
-          <div>
-            <p className="eyebrow eyebrow-sap">
-              Lesson {LESSONS.indexOf(course.next) + 1} of {course.total} · {course.next.minutes} min
-            </p>
-            <h2>{course.next.title}</h2>
-            <p className="muted">{course.next.why}</p>
-          </div>
-          <div className={s.lessonSide}>
-            <div className={s.progress}>
-              <div className={s.fat} role="progressbar" aria-label="Lessons done" aria-valuemin={0} aria-valuemax={course.total} aria-valuenow={course.done}>
-                <span style={{ width: `${Math.max(6, (100 * course.done) / course.total)}%` }} />
-              </div>
-              <span className={s.fatText}>
-                {course.done} of {course.total} done
-              </span>
-            </div>
-            <div className="row wrap">
-              <Link className="btn btn-primary" href={course.next.href}>
-                Try it now
-              </Link>
-              <Link className="btn btn-quiet" href="/org/learn">
-                All lessons
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
-
-      <div className={`${s.split} ${s.first}`}>
-        <section className="stack">
-          <h2>Needs you</h2>
-          {ins.awaiting.length === 0 && ins.badgeReady.length === 0 ? (
-            <div className="card">
-              <EmptyState compact illo="seed-pod" title="All caught up.">
-                Events waiting to be verified and badges ready to sign land here when they need you.
-              </EmptyState>
-            </div>
+      {/* 2 · Three numbers. */}
+      <StatCard
+        className={s.stat}
+        label="Verified hours"
+        value={ins.totals.verifiedHours}
+        decimals={ins.totals.verifiedHours % 1 ? 1 : 0}
+        unit="hrs"
+        icon="clock"
+        delta={hours30 > 0 ? { value: `+${fmtH(hours30)} in 30d`, dir: 'up', label: 'in the last 30 days' } : undefined}
+        sparkSlot={<WideSpark points={hoursRun} />}
+        href="/org/reports"
+      />
+      <StatCard
+        className={s.stat}
+        label="Unique volunteers"
+        value={ins.totals.uniqueVolunteers}
+        icon="users"
+        iconTone="mist"
+        delta={new30 > 0 ? { value: `+${new30} new in 30d`, dir: 'up', label: 'new in the last 30 days' } : undefined}
+        sparkSlot={<WideSpark points={peopleRun} delay={0.08} />}
+        href="/org/volunteers"
+      />
+      <StatCard
+        className={s.stat}
+        label="Verified within 24h"
+        value={ins.totals.verifiedWithin24h}
+        unit={`of ${ins.totals.verifiedEvents}`}
+        icon="hourglass"
+        iconTone="butter"
+        foot={
+          awaiting.length ? (
+            <span className={s.waiting}>{plural(awaiting.length, 'event')} waiting</span>
+          ) : ins.totals.verifiedEvents ? (
+            'events, timed from their end'
           ) : (
-            <div className={s.needs}>
-              {ins.awaiting.map((e) => (
-                <Link key={e.id} href={`/org/events/${e.id}/verify`} className={`card ${s.need} ${s.waiting}`}>
-                  <span className="chip chip-amber">Needs verification</span>
-                  <h3>{e.title}</h3>
-                  <p className="muted small">Ended {ago(e.ends_at)} · about 2 minutes</p>
-                  <span className="btn btn-primary btn-sm">Verify now →</span>
-                </Link>
+            'Verify an event to start'
+          )
+        }
+        sparkSlot={
+          pips.length > 0 && (
+            <span className={s.pips} aria-hidden>
+              {pips.map((ok, i) => (
+                <i key={i} data-ok={ok || undefined} style={{ ['--i' as string]: i }} />
               ))}
-              {ins.badgeReady.length > 0 && (
-                <Link href="/org/badges" className={`card ${s.need}`}>
-                  <span className="chip chip-gold">{plural(ins.badgeReady.length, 'badge')} ready</span>
-                  <h3>Ready for your sign-off</h3>
-                  <p className="muted small">
-                    {ins.badgeReady
-                      .slice(0, 3)
-                      .map((b) => `${b.v.name} · ${badgeByKey[b.badge].name}`)
-                      .join(' · ')}
-                  </p>
-                  <span className="btn btn-sm">Review badges →</span>
-                </Link>
-              )}
-            </div>
-          )}
-        </section>
+            </span>
+          )
+        }
+        href="/org/events"
+      />
 
-        <section className="stack">
-          <h2>Happening now</h2>
-          {live.length === 0 ? (
-            <div className={s.liveEmpty}>
-              <p className="muted small">No event is running right now.</p>
-              {upcoming[0] && (
-                <Link href={`/org/events/${upcoming[0].id}`} className="small">
-                  Next: {upcoming[0].title}, {fmtDay(upcoming[0].starts_at)} →
-                </Link>
-              )}
-            </div>
-          ) : (
-            live.map((e) => (
-              <Link key={e.id} href={`/org/events/${e.id}`} className={s.live}>
-                <span className={s.liveTop}>
-                  <span className={s.pulse} aria-hidden /> Live{e.is_practice ? ' · practice' : ''}
-                </span>
-                <strong className={s.liveTitle}>{e.title}</strong>
-                <span className={s.liveRow}>
-                  <span>
-                    <span className={s.liveNum}>{hereNow.get(e.id) ?? 0}</span> here now
-                  </span>
-                  <span className={s.code}>{e.checkin_code}</span>
-                </span>
-                <span className={s.liveCta}>Open check-in →</span>
-              </Link>
-            ))
-          )}
-        </section>
-      </div>
-
-      <div className={s.two}>
-        <FactsCard totals={ins.totals} />
-        <section className={`card ${s.chartCard}`}>
-          <div className="row between">
-            <div>
-              <p className="eyebrow">Hours per event</p>
-              <h2>Verified hours</h2>
-            </div>
+      {/* 3 · The one chart. */}
+      <section className={`card ${s.chartCard}`} aria-labelledby="chart-title">
+        <CardHeader
+          id="chart-title"
+          eyebrow="Hours by event"
+          title={
+            <>
+              {fmtH(chartHours)} <span className={s.titleUnit}>verified hours</span>
+            </>
+          }
+          action={
             <Link className="btn btn-sm btn-quiet" href="/org/reports">
-              Funder report →
+              Funder report <Icon name="arrow-right" size={14} />
             </Link>
-          </div>
-          <HoursChart points={chart} />
-          {chart.length > 0 && (
-            <p className={s.chartFoot}>
-              {chart.reduce((n, p) => n + p.hours, 0).toLocaleString()} hours across the last {chart.length} verified{' '}
-              {chart.length === 1 ? 'event' : 'events'}. Hover or tap a bar for details.
+          }
+        />
+        {chart.length ? (
+          <HomeChart points={chart} />
+        ) : (
+          <p className={s.chartEmpty}>
+            <Icon name="chart" size={20} />
+            Verify your first event and its hours show up here.
+          </p>
+        )}
+        {chart.length > 0 && (
+          <p className={s.chartFoot}>
+            Last {plural(chart.length, 'verified event')} · {ins.totals.attendances.toLocaleString()} attendances in all
+          </p>
+        )}
+      </section>
+
+      {/* 4 · Happening now, or next. The one dark panel. */}
+      <section className={s.now} aria-labelledby="now-title">
+        {live.length > 0 ? (
+          <>
+            <p className={s.nowEyebrow} id="now-title">
+              <span className={s.pulse} aria-hidden /> Live now{live[0].is_practice ? ' · practice' : ''}
             </p>
-          )}
-        </section>
-      </div>
-
-      <div className={s.two}>
-        <section className="card">
-          <div className="card-head">
-            <h2>Haven’t come in 30+ days</h2>
-            <span className="chip chip-ink">{ins.away.length}</span>
-          </div>
-          {ins.away.length === 0 ? (
-            <EmptyState compact illo="compass" title="Everyone’s been back.">
-              Nobody who came twice has been gone more than a month.
-            </EmptyState>
-          ) : (
-            <ul className={s.list}>
-              {ins.away.slice(0, 5).map((p) => (
-                <li key={p.key}>
-                  <span>
-                    <strong>{p.name}</strong>
-                    <span className="muted small"> · {p.events} events · {lastCame(p.last_seen)}</span>
-                  </span>
-                  <Link className="btn btn-sm" href={`/org/volunteers?tab=away&invite=${encodeURIComponent(p.key)}`}>
-                    Invite back
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="small muted card-pad" style={{ paddingTop: 8 }}>
-            Came at least twice, but not in the last 30 days. A personal invite is a good way to reconnect.
-          </p>
-        </section>
-
-        <section className="card">
-          <div className="card-head">
-            <h2>Milestones to celebrate</h2>
-            <span className="chip chip-gold">{ins.milestones.length}</span>
-          </div>
-          {ins.milestones.length === 0 ? (
-            <EmptyState compact illo="leaf-badge" title="No milestones yet.">
-              When someone passes 10, 25, 50 or 100 verified hours, they show up here so you can thank them.
-            </EmptyState>
-          ) : (
-            <ul className={s.list}>
-              {ins.milestones.slice(0, 5).map((p) => {
-                const email = p.volunteer_id ? emails.get(p.volunteer_id) : undefined;
-                return (
-                  <li key={p.key}>
-                    <span className="row" style={{ gap: 10 }}>
-                      <span className={s.medal} aria-hidden>
-                        {p.milestone!.hours}
-                      </span>
-                      <span>
-                        <strong>{p.name}</strong>
-                        <span className="muted small"> · passed {p.milestone!.hours} hours {ago(p.milestone!.at)}</span>
-                      </span>
-                    </span>
-                    {email && (
-                      <a className="btn btn-sm" href={milestoneThanks(org, p.name, email, p.milestone!.hours, upcoming[0])}>
-                        Thank them
-                      </a>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          <p className="small muted card-pad" style={{ paddingTop: 8 }}>
-            Recognition is one of the reasons volunteers stay. Two lines from you is enough.
-          </p>
-        </section>
-      </div>
-
-      {upcoming.length > 0 && (
-        <section className="stack">
-          <h2>Coming up</h2>
-          <div className="card">
-            <ul className={s.list}>
-              {upcoming.map((e) => (
-                <li key={e.id}>
-                  <span>
-                    <strong>{e.title}</strong>
-                    <span className="muted small"> · {fmtDay(e.starts_at)}{e.goal_text ? ` · goal: ${e.goal_text}` : ''}</span>
-                  </span>
-                  <Link className="btn btn-sm" href={`/org/events/${e.id}`}>
-                    Open
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      )}
-    </div>
+            <Link href={`/org/events/${live[0].id}`} className={s.nowMain}>
+              <strong className={s.nowTitle}>{live[0].title}</strong>
+              <span className={s.nowWhen}>
+                {fmtTime(live[0].starts_at)} – {fmtTime(live[0].ends_at)}
+              </span>
+              <span className={s.nowRow}>
+                <span className={s.nowCount}>
+                  <span className={s.nowNum}>{hereNow.get(live[0].id) ?? 0}</span> here now
+                </span>
+                <span className={s.code} aria-label={`Check-in code ${live[0].checkin_code}`}>
+                  {live[0].checkin_code}
+                </span>
+              </span>
+              <span className={s.nowCta}>
+                Open check-in <Icon name="arrow-right" size={16} />
+              </span>
+            </Link>
+            {live.length > 1 && (
+              <Link className={s.nowMore} href={`/org/events/${live[1].id}`}>
+                Also live: {live[1].title}
+                {live.length > 2 ? ` +${live.length - 2}` : ''}
+              </Link>
+            )}
+          </>
+        ) : (
+          <>
+            <p className={s.nowEyebrow} id="now-title">
+              <Icon name="calendar" size={14} /> Next up
+            </p>
+            {next ? (
+              <Link href={`/org/events/${next.id}`} className={s.nowMain}>
+                <strong className={s.nowTitle}>{next.title}</strong>
+                <span className={s.nowWhen}>{fmtDay(next.starts_at)}</span>
+                <span className={s.nowCta}>
+                  Open event <Icon name="arrow-right" size={16} />
+                </span>
+              </Link>
+            ) : (
+              <div className={s.nowMain}>
+                <strong className={s.nowTitle}>Nothing scheduled</strong>
+                <Link className={s.nowCta} href="/org/events/new">
+                  Plan an event <Icon name="arrow-right" size={16} />
+                </Link>
+              </div>
+            )}
+          </>
+        )}
+        {upcoming.length > (live.length ? 0 : 1) && (
+          <ul className={s.nowList} aria-label="Coming up">
+            {upcoming.slice(live.length ? 0 : 1, 3).map((e) => (
+              <li key={e.id}>
+                <Link href={`/org/events/${e.id}`}>
+                  <span>{e.title}</span>
+                  <span className={s.nowListDay}>{fmtDay(e.starts_at)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </Stagger>
   );
 }
 
-function Kpi({ label, value, sub, spark, prefix, decimals = 0, warn, delay = 0 }: { label: string; value: number; sub: string; spark?: number[]; prefix?: string; decimals?: number; warn?: boolean; delay?: number }) {
+// A full-width trend line for the stat cards (the row is as tall as the welcome card).
+function WideSpark({ points, delay = 0 }: { points: number[]; delay?: number }) {
+  if (points.length < 2) return null;
   return (
-    <div className={s.kpi}>
-      <p className={s.kpiLabel}>{label}</p>
-      <div className={s.kpiRow}>
-        <p className={s.kpiNum}>
-          <CountUp value={value} prefix={prefix} decimals={decimals} delay={delay} />
-        </p>
-        {spark && spark.length > 1 && <Sparkline points={spark} color="#8fd3ab" delay={0.3 + delay} />}
-      </div>
-      <p className={`${s.kpiSub} ${warn ? s.kpiWarn : ''}`}>{sub}</p>
-    </div>
+    <span className={s.wide}>
+      <Sparkline points={points} width={240} height={56} area delay={delay} className={s.wideSvg} />
+    </span>
   );
 }
 

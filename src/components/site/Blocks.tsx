@@ -1,17 +1,15 @@
 import Image from 'next/image';
+import { illo, type IlloName } from './media';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { Icon } from '../shell/icons';
 import { Reveal } from './Reveal';
-import { illo, type IlloName } from './media';
 import s from './site.module.css';
 
-// Small server building blocks shared by every marketing page.
+// Server building blocks shared by every marketing page. One rhythm
+// everywhere: eyebrow, title, a one-line lede, then the content.
 
-export function Eyebrow({ children }: { children: ReactNode }) {
-  return <p className={s.eyebrow}>{children}</p>;
-}
-
-/** A page title whose lines rise out of a mask on load (hero-entrance.md). */
+/** A title whose lines rise out of a mask on load (hero-entrance.md). Visible at rest. */
 export function RiseTitle({ lines, className, as: As = 'h1', id }: { lines: ReactNode[]; className?: string; as?: 'h1' | 'h2'; id?: string }) {
   return (
     <As className={className ?? s.pageTitle} id={id}>
@@ -33,7 +31,7 @@ export function PageHero({
 }: {
   eyebrow: string;
   title: ReactNode[];
-  lede: ReactNode;
+  lede?: ReactNode;
   children?: ReactNode;
   art?: ReactNode;
 }) {
@@ -41,24 +39,12 @@ export function PageHero({
     <section className={s.pageHero} aria-labelledby="page-title">
       <div className={`${s.wrap} ${art ? s.pageHeroGrid : ''}`}>
         <div className={s.pageHeroText}>
-          <p className={`${s.eyebrow} ${s.fade}`} style={{ ['--d' as string]: '0s' }}>
-            {eyebrow}
-          </p>
+          <p className={s.eyebrow}>{eyebrow}</p>
           <RiseTitle lines={title} id="page-title" />
-          <p className={`${s.lede} ${s.fade}`} style={{ ['--d' as string]: '.35s' }}>
-            {lede}
-          </p>
-          {children && (
-            <div className={s.fade} style={{ ['--d' as string]: '.5s' }}>
-              {children}
-            </div>
-          )}
+          {lede && <p className={s.lede}>{lede}</p>}
+          {children}
         </div>
-        {art && (
-          <div className={`${s.pageHeroArt} ${s.fade}`} style={{ ['--d' as string]: '.25s' }}>
-            {art}
-          </div>
-        )}
+        {art && <div className={s.pageHeroArt}>{art}</div>}
       </div>
     </section>
   );
@@ -69,49 +55,93 @@ export function SectionHead({
   title,
   lede,
   id,
-  split,
+  action,
 }: {
   eyebrow: string;
   title: ReactNode;
   lede?: ReactNode;
   id?: string;
-  split?: boolean;
+  action?: ReactNode;
 }) {
   return (
-    <Reveal className={`${s.head} ${split ? s.headSplit : ''}`}>
-      <div style={{ display: 'grid', gap: 18 }}>
+    <Reveal className={`${s.head} ${action ? s.headRow : ''}`}>
+      <div className={s.headText}>
         <p className={s.eyebrow}>{eyebrow}</p>
         <h2 className={s.h2} id={id}>
           {title}
         </h2>
+        {lede && <p className={s.lede}>{lede}</p>}
       </div>
-      {lede && <p className={s.lede}>{lede}</p>}
+      {action}
     </Reveal>
   );
 }
 
-export function Illo({ name, size = 112, className }: { name: IlloName; size?: number; className?: string }) {
+/** A page section with the standard head. `well` sets it on the quiet surface. */
+export function Section({
+  id,
+  eyebrow,
+  title,
+  lede,
+  action,
+  well,
+  children,
+  label,
+}: {
+  id: string;
+  eyebrow?: string;
+  title?: ReactNode;
+  lede?: ReactNode;
+  action?: ReactNode;
+  well?: boolean;
+  children: ReactNode;
+  label?: string;
+}) {
+  const titled = eyebrow && title;
   return (
-    <span className={`${s.illo} ${className ?? ''}`} style={{ width: size }} aria-hidden="true">
-      <Image src={illo(name)} alt="" fill sizes={`${size}px`} />
-    </span>
+    <section
+      className={`${s.section} ${well ? s.well : ''}`}
+      data-well={well || undefined}
+      aria-labelledby={titled ? `${id}-title` : undefined}
+      aria-label={titled ? undefined : label}
+      id={id}
+    >
+      <div className={s.wrap}>
+        {titled && <SectionHead eyebrow={eyebrow} title={title} lede={lede} id={`${id}-title`} action={action} />}
+        {children}
+      </div>
+    </section>
   );
 }
 
 export function TextLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <Link href={href} className={s.textLink}>
-      {children} <span aria-hidden="true">→</span>
+      {children} <Icon name="arrow-right" size={16} />
     </Link>
+  );
+}
+
+/** Short facts with a check icon. */
+export function Facts({ items }: { items: ReactNode[] }) {
+  return (
+    <ul className={s.facts}>
+      {items.map((it, i) => (
+        <li key={i}>
+          <Icon name="check" size={18} />
+          <span>{it}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
 export function CtaBand({
   title = 'Run your next event on the record.',
-  text = 'Set up takes about a minute: four boxes, then a practice event and a short course that teaches by doing. Volunteers never pay.',
+  text = 'Set-up takes about a minute, then a practice event teaches the rest. Volunteers never pay.',
   primary = { href: '/org/start', label: 'Set up your organization' },
   secondary = { href: '/join', label: 'I’m volunteering' },
-  note = 'Free while SycaMore Live is a hackathon demo. Nothing is charged.',
+  note = 'Free while SycaMore Live is a student demo. Nothing is charged.',
 }: {
   title?: string;
   text?: string;
@@ -147,3 +177,12 @@ export function CtaBand({
 }
 
 export { s as siteStyles };
+
+/** An AI-generated botanical illustration (see public/media/README.md). */
+export function Illo({ name, size = 112, className }: { name: IlloName; size?: number; className?: string }) {
+  return (
+    <span className={`${s.illo} ${className ?? ''}`} style={{ width: size }} aria-hidden="true">
+      <Image src={illo(name)} alt="" fill sizes={`${size}px`} />
+    </span>
+  );
+}

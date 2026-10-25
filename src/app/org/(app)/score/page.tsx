@@ -3,6 +3,8 @@ import { loadOrgInsights } from '@/lib/insights';
 import Link from 'next/link';
 import { IndexCard } from '@/components/IndexCard';
 import { PageHeader } from '@/components/PageHeader';
+import { Stagger } from '@/components/motion/Stagger';
+import { Icon } from '@/components/shell/icons';
 import s from './score.module.css';
 
 export const metadata = { title: 'Score' };
@@ -22,14 +24,14 @@ export default async function IndexPage() {
   const nextTier = score == null ? null : [...TIERS].reverse().find((t) => t.from > score);
 
   const focusHref = { retention: '/org/volunteers?tab=away', efficiency: '/org/events', completion: '/org/events' } as const;
-  const focusCta = { retention: 'See who hasn’t come in 30+ days →', efficiency: 'Events waiting to verify →', completion: 'Set a goal on your next event →' } as const;
+  const focusCta = { retention: 'See who hasn’t come in 30+ days', efficiency: 'Events waiting to verify', completion: 'Set a goal on your next event' } as const;
 
   return (
-    <div className="page">
+    <Stagger className="page">
       <PageHeader
-        eyebrow={<span className="eyebrow-sap">Proof · from {ins.totals.verifiedEvents} verified events</span>}
-        title="Your SycaMore Index"
-        lede="One number from 0 to 100 that shows a funder your program runs well. You never type anything into it: it comes from check-ins and the two-minute verify."
+        eyebrow={`From ${ins.totals.verifiedEvents} verified events`}
+        title="SycaMore Index"
+        lede="0 to 100, computed from check-ins and the two-minute verify. Nothing is typed in."
       />
 
       <div className={s.top}>
@@ -37,7 +39,9 @@ export default async function IndexPage() {
 
         {lowest && (
           <section className={`card ${s.focus}`}>
-            <p className="eyebrow" style={{ color: 'var(--amber)' }}>Where to focus next</p>
+            <p className="eyebrow" style={{ color: 'var(--amber)' }}>
+              Where to focus next
+            </p>
             <h2>{lowest.label}</h2>
             <p className={s.focusFig}>
               <span className="figure" style={{ fontSize: 48 }}>{lowest.score}</span>
@@ -50,7 +54,7 @@ export default async function IndexPage() {
               </p>
             )}
             <Link className="btn btn-primary" href={focusHref[lowest.key]} style={{ justifySelf: 'start', marginTop: 4 }}>
-              {focusCta[lowest.key]}
+              {focusCta[lowest.key]} <Icon name="arrow-right" size={16} />
             </Link>
           </section>
         )}
@@ -72,8 +76,8 @@ export default async function IndexPage() {
             ))}
             <span className={s.op} aria-hidden>=</span>
             <span className={`${s.tile} ${s.total}`} aria-hidden>
-              <span className="figure" style={{ fontSize: 30, color: '#fff' }}>{score}</span>
-              <span className={s.tileLabel} style={{ color: '#b8d4c2' }}>Index</span>
+              <span className="figure" style={{ fontSize: 30, color: 'var(--on-ink-panel)' }}>{score}</span>
+              <span className={s.tileLabel} style={{ color: 'var(--on-ink-panel)', opacity: 0.72 }}>Index</span>
             </span>
           </div>
         )}
@@ -92,7 +96,7 @@ export default async function IndexPage() {
         <div className={s.tiers} aria-label="Tiers">
           {TIERS.map((t) => (
             <span key={t.name} className={`chip ${t.name === ins.index.tier ? (t.from >= 75 ? 'chip-gold' : 'chip-silver') : 'chip-ink'}`}>
-              {t.name === ins.index.tier ? '★ ' : ''}
+              {t.name === ins.index.tier && <Icon name="award" size={14} strokeWidth={2} />}
               {t.name} {t.from}+
             </span>
           ))}
@@ -101,7 +105,7 @@ export default async function IndexPage() {
           The tier is provisional until three events are verified. Event completion is your own answer, so the funder report labels it that way.
         </p>
       </section>
-    </div>
+    </Stagger>
   );
 }
 

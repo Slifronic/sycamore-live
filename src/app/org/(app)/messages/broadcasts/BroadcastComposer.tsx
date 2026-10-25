@@ -71,9 +71,9 @@ export function BroadcastComposer({ orgName, coordinator, audiences, events, sam
         <div className="field">
           <label htmlFor="b-title">Name it</label>
           <input id="b-title" name="title" className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Saturday cleanup reminder" maxLength={60} />
-          <span className="hint">Only you see this. It labels the results.</span>
+          <span className="hint">Only you see this name.</span>
         </div>
-        <div className="grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        <div className={s.twoCol}>
           <div className="field">
             <label htmlFor="b-aud">Send to</label>
             <select id="b-aud" name="audience" className="select" value={audience} onChange={(e) => setAudience(e.target.value)}>
@@ -111,7 +111,7 @@ export function BroadcastComposer({ orgName, coordinator, audiences, events, sam
         </div>
 
         {canDraft && (
-          <div className="stack" style={{ gap: 8, padding: 12, borderRadius: 12, background: 'var(--primary-soft)' }}>
+          <div className={`stack ${s.draftBox}`}>
             <label htmlFor="b-note" className="small" style={{ fontWeight: 700 }}>
               Draft with Claude <span className="muted" style={{ fontWeight: 500 }}>(optional)</span>
             </label>
@@ -146,7 +146,7 @@ export function BroadcastComposer({ orgName, coordinator, audiences, events, sam
               </button>
             ))}
           </div>
-          <span className="hint">Details in braces fill in for each person from your verified records, so every number they read is right.</span>
+          <span className="hint">Braces fill in per person from your verified records.</span>
         </div>
 
         {sendState?.error && <p className="notice notice-red small">{sendState.error}</p>}

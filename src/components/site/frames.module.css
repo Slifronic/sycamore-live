@@ -1,49 +1,41 @@
 .photo {
   position: relative;
   overflow: hidden;
-  border-radius: 22px;
-  background:
-    radial-gradient(120% 80% at 30% 20%, rgba(44, 138, 87, 0.08), transparent 60%),
-    #ecebe3;
-  box-shadow: inset 0 0 0 1px rgba(15, 38, 27, 0.05);
+  border-radius: 16px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--rule-soft);
 }
 .img { object-fit: cover; }
 
-/* ── Laptop ─────────────────────────────────────────────── */
-.laptop { margin: 0; width: 100%; filter: drop-shadow(0 30px 40px rgba(15, 38, 27, 0.18)); }
-.lid {
-  position: relative;
-  background: linear-gradient(180deg, #1d2a23, #121b16);
-  border-radius: 16px 16px 6px 6px;
-  padding: 3.2% 3.2% 4%;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
-}
-.cam { position: absolute; top: 1.4%; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #2c3a32; }
-.screen {
-  position: relative;
-  aspect-ratio: 16 / 10;
+/* ── Browser window with a fading screenshot ────────────── */
+.shot {
+  margin: 0;
+  width: 100%;
+  border-radius: 14px;
   overflow: hidden;
-  border-radius: 4px;
-  background: var(--parchment);
+  background: var(--paper);
+  box-shadow: var(--shadow-hi);
 }
-.base {
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  padding: 0 12px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+}
+.dots { display: flex; gap: 6px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line-2); }
+.url { margin-inline: auto; transform: translateX(-24px); font-size: 11.5px; color: var(--ink-3); padding: 2px 12px; border-radius: 999px; background: var(--paper); box-shadow: 0 0 0 1px var(--line); }
+.view {
   position: relative;
-  height: 0;
-  padding-bottom: 3.4%;
-  margin: 0 -6%;
-  background: linear-gradient(180deg, #d9d7cf, #b9b7ae 60%, #9c9a91);
-  border-radius: 0 0 18px 18px / 0 0 60% 60%;
+  overflow: hidden;
+  background: #f7f6f1;
+  -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent);
+  mask-image: linear-gradient(180deg, #000 72%, transparent);
 }
-.base::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 42%;
-  right: 42%;
-  height: 32%;
-  background: #a9a79e;
-  border-radius: 0 0 8px 8px;
-}
+.shotImg { display: block; width: 100%; height: auto; }
 
 /* ── Phone ──────────────────────────────────────────────── */
 .phone {
@@ -55,15 +47,14 @@
   background: linear-gradient(160deg, #26332c, #0f1813);
   box-shadow:
     inset 0 0 0 1.5px rgba(255, 255, 255, 0.1),
-    0 40px 60px -30px rgba(15, 38, 27, 0.45),
-    0 0 0 1px rgba(15, 38, 27, 0.2);
+    0 40px 60px -30px rgba(0, 0, 0, 0.45);
 }
 .phoneScreen {
   position: relative;
   aspect-ratio: 9 / 19.5;
   overflow: hidden;
   border-radius: 36px;
-  background: var(--parchment);
+  background: #f7f6f1;
 }
 .island {
   position: absolute;
@@ -76,28 +67,3 @@
   border-radius: 999px;
   background: #0b120e;
 }
-
-/* ── Placeholders: the shape of the real screen, in the app's palette ── */
-.lapSkeleton { position: absolute; inset: 0; display: grid; grid-template-columns: 18% 1fr; }
-.lapSide { background: linear-gradient(180deg, #1b4632, #0f261b); }
-.lapMain { display: grid; grid-template-rows: auto auto 1fr; gap: 6%; padding: 5% 6%; align-content: start; }
-.lapHead { display: block; height: 9px; width: 42%; border-radius: 4px; background: #d8dbd2; }
-.lapKpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4%; }
-.lapKpis span { display: block; aspect-ratio: 2.2; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px rgba(15, 38, 27, 0.06); }
-.lapRows { display: grid; gap: 7px; padding: 4%; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px rgba(15, 38, 27, 0.06); }
-.lapRow { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.lapRow span:first-child { height: 6px; width: 46%; border-radius: 3px; background: #e5e4dc; }
-.lapRow span:last-child { height: 9px; width: 16%; border-radius: 999px; }
-.green { background: var(--verified-soft); }
-.amber { background: var(--amber-soft); }
-
-.phSkeleton { position: absolute; inset: 0; display: grid; gap: 4%; align-content: start; padding: 22% 8% 8%; }
-.phSkeleton > span { display: block; border-radius: 10px; }
-.phTop { height: 8px; width: 40%; background: #d8dbd2; }
-.phHero { aspect-ratio: 2.2; background: linear-gradient(150deg, #215a3d, #0f261b); border-radius: 16px !important; }
-.phLine { height: 7px; background: #e5e4dc; }
-.short { width: 60%; }
-.phCard { aspect-ratio: 3.4; background: #fff; box-shadow: 0 0 0 1px rgba(15, 38, 27, 0.06); }
-.phBtn { height: 34px; margin-top: 6%; background: var(--ink); border-radius: 12px !important; }
-
-.video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }

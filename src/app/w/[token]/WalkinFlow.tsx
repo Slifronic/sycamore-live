@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SessionCard, type SessionAttendance } from '@/components/vol/SessionCard';
+import { Consent } from '@/components/vol/Consent';
 import s from './walkin.module.css';
 
 export type WalkinAttendance = SessionAttendance;
@@ -47,6 +48,8 @@ export function WalkinFlow(props: {
   const [googleCred, setGoogleCred] = useState<string | null>(null); // held while a new Google user adds a birth date
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [agreed, setAgreed] = useState(false);
+  const [dob, setDob] = useState('');
 
   const submit = useCallback(
     async (body: Record<string, unknown>) => {
@@ -68,6 +71,11 @@ export function WalkinFlow(props: {
           return;
         }
         setGoogleCred(null);
+        // Keep the agreement they ticked (terms_accepted_at). A returning
+        // volunteer agreed when they first joined.
+        if (body.mode !== 'returning') {
+          void fetch('/api/vol/consent', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ terms: true }) }).catch(() => {});
+        }
         setWho({ name: data.volunteer.name, is_minor: data.is_minor, is_new: data.is_new });
         setAtt(data.attendance);
       } catch {
@@ -111,7 +119,9 @@ export function WalkinFlow(props: {
         <BirthDateStep
           greeting={nameFromCredential(googleCred)}
           busy={busy}
-          onSubmit={(dob) => submit({ mode: 'google', credential: googleCred, date_of_birth: dob })}
+          agreed={agreed}
+          onAgree={setAgreed}
+          onSubmit={(d) => submit({ mode: 'google', credential: googleCred, date_of_birth: d, accept_terms: true })}
           onCancel={() => setGoogleCred(null)}
         />
       ) : (
@@ -120,13 +130,14 @@ export function WalkinFlow(props: {
           <p className={s.muted}>No password, no app. Takes under a minute.</p>
           {props.googleClientId && (
             <>
-              <GoogleButton clientId={props.googleClientId} disabled={busy} onCredential={(credential) => submit({ mode: 'google', credential })} />
+              <Consent dob={dob} checked={agreed} onChange={setAgreed} big />
+              <GoogleButton clientId={props.googleClientId} disabled={busy || !agreed} onCredential={(credential) => submit({ mode: 'google', credential, accept_terms: true })} />
               <p className={s.or}>
                 <span>or with your email</span>
               </p>
             </>
           )}
-          <EmailForm busy={busy} onSubmit={(f) => submit({ mode: 'email', ...f })} />
+          <EmailForm busy={busy} dob={dob} onDob={setDob} agreed={agreed} onAgree={setAgreed} showConsent={!props.googleClientId} onSubmit={(f) => (agreed ? submit({ mode: 'email', ...f, accept_terms: true }) : setError('Tick the box to agree to the Terms and Privacy Policy.'))} />
         </div>
       )}
       {error && (
@@ -135,13 +146,22 @@ export function WalkinFlow(props: {
         </p>
       )}
       <p className={s.fine}>
-        We keep your name, email and birth date so {props.orgName} can confirm your hours. Your birth date is only used to check you’re 13 or older and whether a parent needs to OK sharing.
+        We keep your name, email and birth date so {props.orgName} can confirm your hours. Birth date only checks you’re 13 or older.
       </p>
     </section>
   );
 }
 
-function EmailForm({ busy, onSubmit }: { busy: boolean; onSubmit: (f: { name: string; email: string; date_of_birth: string }) => void }) {
+function EmailForm(props: {
+  busy: boolean;
+  dob: string;
+  onDob: (v: string) => void;
+  agreed: boolean;
+  onAgree: (v: boolean) => void;
+  showConsent: boolean;
+  onSubmit: (f: { name: string; email: string; date_of_birth: string }) => void;
+}) {
+  const { busy, onSubmit } = props;
   return (
     <form
       className={s.stack}
@@ -161,8 +181,10 @@ function EmailForm({ busy, onSubmit }: { busy: boolean; onSubmit: (f: { name: st
       </label>
       <label className={s.field}>
         <span>Date of birth</span>
-        <input className={s.input} name="dob" type="date" required max={new Date().toISOString().slice(0, 10)} />
+        <input className={s.input} name="dob" type="date" required max={new Date().toISOString().slice(0, 10)} value={props.dob} onChange={(e) => props.onDob(e.target.value)} />
       </label>
+      {/* With Google on the page, the box sits above both ways in; otherwise here. */}
+      {props.showConsent && <Consent dob={props.dob} checked={props.agreed} onChange={props.onAgree} big />}
       <button className={`${s.btn} ${s.primary}`} disabled={busy}>
         {busy ? 'Signing you up…' : 'Sign up and check in'}
       </button>
@@ -170,7 +192,8 @@ function EmailForm({ busy, onSubmit }: { busy: boolean; onSubmit: (f: { name: st
   );
 }
 
-function BirthDateStep(props: { greeting: string; busy: boolean; onSubmit: (dob: string) => void; onCancel: () => void }) {
+function BirthDateStep(props: { greeting: string; busy: boolean; agreed: boolean; onAgree: (v: boolean) => void; onSubmit: (dob: string) => void; onCancel: () => void }) {
+  const [dob, setDob] = useState('');
   return (
     <form
       className={s.stack}
@@ -183,8 +206,9 @@ function BirthDateStep(props: { greeting: string; busy: boolean; onSubmit: (dob:
       <p className={s.muted}>Your date of birth. Google doesn’t share it, and volunteers have to be 13 or older.</p>
       <label className={s.field}>
         <span>Date of birth</span>
-        <input className={s.input} name="dob" type="date" required autoFocus max={new Date().toISOString().slice(0, 10)} />
+        <input className={s.input} name="dob" type="date" required autoFocus max={new Date().toISOString().slice(0, 10)} value={dob} onChange={(e) => setDob(e.target.value)} />
       </label>
+      <Consent dob={dob} checked={props.agreed} onChange={props.onAgree} big />
       <button className={`${s.btn} ${s.primary}`} disabled={props.busy}>
         {props.busy ? 'Checking you in…' : 'Check in'}
       </button>

@@ -5,6 +5,10 @@ import { getEvent, getRoster } from '@/lib/org-data';
 import { loadOrgInsights } from '@/lib/insights';
 import { ago, fmtDay, requestNow } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
+import { StatCard } from '@/components/ui/StatCard';
+import { Icon } from '@/components/shell/icons';
+import { Stagger } from '@/components/motion/Stagger';
+import { ToastOnMount } from '@/components/shell/Toast';
 import { FocusOnMount } from './FocusOnMount';
 import { VerifyConsole } from './VerifyConsole';
 import s from './verify.module.css';
@@ -28,76 +32,77 @@ export default async function VerifyPage({ params, searchParams }: PageProps<'/o
     const from = Number.isFinite(fromRaw) && fromRaw >= 0 ? fromRaw : null;
     const added = from != null ? Math.round((ins.totals.verifiedHours - from) * 100) / 100 : 0;
     const t = ins.totals;
+    const justNow = from != null;
     return (
-      <section className={`card ${s.done}`} style={{ maxWidth: 760 }}>
-        <p className={s.check} aria-hidden>✓</p>
-        <h1 id="done-title" tabIndex={-1}>
-          {issued} hour {issued === 1 ? 'record' : 'records'} issued
-        </h1>
-        <FocusOnMount id="done-title" />
-        <p className="muted">
-          {event.is_practice
-            ? 'That’s the whole loop. On a real event, every volunteer could now share their record from their phone.'
-            : `${event.title} is verified. Volunteers can share their records from their phones now.`}
-        </p>
+      <Stagger className={s.doneWrap}>
+        {justNow && <ToastOnMount id={`verified-${id}`} message={`${event.title} verified`} body={`${issued} hour ${issued === 1 ? 'record' : 'records'} issued.`} />}
+        <section className={s.doneHead}>
+          <span className={s.check} aria-hidden>
+            <Icon name="check" size={32} strokeWidth={2.25} />
+          </span>
+          <h1 id="done-title" tabIndex={-1}>
+            {issued} hour {issued === 1 ? 'record' : 'records'} issued
+          </h1>
+          <FocusOnMount id="done-title" />
+          <p>
+            {event.is_practice
+              ? 'That’s the whole loop. On a real event, every volunteer could now share their record from their phone.'
+              : `${event.title} is verified. Volunteers can share their records from their phones now.`}
+          </p>
+        </section>
         {!event.is_practice && (
-          <div className={s.celebrate}>
-            <div className={s.celebrateText}>
-              <p className="eyebrow eyebrow-sap">Now on your record</p>
-              <ul className={s.factList}>
-                <li>
-                  <b className="num">{t.verifiedHours.toLocaleString()}</b> verified hours{added > 0 ? ` (${added.toLocaleString()} added just now)` : ''}
-                </li>
-                <li>
-                  <b className="num">{t.attendances.toLocaleString()}</b> attendances
-                </li>
-                <li>
-                  <b className="num">{t.uniqueVolunteers.toLocaleString()}</b> unique volunteers
-                </li>
-                <li>
-                  <b className="num">
-                    {t.verifiedWithin24h} of {t.verifiedEvents}
-                  </b>{' '}
-                  events verified within 24 hours of ending
-                </li>
-              </ul>
-              {ins.badgeReady.length > 0 && <p className="small muted">{ins.badgeReady.length} badges are ready for your sign-off.</p>}
-            </div>
-          </div>
+          <section className={s.stats} aria-label="Now on your record">
+            <StatCard
+              label="Verified hours"
+              value={t.verifiedHours}
+              decimals={t.verifiedHours % 1 ? 1 : 0}
+              unit="hrs"
+              icon="clock"
+              delta={added > 0 ? { value: `+${added.toLocaleString()}`, dir: 'up', label: 'added just now' } : undefined}
+              foot={added > 0 ? 'added just now' : `${t.attendances.toLocaleString()} attendances`}
+            />
+            <StatCard label="Unique volunteers" value={t.uniqueVolunteers} icon="users" iconTone="mist" foot={`${t.attendances.toLocaleString()} attendances`} />
+            <StatCard label="Verified within 24h" value={t.verifiedWithin24h} unit={`of ${t.verifiedEvents}`} icon="hourglass" iconTone="butter" foot="events, timed from their end" />
+          </section>
         )}
-        <div className="row wrap" style={{ justifyContent: 'center' }}>
+        <div className={s.doneActions}>
           <Link className="btn btn-primary" href="/org">
-            Back to dashboard
+            Back to Home
+          </Link>
+          <Link className="btn" href={`/org/events/${id}/story`}>
+            Tell the story
           </Link>
           <Link className="btn" href="/org/reports">
             Funder report
           </Link>
           {ins.badgeReady.length > 0 && (
             <Link className="btn" href="/org/badges">
-              Sign badges
+              Sign {ins.badgeReady.length} {ins.badgeReady.length === 1 ? 'badge' : 'badges'}
             </Link>
           )}
         </div>
-      </section>
+      </Stagger>
     );
   }
 
   const before = (await loadOrgInsights(org.id)).totals.verifiedHours;
 
   return (
-    <div className="page" style={{ gap: 20 }}>
+    <div className="page" style={{ gap: 16 }}>
       <PageHeader
         eyebrow={
           <span className="row wrap" style={{ gap: 8 }}>
             <span className="chip chip-amber" style={{ letterSpacing: 0, textTransform: 'none' }}>
-              Needs verification
+              <Icon name="clock" size={14} strokeWidth={2} /> Needs verification
             </span>
-            <Link href={`/org/events/${id}`}>{fmtDay(event.starts_at)}</Link>
-            {new Date(event.ends_at).getTime() < requestNow() ? <span>· ended {ago(event.ends_at)}</span> : null}
+            <span style={{ whiteSpace: 'nowrap' }}>
+              <Link href={`/org/events/${id}`}>{fmtDay(event.starts_at)}</Link>
+              {new Date(event.ends_at).getTime() < requestNow() ? ` · ended ${ago(event.ends_at)}` : null}
+            </span>
           </span>
         }
         title={`Verify ${event.title}`}
-        lede={`${roster.length} people. Hours are filled in from the scans: answer the goal question, set roles, star anyone who stood out, then verify. This replaces signing hour letters.`}
+        lede={`${roster.length} people. Hours come from the scans; check them, answer the goal, verify.`}
       />
       <VerifyConsole eventId={id} before={before} goalText={event.goal_text} signer={`${org.coordinator_name}, ${org.name}`} coordinator={org.coordinator_name} endsAt={new Date(event.ends_at).toISOString()} initial={JSON.parse(JSON.stringify(roster))} />
     </div>

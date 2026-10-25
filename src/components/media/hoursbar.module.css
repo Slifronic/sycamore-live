@@ -3,7 +3,7 @@
 .label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
 .track { height: 10px; border-radius: 999px; background: var(--rule-soft); overflow: hidden; }
 .fill { display: block; height: 100%; border-radius: 999px; transform-origin: left; animation: grow-x 1.1s var(--out) both; }
-.captured { background: repeating-linear-gradient(135deg, #b9c3bc 0 4px, #cfd6d0 4px 8px); animation-delay: 0.5s; }
+.captured { background: repeating-linear-gradient(135deg, var(--line-2) 0 4px, var(--rule-soft) 4px 8px); animation-delay: 0.5s; }
 .attested { background: var(--fill); animation-delay: 0.7s; }
 .value { font-variant-numeric: tabular-nums; font-weight: 700; text-align: right; font-size: 14px; }
 .note { font-size: 13px; color: var(--ink-3); }

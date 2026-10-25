@@ -16,7 +16,7 @@
 /* Detail */
 .detail { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 .side { display: grid; gap: 14px; min-width: 0; }
-.cert { padding: 28px; display: grid; gap: 16px; border-top: 4px solid var(--primary); }
+.cert { padding: 28px; display: grid; gap: 16px; border-top: 4px solid var(--primary); color: var(--ink); }
 .certHead { display: flex; gap: 18px; align-items: center; }
 .certName { font-family: var(--font-display), serif; font-size: 28px; line-height: 1.15; font-weight: 600; color: var(--canopy); overflow-wrap: anywhere; }
 .statement { font-size: 16px; line-height: 1.65; }

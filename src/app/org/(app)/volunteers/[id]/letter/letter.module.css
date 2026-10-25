@@ -15,3 +15,7 @@
 @media print {
   .letter { padding: 0; border: 0; }
 }
+.crumbs { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-3); min-width: 0; }
+.crumbs a { color: var(--ink-2); text-decoration: none; font-weight: 600; }
+.crumbs a:hover { color: var(--ink); text-decoration: underline; }
+.crumbs span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

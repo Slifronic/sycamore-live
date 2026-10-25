@@ -2,10 +2,10 @@
 .dow { padding: 10px 10px 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); border-bottom: 1px solid var(--line); }
 .day { min-height: 112px; padding: 6px; border-right: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft); display: grid; grid-template-rows: auto 1fr; gap: 4px; min-width: 0; }
 .day:nth-child(7n + 7) { border-right: 0; }
-.out { background: #fbfaf6; }
+.out { background: var(--hover); }
 .out .num { color: var(--line-2); }
-.today { background: #f6faf7; box-shadow: inset 0 2px 0 var(--sap); }
-.today .num { background: var(--ink); color: #fff; }
+.today { background: var(--primary-soft); box-shadow: inset 0 2px 0 var(--sap); }
+.today .num { background: var(--ink); color: var(--on-ink); }
 .dayHead { display: flex; justify-content: space-between; align-items: center; }
 .num { font-size: 12px; font-weight: 700; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .add { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; text-decoration: none; color: var(--ink-3); opacity: 0; font-weight: 700; }
@@ -16,12 +16,28 @@
 .evTime { font-weight: 700; flex: none; font-variant-numeric: tabular-nums; }
 .evTitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; min-width: 0; flex: 1 1 auto; }
 /* The ✓ sits outside the title, so a long title is cut but the ✓ always shows. */
-.evDone { flex: none; margin-left: auto; font-weight: 700; color: var(--verified); }
+.evDone { flex: none; margin-left: auto; display: inline-flex; align-self: center; color: var(--verified); }
 .needs { box-shadow: inset 3px 0 0 var(--amber); }
 .agenda { display: none; }
-.agendaDay { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.agendaDay { display: grid; gap: 6px; padding: 12px 14px; border-bottom: 1px solid var(--rule-soft); }
+.agendaDay:last-child { border-bottom: 0; }
 .agendaDay .ev { font-size: 14px; padding: 8px 10px; }
 @media (max-width: 720px) {
   .grid { display: none; }
   .agenda { display: grid; }
+}
+
+.more { font-size: 11.5px; color: var(--field); padding-left: 6px; }
+.monthNav { display: flex; align-items: center; gap: 4px; }
+.month { min-width: 140px; text-align: center; font-family: var(--font-display), Georgia, serif; font-size: 18px; font-weight: 600; color: var(--canopy); letter-spacing: -0.01em; }
+.navBtn { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; color: var(--ink-2); text-decoration: none; background: var(--paper); box-shadow: var(--shadow); }
+.navBtn:hover { background: var(--hover); color: var(--ink); }
+@media (pointer: coarse) { .navBtn { width: 44px; height: 44px; } }
+.subPanel { width: 340px; padding: 14px; }
+.subBody { display: grid; gap: 10px; }
+.subTitle { font-weight: 700; color: var(--ink); }
+.subHint { font-size: 13px; color: var(--ink-3); margin-top: -6px; }
+.subApps { display: flex; gap: 6px; flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .agenda { padding: 0; }
 }

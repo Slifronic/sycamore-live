@@ -1,8 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { SheetDraft } from '@/lib/types';
 import { pacificToUtc } from '@/lib/tz';
+import { Icon } from '@/components/shell/icons';
+import { toast } from '@/components/shell/Toast';
 import s from './sheet.module.css';
 
 type Draft = SheetDraft & { key: number; confirmed: boolean; inT: string; outT: string };
@@ -21,13 +23,37 @@ async function shrink(file: File): Promise<Blob> {
   return new Promise((res) => canvas.toBlob((b) => res(b!), 'image/jpeg', 0.85));
 }
 
-export function SheetImport({ eventId, enabled, eventDate, rosterNames }: { eventId: string; enabled: boolean; eventDate: string; rosterNames: string[] }) {
+export function SheetImport({
+  eventId,
+  enabled,
+  eventDate,
+  rosterNames,
+  initialOpen = false,
+}: {
+  eventId: string;
+  enabled: boolean;
+  eventDate: string;
+  rosterNames: string[];
+  /** Start with the import panel open (from "+ New → Import paper sheet", ?import=1#import). */
+  initialOpen?: boolean;
+}) {
   const input = useRef<HTMLInputElement>(null);
+  const root = useRef<HTMLDivElement>(null);
+  const pick = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(initialOpen);
+  const [dragging, setDragging] = useState(false);
+
+  // Opened from the "+ New" menu: bring the panel into view and put focus on
+  // "Choose a photo" (a file picker can't open without a tap, so this is one tap away).
+  useEffect(() => {
+    if (!initialOpen) return;
+    root.current?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    pick.current?.focus({ preventScroll: true });
+  }, [initialOpen]);
   const [photo, setPhoto] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<string | null>(null);
 
   const isDup = (d: Draft) => rosterNames.some((n) => n.trim().toLowerCase() === d.display_name.trim().toLowerCase());
   // Amber means "check this one against the photo": Claude isn't sure, the time in is missing or
@@ -38,7 +64,6 @@ export function SheetImport({ eventId, enabled, eventDate, rosterNames }: { even
   async function onFile(f: File | undefined) {
     if (!f) return;
     setError(null);
-    setDone(null);
     setBusy(true);
     try {
       const blob = await shrink(f);
@@ -80,36 +105,58 @@ export function SheetImport({ eventId, enabled, eventDate, rosterNames }: { even
     const data = await res.json();
     setBusy(false);
     if (!res.ok) return setError(data.error);
-    setDone(`Added ${rows.length} from the paper sheet.`);
+    toast.success(`Added ${rows.length} from the paper sheet`, { body: 'They’re on the roster now. Check their hours when you verify.' });
     setDrafts(null);
     setPhoto(null);
+    setOpen(false);
   }
 
   const confirmed = drafts?.filter((d) => d.confirmed).length ?? 0;
 
+  const choose = () => input.current?.click();
+  const disabledTitle = 'Add ANTHROPIC_API_KEY to turn this on';
+
   return (
-    <>
+    <div id="import" ref={root} className={`${s.wrap} ${open ? s.wrapOpen : ''}`}>
       <input ref={input} type="file" accept="image/*" capture="environment" hidden onChange={(e) => onFile(e.target.files?.[0])} />
-      <button
-        className="btn"
-        disabled={!enabled || busy}
-        title={enabled ? 'Photograph a paper sign-in sheet; Claude drafts the rows and you confirm each one' : 'Add ANTHROPIC_API_KEY to turn this on'}
-        onClick={() => input.current?.click()}
-      >
-        {busy && !drafts ? (
-          'Reading the sheet…'
-        ) : (
-          <>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
-              <circle cx="12" cy="13.5" r="3.5" />
-            </svg>
-            Import paper sheet
-          </>
-        )}
-      </button>
+      {!open ? (
+        <button className="btn" disabled={!enabled || busy} title={enabled ? 'Photograph a paper sign-in sheet; Claude drafts the rows and you confirm each one' : disabledTitle} onClick={() => setOpen(true)}>
+          <Icon name="scan" size={16} />
+          Import paper sheet
+        </button>
+      ) : (
+        <section
+          className={`${s.drop} ${dragging ? s.dragging : ''}`}
+          aria-labelledby="import-h"
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            if (enabled) onFile(e.dataTransfer.files?.[0]);
+          }}
+        >
+          <span className={s.dropIcon} aria-hidden>
+            <Icon name="scan" size={20} />
+          </span>
+          <div className={s.dropText}>
+            <h3 id="import-h">Import a paper sign-in sheet</h3>
+            <p>{enabled ? 'Take a photo of the whole sheet. Claude drafts the rows; nothing is saved until you confirm each one.' : 'Sheet import is off on this server. Add people by name instead.'}</p>
+          </div>
+          <div className={s.dropActions}>
+            <button ref={pick} className="btn btn-primary btn-sm" disabled={!enabled || busy} title={enabled ? undefined : disabledTitle} onClick={choose}>
+              {busy && !drafts ? 'Reading the sheet…' : 'Choose a photo'}
+            </button>
+            <button className="btn btn-sm btn-quiet" onClick={() => setOpen(false)} disabled={busy}>
+              Cancel
+            </button>
+          </div>
+        </section>
+      )}
       {error && !drafts && <p className="notice notice-red small" style={{ flexBasis: '100%' }}>{error}</p>}
-      {done && <p className="notice notice-green small" style={{ flexBasis: '100%' }}>{done}</p>}
 
       {drafts && (
         <div className={s.overlay} role="dialog" aria-modal="true" aria-label="Review the paper sheet">
@@ -171,6 +218,6 @@ export function SheetImport({ eventId, enabled, eventDate, rosterNames }: { even
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

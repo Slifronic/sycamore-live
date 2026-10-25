@@ -8,23 +8,23 @@
 .noShowOn { background: var(--red-soft); color: var(--red); border-color: transparent; }
 /* Prefilled values read as text until you point at them; rows needing hours keep their boxes. */
 .table tr:not(.warn) :global(.input):not(:hover):not(:focus), .table tr:not(.warn) :global(.select):not(:hover):not(:focus) { border-color: transparent; background: transparent; }
-.starOn { background: #f6eed2; border-color: #e3cf8f; color: #86681a; }
+.starOn { background: var(--amber-soft); border-color: color-mix(in oklab, var(--gold) 45%, transparent); color: var(--amber); }
 .check2 { display: grid; grid-template-columns: auto minmax(220px, 1fr) auto; gap: 18px 32px; align-items: end; padding: 18px 22px; }
 .goal { display: grid; gap: 2px; }
 .segBtn { border: 0; background: none; cursor: pointer; font-family: inherit; height: 38px; padding: 0 18px; font-size: 14px; }
-.segOn { background: var(--ink); color: #fff; }
-.segOn:hover { color: #fff; }
+.segOn { background: var(--ink); color: var(--on-ink); }
+.segOn:hover { color: var(--on-ink); }
 .rate { border: 0; margin: 0; padding: 0; min-width: 0; }
 .totals { display: flex; align-items: baseline; flex-wrap: wrap; }
 .blocker { border: 0; background: none; padding: 0; font: inherit; color: var(--amber); font-weight: 700; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 900px) { .check2 { grid-template-columns: minmax(0, 1fr); } }
-.star { width: 44px; height: 44px; display: inline-grid; place-items: center; font-size: 30px; line-height: 1; background: none; border: 0; border-radius: 10px; cursor: pointer; color: #9c9477; padding: 0; }
+.star { width: 44px; height: 44px; display: inline-grid; place-items: center; font-size: 30px; line-height: 1; background: none; border: 0; border-radius: 10px; cursor: pointer; color: var(--field); padding: 0; }
 .star:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 1px; }
-.star:hover { background: rgba(160, 124, 31, 0.08); }
+.star:hover { background: var(--wash); }
 .starLit { color: var(--gold); }
 .bar { overflow: hidden; position: sticky; bottom: 12px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-radius: 14px; background: var(--paper); box-shadow: var(--shadow-hi); }
 .done { padding: 40px 24px; display: grid; gap: 12px; justify-items: center; text-align: center; }
-.check { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--verified-soft); color: var(--verified); font-size: 32px; font-weight: 800; }
+.check { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--verified-soft); color: var(--verified); }
 .celebrate { display: flex; align-items: center; gap: 24px; padding: 18px 22px; border-radius: 18px; background: var(--primary-soft); text-align: left; margin: 6px 0; }
 .celebrateText { display: grid; gap: 6px; }
 .factList { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--ink-2); }
@@ -47,6 +47,7 @@
 @keyframes readyIn { from { opacity: 0; transform: translateY(4px); } }
 /* Done: the check lands with a small stamp. */
 .check { animation: checkIn 0.6s var(--out) 0.1s both; }
+@media (prefers-reduced-motion: reduce) { .check, .readyLine { animation: none; } }
 @keyframes checkIn { 0% { opacity: 0; transform: scale(0.4) rotate(-20deg); } 60% { opacity: 1; transform: scale(1.08) rotate(4deg); } 100% { transform: none; } }
 
 /* Phones: one card per person instead of a table that scrolls sideways. Name and
@@ -69,5 +70,17 @@
   .cRole :global(.select) { width: 100%; min-width: 0 !important; }
   .sel { display: grid; place-items: center; width: 44px; height: 44px; }
   /* No hover on a phone: keep the boxes visible so it's clear they can be changed. */
-  .table tr:not(.warn) :global(.input):not(:hover):not(:focus), .table tr:not(.warn) :global(.select):not(:hover):not(:focus) { border-color: var(--line); background: #fff; }
+  .table tr:not(.warn) :global(.input):not(:hover):not(:focus), .table tr:not(.warn) :global(.select):not(:hover):not(:focus) { border-color: var(--line); background: var(--paper); }
 }
+
+.signer { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.signer > svg { color: var(--sap); flex: none; }
+.signer strong { color: var(--ink); }
+/* Done screen: what's now on the record, as three stat cards. */
+.doneWrap { display: grid; gap: 16px; max-width: 880px; }
+.doneHead { display: grid; gap: 10px; justify-items: center; text-align: center; padding: 28px 24px 8px; }
+.doneHead h1 { font-size: 32px; }
+.doneHead p { color: var(--ink-2); max-width: 52ch; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.doneActions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding-bottom: 8px; }
+@media (max-width: 720px) { .stats { grid-template-columns: minmax(0, 1fr); } }

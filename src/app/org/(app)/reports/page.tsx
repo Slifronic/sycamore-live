@@ -9,15 +9,17 @@ import { fmtDay } from '@/lib/format';
 import { PrintButton } from './PrintButton';
 import { PageHeader } from '@/components/PageHeader';
 import { Segmented } from '@/components/Segmented';
+import { Stagger } from '@/components/motion/Stagger';
+import { Icon } from '@/components/shell/icons';
 import s from './report.module.css';
 import { requestNow } from '@/lib/format';
 
 export const metadata = { title: 'Funder report' };
 
 const PERIODS = [
-  { key: '90', label: 'Last 90 days', days: 90 },
-  { key: '365', label: 'Last 12 months', days: 365 },
-  { key: 'all', label: 'All time', days: null },
+  { key: '90', label: 'Last 90 days', short: '90 days', days: 90 },
+  { key: '365', label: 'Last 12 months', short: '12 months', days: 365 },
+  { key: 'all', label: 'All time', short: 'All time', days: null },
 ] as const;
 
 export default async function ReportPage({ searchParams }: PageProps<'/org/reports'>) {
@@ -60,12 +62,14 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
   const today = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'long', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="page">
+    <Stagger className="page">
       <PageHeader
         className="no-print"
-        eyebrow={<span className="eyebrow-sap">Proof · {period.label.toLowerCase()}</span>}
+        eyebrow="Proof for funders"
         title="Funder report"
-        lede="Everything a grant report asks about your volunteers, from verified data. Pick the period, then save it as a PDF."
+        lede="Built from check-ins and your sign-offs. Pick a period, then save it as a PDF."
+        controls={<Segmented id="period" size="sm" label="Report period" items={PERIODS.map((p) => ({ href: `/org/reports?period=${p.key}&rate=${rk}`, label: p.short, on: p.key === period.key }))} />}
+        action={<PrintButton />}
       />
 
       <div className={s.layout}>
@@ -201,12 +205,8 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
         </footer>
       </article>
 
-      <aside className={`${s.rail} no-print`}>
-        <div className="stack" style={{ gap: 8 }}>
-          <p className="eyebrow">Period</p>
-          <Segmented id="period" label="Report period" vertical items={PERIODS.map((p) => ({ href: `/org/reports?period=${p.key}&rate=${rk}`, label: p.label, on: p.key === period.key }))} />
-        </div>
-        <div className="stack" style={{ gap: 8 }}>
+      <aside className={`${s.rail} no-print`} aria-label="Report options">
+        <div className={s.railGroup}>
           <p className="eyebrow">Value per hour</p>
           <Segmented
             id="rate"
@@ -215,16 +215,16 @@ export default async function ReportPage({ searchParams }: PageProps<'/org/repor
             items={(Object.keys(HOUR_RATES) as RateKey[]).map((k) => ({ href: `/org/reports?period=${period.key}&rate=${k}`, label: `${money(HOUR_RATES[k].usd)} ${HOUR_RATES[k].label}`, on: k === rk }))}
           />
         </div>
-        <div className="stack" style={{ gap: 8 }}>
-          <PrintButton />
-          <a className="btn" href="/api/org/reports/csv">
-            Download CSV
-          </a>
-        </div>
-        <p className="small muted">Each volunteer’s hours can be checked by anyone at a public link, so a funder never has to take this sheet on trust.</p>
+        <a className="btn" href="/api/org/reports/csv">
+          <Icon name="download" size={16} /> Download CSV
+        </a>
+        <p className={s.railNote}>
+          <Icon name="shield" size={16} />
+          <span>Every volunteer’s hours can be checked at a public link, so a funder never has to take this sheet on trust.</span>
+        </p>
       </aside>
       </div>
-    </div>
+    </Stagger>
   );
 }
 

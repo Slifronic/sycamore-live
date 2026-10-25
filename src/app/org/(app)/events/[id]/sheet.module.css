@@ -1,12 +1,27 @@
-.overlay { position: fixed; inset: 0; z-index: 40; background: rgba(16, 40, 29, 0.45); display: grid; place-items: center; padding: 20px; }
-.panel { background: var(--paper); border-radius: 16px; width: min(1100px, 100%); max-height: 92vh; display: grid; grid-template-columns: 1fr 1.2fr; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); }
+/* Paper sheet import: a drop panel in the roster's tool row, then a review overlay. */
+.wrap { display: contents; }
+.wrapOpen { display: block; flex: 1 1 100%; scroll-margin: 96px; }
+.drop {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 16px; border-radius: 12px;
+  background: var(--paper); border: 1.5px dashed var(--line-2); transition: border-color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+}
+.wrapOpen:target .drop, .drop:focus-within { border-color: var(--sap); }
+.dragging { border-color: var(--sap); background: var(--primary-soft); }
+.dropIcon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--primary-soft); color: var(--canopy); }
+.dropText { flex: 1 1 240px; min-width: 0; display: grid; gap: 2px; }
+.dropText h3 { font-size: 14.5px; }
+.dropText p { font-size: 13px; color: var(--ink-3); line-height: 1.45; }
+.dropActions { display: flex; gap: 6px; flex: none; }
+
+.overlay { position: fixed; inset: 0; z-index: 40; background: var(--scrim); display: grid; place-items: center; padding: 20px; }
+.panel { background: var(--paper); border-radius: 16px; width: min(1100px, 100%); max-height: 92vh; display: grid; grid-template-columns: 1fr 1.2fr; overflow: hidden; box-shadow: var(--pop); }
 .photo { background: #1f2a24; display: grid; place-items: center; overflow: auto; }
 .photo img { max-width: 100%; height: auto; display: block; }
 .review { padding: 20px; display: grid; gap: 14px; overflow: auto; align-content: start; }
 .rows { display: grid; gap: 10px; }
 .row { border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 8px; }
-.amber { border-color: #e8c98c; background: var(--amber-soft); }
-.ok { border-color: #9ccfb0; background: var(--verified-soft); }
+.amber { border-color: color-mix(in oklab, var(--amber) 40%, transparent); background: var(--amber-soft); }
+.ok { border-color: color-mix(in oklab, var(--verified) 40%, transparent); background: var(--verified-soft); }
 .fields { display: grid; grid-template-columns: minmax(0, 1fr) 152px 152px; gap: 8px; }
 .fields input { min-width: 0; }
 @media (max-width: 860px) {

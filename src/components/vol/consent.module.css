@@ -1,0 +1,6 @@
+.consent { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 12px; align-items: start; padding: 4px 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); cursor: pointer; }
+.consent a { color: var(--primary); font-weight: 600; text-underline-offset: 2px; }
+.box { width: 22px; height: 22px; margin: 0; accent-color: var(--primary); cursor: pointer; }
+.box:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.big { font-size: 15px; }
+.big .box { width: 24px; height: 24px; }

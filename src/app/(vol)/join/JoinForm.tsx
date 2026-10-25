@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Consent, isTeen } from '@/components/vol/Consent';
 
 export function JoinForm({ next }: { next: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [dob, setDob] = useState('');
+  const [agreed, setAgreed] = useState(false);
 
   return (
     <form
@@ -21,7 +24,7 @@ export function JoinForm({ next }: { next: string }) {
           const res = await fetch('/api/vol/join', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ name: f.get('name'), email: f.get('email'), date_of_birth: f.get('dob') }),
+            body: JSON.stringify({ name: f.get('name'), email: f.get('email'), date_of_birth: f.get('dob'), accept_terms: agreed, guardian_ok: agreed && isTeen(dob) }),
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) {
@@ -47,9 +50,10 @@ export function JoinForm({ next }: { next: string }) {
       </div>
       <div className="field">
         <label htmlFor="join-dob">Date of birth</label>
-        <input id="join-dob" className="input" name="dob" type="date" required max={new Date().toISOString().slice(0, 10)} />
-        <span className="hint">Only used to check you’re 13 or older, and whether sharing needs a guardian’s OK.</span>
+        <input id="join-dob" className="input" name="dob" type="date" required max={new Date().toISOString().slice(0, 10)} value={dob} onChange={(e) => setDob(e.target.value)} />
+        <span className="hint">Checks you’re 13 or older, and whether sharing needs a guardian’s OK.</span>
       </div>
+      <Consent dob={dob} checked={agreed} onChange={setAgreed} />
       {error && (
         <p className="notice notice-red" role="alert">
           {error}
@@ -58,7 +62,6 @@ export function JoinForm({ next }: { next: string }) {
       <button className="btn btn-primary btn-big" disabled={busy}>
         {busy ? 'One moment…' : 'Continue'}
       </button>
-      <p className="small muted">For volunteers 13 and older. You never type your hours: they come from checking in and out, and the organization confirms them.</p>
     </form>
   );
 }

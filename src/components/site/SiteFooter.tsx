@@ -47,8 +47,8 @@ export function SiteFooter() {
         </div>
         <div className={s.fine}>
           <p>
-            SycaMore Live is a student project. Photos and illustrations on this site are AI-generated illustrations, not pictures of real
-            events or people. Product screens are the real app running on demo data, and every name in them is made up.
+            SycaMore Live is a student project, running as a demo. Photos on this site are AI-generated, not pictures of real events or people.
+            Product screens and drawings use demo data, and every name in them is made up.
           </p>
           <p>
             <Link href="/trust">How the record works</Link>

@@ -23,7 +23,7 @@ export function ShareButton({ url, title, text, label = 'Share this event', clas
         }
       }}
     >
-      {done ? '✓ Link copied' : label}
+      {done ? 'Link copied' : label}
     </button>
   );
 }

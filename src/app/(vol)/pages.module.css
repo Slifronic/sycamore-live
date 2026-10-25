@@ -6,7 +6,7 @@
 
 /* Join: a photo panel beside the form (above it on phones). */
 .join { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr); gap: 40px; align-items: stretch; }
-.joinArt { position: relative; margin: 0; min-height: 560px; border-radius: 22px; overflow: hidden; background: linear-gradient(160deg, #efece2, #e2dece); box-shadow: var(--shadow-hi); }
+.joinArt { position: relative; margin: 0; min-height: 560px; border-radius: 22px; overflow: hidden; background: var(--surface-2); box-shadow: var(--shadow-hi); }
 .joinImg { object-fit: cover; }
 .joinArt::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(12, 31, 22, 0.82)); pointer-events: none; }
 .joinSteps { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 24px; }
@@ -14,10 +14,11 @@
 .joinSteps li { display: flex; align-items: center; gap: 12px; color: #f4f6f1; font-weight: 600; font-size: 15px; }
 .joinSteps b { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(247, 246, 241, 0.16); box-shadow: inset 0 0 0 1px rgba(247, 246, 241, 0.35); font-size: 13px; }
 .joinMain { display: grid; gap: 20px; align-content: center; max-width: 480px; width: 100%; justify-self: center; }
+.joinHead { display: grid; gap: 6px; }
 @media (max-width: 860px) {
   .join { grid-template-columns: minmax(0, 1fr); gap: 20px; max-width: 480px; }
-  .joinArt { min-height: 0; height: 200px; border-radius: 18px; }
-  .joinSteps { display: none; }
+  .joinArt { display: none; }
+  .joinMain { gap: 16px; }
 }
 
 .checkinArt { position: relative; height: 150px; border-radius: 18px; overflow: hidden; background: linear-gradient(160deg, #efece2, #e2dece); box-shadow: var(--shadow); }

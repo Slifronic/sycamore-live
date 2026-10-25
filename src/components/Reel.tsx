@@ -75,7 +75,7 @@ export function Reel({ shots, label = 'Highlight reel' }: { shots: Shot[]; label
         )}
         {!playing && (
           <button type="button" className={s.play} onClick={toggle} aria-label="Play highlight reel">
-            ▶
+            <span className={s.tri} aria-hidden />
           </button>
         )}
       </div>

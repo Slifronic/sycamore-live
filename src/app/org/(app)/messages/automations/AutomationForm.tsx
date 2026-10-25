@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
+import { toast } from '@/components/shell/Toast';
 import { runAutomationsAction, saveAutomationAction } from '../actions';
 import s from '../messages.module.css';
 
@@ -10,6 +11,14 @@ export function AutomationForm({ id, enabled, body, allowed, due }: { id: string
   const [on, setOn] = useState(enabled);
   const [text, setText] = useState(body);
   const dirty = on !== enabled || text !== body;
+
+  // Confirmations are toasts; errors stay inline beside the form.
+  useEffect(() => {
+    if (saved?.ok) toast.success(saved.ok);
+  }, [saved]);
+  useEffect(() => {
+    if (ran?.ok) toast.success(ran.ok);
+  }, [ran]);
 
   return (
     <form action={save} className="stack" style={{ gap: 10 }}>
@@ -28,11 +37,6 @@ export function AutomationForm({ id, enabled, body, allowed, due }: { id: string
         </span>
       </div>
       {(saved?.error || ran?.error) && <p className="notice notice-red small">{saved?.error ?? ran?.error}</p>}
-      {(saved?.ok || ran?.ok) && !dirty && (
-        <p className="notice notice-green small" role="status">
-          {ran?.ok ?? saved?.ok}
-        </p>
-      )}
       <div className="row wrap" style={{ gap: 8 }}>
         <button className="btn btn-primary btn-sm" disabled={saving || !dirty}>
           {saving ? 'Saving…' : 'Save'}

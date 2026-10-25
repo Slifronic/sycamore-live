@@ -59,6 +59,10 @@ export function ChatComposer({ eventId, people }: { eventId: string; people: num
           ))}
         </div>
         <div className="row" style={{ gap: 10 }}>
+          <span className={s.composeHint} aria-hidden>
+            <span className="kbd">⌘</span>
+            <span className="kbd">↵</span>
+          </span>
           <span className={s.count}>
             {text.length.toLocaleString()} / {MAX.toLocaleString()}
           </span>

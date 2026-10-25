@@ -7,6 +7,7 @@ import { fmtTime, requestNow } from '@/lib/format';
 import { ShareButton } from '@/components/events/ShareButton';
 import { Cover } from '@/components/media/Cover';
 import { coverFor } from '@/lib/covers';
+import { PublicFrame } from '@/components/site/PublicFrame';
 import s from './event-page.module.css';
 
 // Public event page: the one link a coordinator drops in a group chat.
@@ -37,7 +38,8 @@ export default async function PublicEventPage({ params }: PageProps<'/e/[slug]'>
   const pin = e.place_lat != null && e.place_lng != null;
 
   return (
-    <main className={s.page}>
+    <PublicFrame>
+    <div className={s.page}>
       <header className={s.head}>
         <Cover cover={coverFor(e)} variant="hero" priority className={`settle ${s.hero}`}>
           <p className={`${s.org} rise`}>{e.org_name}</p>
@@ -142,15 +144,15 @@ export default async function PublicEventPage({ params }: PageProps<'/e/[slug]'>
       </section>
 
       <footer className={s.foot}>
-        <div className="row wrap between">
+        <div className={s.footRow}>
           <p className="small muted">
             Questions? {e.org_name} · <a href={`tel:${e.org_phone.replace(/[^\d+]/g, '')}`}>{e.org_phone}</a> · <a href={`mailto:${e.org_email}`}>{e.org_email}</a>
           </p>
           <ShareButton url={l.page} title={e.title} text={`${e.title} · ${longDay(e.starts_at)}, ${fmtTime(e.starts_at)}`} />
         </div>
-        <p className="small muted">Hours recorded with SycaMore Live.</p>
       </footer>
-    </main>
+    </div>
+    </PublicFrame>
   );
 }
 

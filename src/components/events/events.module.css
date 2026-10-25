@@ -5,31 +5,31 @@
 
 /* Intake: a quiet panel above the form, a dashed drop target while dragging. */
 .intake > *, .intakeBox > * { min-width: 0; }
-.intake { display: grid; gap: 12px; padding: 18px 20px; border-radius: var(--radius); background: var(--primary-soft); box-shadow: inset 0 0 0 1px rgba(31, 110, 69, 0.12); transition: box-shadow 0.15s var(--ease), background 0.15s var(--ease); }
-.intakeDrag { background: #e1efe5; box-shadow: inset 0 0 0 2px var(--sap); }
+.intake { display: grid; gap: 12px; padding: 18px 20px; border-radius: var(--radius); background: var(--primary-soft); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 14%, transparent); transition: box-shadow 0.15s var(--ease), background 0.15s var(--ease); }
+.intakeDrag { background: color-mix(in oklab, var(--sap) 16%, var(--paper)); box-shadow: inset 0 0 0 2px var(--sap); }
 .intakeBox { display: grid; gap: 10px; }
 .intakeBox textarea { resize: vertical; min-height: 74px; background: var(--paper); }
 .intakeActions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.howto summary { cursor: pointer; color: var(--ink-2); font-weight: 600; width: fit-content; }
-.howto ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+.howto { display: flex; align-items: center; gap: 4px; }
+.howtoList { margin: 0; padding-left: 16px; display: grid; gap: 6px; }
 
 .choices { background: var(--paper); border-radius: 12px; padding: 12px; display: grid; gap: 8px; box-shadow: var(--shadow); }
 .choices ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 300px; overflow: auto; }
 .choices button { width: 100%; text-align: left; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); cursor: pointer; font: inherit; color: inherit; }
-.choices button:hover, .choices button:focus-visible { border-color: var(--primary); background: #fbfaf6; }
+.choices button:hover, .choices button:focus-visible { border-color: var(--primary); background: var(--hover); }
 .choices button > span:not(:global(.chip)) { grid-column: 1; }
 .choices button > :global(.chip) { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
 
 /* After an import: what came across is tinted green; what to check is amber. */
-.filledBanner { display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px; background: var(--verified-soft); color: #145230; position: relative; padding-right: 110px; }
+.filledBanner { display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px; background: var(--verified-soft); color: var(--verified); position: relative; padding-right: 110px; }
 .filledBanner > button { position: absolute; right: 8px; top: 8px; }
-.fromImport, :global(.input).fromImport { background: #f3f9f4; border-color: #9cc9ad; }
-.checkThis, :global(.input).checkThis { background: #fdf7e4; border-color: #d9b45a; box-shadow: 0 0 0 3px rgba(217, 180, 90, 0.18); }
+.fromImport, :global(.input).fromImport { background: color-mix(in oklab, var(--verified-soft) 55%, var(--paper)); border-color: color-mix(in oklab, var(--verified) 40%, transparent); }
+.checkThis, :global(.input).checkThis { background: color-mix(in oklab, var(--amber-soft) 70%, var(--paper)); border-color: color-mix(in oklab, var(--gold) 70%, transparent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold) 18%, transparent); }
 .checkKey { background: var(--amber-soft); color: var(--amber); padding: 0 6px; border-radius: 5px; font-weight: 700; }
 
 .tile { padding: 10px 12px; display: flex; gap: 10px; cursor: pointer; box-shadow: none; border: 1px solid var(--line); }
-.tileOn { border-color: var(--primary); background: #f6faf7; }
-.checkRow { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: #fbfaf6; border: 1px solid var(--line); cursor: pointer; }
+.tileOn { border-color: var(--primary); background: var(--primary-soft); }
+.checkRow { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--hover); border: 1px solid var(--line); cursor: pointer; }
 .checkRow input { margin-top: 3px; }
 
 /* Place picker */
@@ -58,10 +58,10 @@
 @media (max-width: 1180px) { .previewCol { position: static; max-width: 560px; } }
 .preview { overflow: hidden; }
 .previewMap { width: 100%; height: 170px; border: 0; display: block; pointer-events: none; filter: saturate(0.85); }
-.previewNoMap { height: 90px; display: grid; place-items: center; background: repeating-linear-gradient(135deg, #f4f3ee, #f4f3ee 10px, #efede6 10px, #efede6 20px); color: var(--ink-3); font-size: 13px; }
+.previewNoMap { height: 90px; display: grid; place-items: center; background: repeating-linear-gradient(135deg, var(--surface-2), var(--surface-2) 10px, var(--hover) 10px, var(--hover) 20px); color: var(--ink-3); font-size: 13px; }
 .previewBody { padding: 14px 16px 16px; display: grid; gap: 6px; }
 .previewTitle { font-family: var(--font-display), Georgia, serif; font-size: 20px; color: var(--canopy); line-height: 1.15; }
-.previewNotes { background: #fbfaf6; border-radius: 8px; padding: 8px 10px; color: var(--ink-2); white-space: pre-wrap; }
+.previewNotes { background: var(--hover); border-radius: 8px; padding: 8px 10px; color: var(--ink-2); white-space: pre-wrap; }
 .previewButtons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .previewButtons :global(.btn) { pointer-events: none; }
 .dim { opacity: 0.45; }

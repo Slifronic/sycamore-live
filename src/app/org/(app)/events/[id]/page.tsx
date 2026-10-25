@@ -20,6 +20,9 @@ import { announcement, eventLinks } from '@/lib/event-public';
 import { SharePanel } from '@/components/events/SharePanel';
 import { Cover } from '@/components/media/Cover';
 import { coverFor } from '@/lib/covers';
+import { Icon } from '@/components/shell/icons';
+import { Stagger } from '@/components/motion/Stagger';
+import { ToastOnMount } from '@/components/shell/Toast';
 
 export const metadata = { title: 'Event day' };
 
@@ -27,13 +30,14 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
   const org = await requireOrg();
   const { id } = await params;
   if (!isUuid(id)) notFound();
-  const created = (await searchParams).created === '1';
+  const sp = await searchParams;
+  const created = sp.created === '1';
   const event = await getEvent(org.id, id);
   if (!event) notFound();
   const [roster, tagMap] = await Promise.all([getRoster(id), tagsForEvents([id])]);
   const tags = tagMap.get(id) ?? [];
   const links = eventLinks(event);
-  const saved = (await searchParams).saved === '1';
+  const saved = sp.saved === '1';
   const url = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/checkin?code=${event.checkin_code}`;
   const qr = await QRCode.toString(url, { type: 'svg', margin: 1, color: { dark: '#10281d', light: '#ffffff' } });
   const now = requestNow();
@@ -50,102 +54,113 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
   const dayOf = !event.is_practice && !event.attested_at && (live || utcToPacific(new Date(event.starts_at)).ymd === utcToPacific(new Date(now)).ymd);
   const sharePanel = <SharePanel url={links.page} title={event.title} announcement={announcement(event, org.name)} links={{ google: links.google, ics: links.ics, outlook: links.outlook }} />;
 
+  const importOpen = sp.import === '1' && !event.attested_at;
+  const when = `${fmtDay(event.starts_at)} · ${fmtTime(event.starts_at)} – ${fmtTime(event.ends_at)}`;
+
   return (
-    <div className="page" style={{ gap: 20 }}>
+    <Stagger className={`page ${s.page}`}>
+      {saved && <ToastOnMount id={`saved-${id}`} message="Event saved" body="The event page and calendar feeds show the new details." />}
+      {created && <ToastOnMount id={`created-${id}`} message="Event created" body="Share the link with volunteers. On the day, show the QR full screen." />}
       {!event.is_practice && <Cover cover={coverFor({ title: event.title, activity: event.activity, tags })} variant="band" priority className={`${s.band} no-print`} />}
       <PageHeader
         eyebrow={
-          <span className="row" style={{ gap: 8 }}>
-            {live && <span className={s.liveDot} aria-hidden />}
-            {live ? <span style={{ color: 'var(--primary)' }}>Live</span> : <Link href="/org/events">Events</Link>}
+          <span className={s.eyebrow}>
+            {live ? (
+              <>
+                <span className={s.liveDot} aria-hidden />
+                <span style={{ color: 'var(--primary)' }}>Live now</span>
+              </>
+            ) : event.attested_at ? (
+              <span style={{ color: 'var(--verified)' }}>Verified · records issued</span>
+            ) : (
+              <Link href="/org/events">Events</Link>
+            )}
             <span aria-hidden>·</span>
             {event.is_practice ? 'Practice' : ACTIVITY_LABEL[event.activity]}
           </span>
         }
         title={event.title}
-        lede={
-          <>
-            {fmtDay(event.starts_at)} · {fmtTime(event.starts_at)} to {fmtTime(event.ends_at)}
-            {event.location ? (
-              <>
-                {' · '}
-                {links.directions ? (
-                  <a href={links.directions} target="_blank" rel="noopener">
-                    {event.location}
-                  </a>
-                ) : (
-                  event.location
-                )}
-              </>
-            ) : (
-              ''
-            )}
-            {tags.length > 0 && (
-              <span className="row wrap" style={{ gap: 6, marginTop: 2 }}>
-                {tags.map((t) => (
-                  // The link is a full finger tall; the tag inside keeps its small look.
-                  <Link key={t.id} href={`/org/events?tag=${encodeURIComponent(t.name)}`} className={s.tagLink}>
-                    <span className={`tag tag-${t.color}`}>{t.name}</span>
-                  </Link>
-                ))}
-              </span>
-            )}
-            {event.goal_text && (
-              <>
-                <br />
-                Goal: <strong style={{ color: 'var(--ink)' }}>{event.goal_text}</strong>
-              </>
-            )}
-          </>
-        }
         action={
           event.attested_at ? (
-            <span className="row wrap" style={{ gap: 8 }}>
-              <span className="chip chip-green" style={{ height: 32 }}>✓ Verified · records issued</span>
-              <Link className="btn btn-big btn-primary" href={`/org/events/${id}/story`}>
-                🎙 Tell the story
-              </Link>
-            </span>
+            <Link className="btn btn-primary" href={`/org/events/${id}/story`}>
+              Tell the story <Icon name="arrow-right" size={16} />
+            </Link>
           ) : ended || event.is_practice ? (
-            <span className="row wrap" style={{ gap: 8 }}>
-              <Link className="btn btn-big" href={`/org/events/${id}/story`}>
-                🎙 Record a debrief
-              </Link>
-              <Link className="btn btn-big btn-primary" href={`/org/events/${id}/verify`}>
-                Close & verify
-              </Link>
-            </span>
+            <Link className="btn btn-primary" href={`/org/events/${id}/verify`}>
+              <Icon name="check" size={16} /> Close &amp; verify
+            </Link>
           ) : (
             // While the event runs, closing it is a quiet option; the QR is the job.
-            <Link className="btn btn-sm" href={`/org/events/${id}/verify`}>
-              Close & verify early
+            <Link className="btn btn-sm btn-quiet" href={`/org/events/${id}/verify`}>
+              Close &amp; verify early
             </Link>
           )
         }
       />
-      {!event.is_practice && (
-        <nav className={`row wrap ${dayOf ? s.dayNav : ''}`} style={{ gap: 8 }} aria-label="This event">
-          {!event.attested_at && (
-            <Link className="btn btn-sm" href={`/org/events/${id}/edit`}>
-              ✎ Edit details
-            </Link>
+
+      {/* The event's facts as one row of properties, with its quick links on the right. */}
+      <div className={`${s.meta} ${dayOf ? s.dayNav : ''}`}>
+        <ul className={s.props} aria-label="Details">
+          <li>
+            <Icon name="calendar" size={16} />
+            <span className="num">{when}</span>
+          </li>
+          {event.location && (
+            <li>
+              <Icon name="pin" size={16} />
+              {links.directions ? (
+                <a href={links.directions} target="_blank" rel="noopener">
+                  {event.location}
+                </a>
+              ) : (
+                <span>{event.location}</span>
+              )}
+            </li>
           )}
-          <Link className="btn btn-sm" href={`/org/messages/broadcasts?new=1&event=${id}`}>
-            📣 Send announcement
-          </Link>
-          <Link className="btn btn-sm" href={`/org/messages/events/${id}`}>
-            💬 Group chat
-            {chat.messages > 0 && <span className="muted"> · {chat.messages}</span>}
-            {chat.unread > 0 && <span className="chip chip-red" style={{ height: 20, fontSize: 11 }}>{chat.unread} new</span>}
-          </Link>
-        </nav>
-      )}
-      {saved && <p className="notice notice-green">Saved. The event page and calendar feeds show the new details.</p>}
-      {created && (
-        <p className="notice notice-green">
-          <strong>Event created.</strong> Share the link below in your group chats now. On the day, tap “Show QR full screen” and set your phone or laptop on the sign-in table. That’s it.
-        </p>
-      )}
+          {event.goal_text && (
+            <li>
+              <Icon name="leaf" size={16} />
+              <span>
+                Goal: <strong>{event.goal_text}</strong>
+              </span>
+            </li>
+          )}
+          {tags.map((t) => (
+            <li key={t.id} className={s.tagItem}>
+              {/* The link is a full finger tall; the tag inside keeps its small look. */}
+              <Link href={`/org/events?tag=${encodeURIComponent(t.name)}`} className={s.tagLink}>
+                <span className={`tag tag-${t.color}`}>{t.name}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        {!event.is_practice && (
+          <nav className={s.quick} aria-label="This event">
+            {!event.attested_at && (
+              <Link className="btn btn-sm btn-quiet" href={`/org/events/${id}/edit`}>
+                Edit
+              </Link>
+            )}
+            <Link className="btn btn-sm btn-quiet" href={`/org/messages/broadcasts?new=1&event=${id}`}>
+              <Icon name="megaphone" size={16} /> Announce
+            </Link>
+            <Link className="btn btn-sm btn-quiet" href={`/org/messages/events/${id}`}>
+              <Icon name="message" size={16} /> Chat
+              {chat.unread > 0 ? (
+                <span className={s.unread}>{chat.unread} new</span>
+              ) : (
+                chat.messages > 0 && <span className={s.count}>{chat.messages}</span>
+              )}
+            </Link>
+            {ended && !event.attested_at && (
+              <Link className="btn btn-sm btn-quiet" href={`/org/events/${id}/story`}>
+                Debrief
+              </Link>
+            )}
+          </nav>
+        )}
+      </div>
+
       {share && !live && sharePanel}
       <EventDay
         eventId={id}
@@ -160,9 +175,10 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
         site={{ lat: event.site_lat, lng: event.site_lng, radius_m: event.site_radius_m }}
         walkin={walkin}
         now={now}
+        importOpen={importOpen}
       />
       {share && live && sharePanel}
-    </div>
+    </Stagger>
   );
 }
 

@@ -4,19 +4,21 @@ import QRCode from 'qrcode';
 import { appUrl, requireVolunteer, volunteerRecord } from '@/lib/vol-data';
 import { fmtHours } from '@/lib/hours';
 import { ROLE_LABEL } from '@/lib/types';
-import { PageHeader } from '@/components/PageHeader';
 import { RecordWording, longDate } from '@/components/vol/RecordWording';
-import { PrintButton } from '@/app/org/(app)/reports/PrintButton';
-import { SharePanel } from './SharePanel';
 import { HoursBar } from '@/components/media/HoursBar';
-import { BlurbPanel } from './BlurbPanel';
-import s from '../../../pages.module.css';
+import { Leaf } from '@/components/media/Leaf';
+import { Icon } from '@/components/shell/icons';
+import { orgInitials } from '@/components/vol/org-color';
+import { RecordActions } from './RecordActions';
+import s from './record.module.css';
 
 export const metadata = { title: 'Record' };
 
-// Contract: one record. The exact record wording, captured versus adjusted with
-// the reason, and the share link (with a QR code). Minors see that sharing
-// needs a guardian's OK, and the API refuses them too. Prints as a certificate.
+// One record, as a certificate: the exact record wording, captured versus
+// adjusted when the coordinator changed it, then two actions: Share (link, QR,
+// copy) and Use this record (a resume line or scholarship sentence). Minors
+// see why sharing is off, and the API refuses them too. Prints as a
+// certificate; the certificate stays paper-coloured in the dark theme.
 
 const pacificDay = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'long', day: 'numeric', year: 'numeric' });
 
@@ -28,51 +30,63 @@ export default async function RecordPage({ params }: PageProps<'/me/records/[id]
   const url = r.code ? `${appUrl()}/v/${r.code}` : null;
   const qr = url ? await QRCode.toString(url, { type: 'svg', margin: 1, color: { dark: '#10281d', light: '#ffffff' } }) : null;
   const revoked = r.status !== 'active';
+  const adjusted = r.hours_adjusted != null;
 
   return (
     <div className={s.page}>
       <Link href="/me" className={`${s.back} no-print`}>
-        ← My hours
+        <Icon name="chevron-left" size={16} /> Home
       </Link>
-      <PageHeader eyebrow="Attested record" title={r.event.title} lede={`${r.org.name} · ${longDate(r.event.date)}`} />
-      <div className={s.detail}>
-        <article className={`card ${s.cert}`}>
-          <div className="row between wrap">
-            <span className="eyebrow">SycaMore Live · Service record</span>
-            <span className={`chip ${revoked ? 'chip-red' : 'chip-green'}`}>{revoked ? 'Revoked by the organization' : '✓ Organization-attested'}</span>
-          </div>
-          <div className={s.certStats}>
-            <div className="stack" style={{ gap: 4 }}>
-              <span className="figure">
-                {fmtHours(r.hours_total)}
-                <span className="figure-unit">hours</span>
-              </span>
-              <span className="small muted">Total attested</span>
-            </div>
-            <div className="stack" style={{ gap: 4 }}>
-              <span className="figure" style={{ fontSize: 24 }}>
-                {ROLE_LABEL[r.role]}
-              </span>
-              <span className="small muted">Role confirmed by the coordinator</span>
-            </div>
-          </div>
-          <RecordWording r={r} className={s.wording} fineClassName={s.fine} />
-          <HoursBar captured={r.hours_captured} attested={r.hours_total} adjustedBy={r.adjusted_by} reason={r.adjustment_reason} />
-          <p className={s.fine}>
-            Attested {pacificDay(r.attested_at)} · Times in Pacific time{r.code ? ` · Verify at ${appUrl().replace(/^https?:\/\//, '')}/v/${r.code}` : ''}
-          </p>
-        </article>
 
-        <aside className={`${s.col} no-print`}>
-          <SharePanel recordId={r.id} url={url} qrSvg={qr} isMinor={vol.is_minor} revoked={revoked} />
-          {!revoked && <BlurbPanel recordId={r.id} orgName={r.org.name} />}
-          <div className="card card-pad stack">
-            <h3>Keep a copy</h3>
-            <p className="small muted">{`Print this record or save it as a PDF for a school or scholarship file.${url && !revoked ? ' The link above is what proves it.' : ''}`}</p>
-            <PrintButton label="Print or save as PDF" />
+      <article className={`${s.cert} force-light`} aria-labelledby="cert-title">
+        <header className={s.certHead}>
+          <span className={s.brand}>
+            <Leaf size={16} color="var(--canopy)" /> SycaMore Live · Service record
+          </span>
+          <span className={`chip ${revoked ? 'chip-red' : 'chip-green'}`}>
+            {revoked ? (
+              'Revoked by the organization'
+            ) : (
+              <>
+                <Icon name="check" size={14} /> Organization-attested
+              </>
+            )}
+          </span>
+        </header>
+
+        <div className={s.lead}>
+          <p className={s.hours}>
+            {fmtHours(r.hours_total)}
+            <span>{r.hours_total === 1 ? 'hour' : 'hours'}</span>
+          </p>
+          <div className={s.titles}>
+            <h1 id="cert-title" className={s.title}>
+              {r.event.title}
+            </h1>
+            <p className={s.sub}>
+              {ROLE_LABEL[r.role]} · {longDate(r.event.date)}
+            </p>
           </div>
-        </aside>
-      </div>
+        </div>
+
+        <RecordWording r={r} className={s.wording} fineClassName={s.fine} />
+        {adjusted && <HoursBar captured={r.hours_captured} attested={r.hours_total} adjustedBy={r.adjusted_by} reason={r.adjustment_reason} />}
+
+        <footer className={s.certFoot}>
+          <span className={s.orgTile} aria-hidden>
+            {orgInitials(r.org.name)}
+          </span>
+          <span className={s.orgText}>
+            <b>{r.org.name}</b>
+            <span>
+              Attested {pacificDay(r.attested_at)}
+              {r.code ? ` · Verify at ${appUrl().replace(/^https?:\/\//, '')}/v/${r.code}` : ''}
+            </span>
+          </span>
+        </footer>
+      </article>
+
+      <RecordActions recordId={r.id} url={url} qrSvg={qr} isMinor={vol.is_minor} revoked={revoked} orgName={r.org.name} />
     </div>
   );
 }

@@ -1,0 +1,83 @@
+/* Volunteer home (/me). Mobile first; tokens from globals.css only. */
+.page { display: grid; gap: 28px; }
+.page > * { min-width: 0; }
+
+/* The one big number. */
+.hero { display: grid; gap: 6px; align-content: start; padding-top: 4px; }
+.heroLabel { font-size: 12px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); }
+.heroNum { font: 600 72px/0.95 var(--font-display), Georgia, serif; letter-spacing: -0.045em; color: var(--canopy); font-variant-numeric: tabular-nums; }
+.heroSub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 14px; color: var(--ink-2); }
+.delta { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: var(--verified-soft); color: var(--verified); font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* Personal goal: a thin bar and one line. */
+.goal { display: grid; gap: 8px; margin-top: 10px; max-width: 420px; }
+.goalBar { height: 6px; border-radius: 999px; background: var(--rule-soft); overflow: hidden; }
+.goalBar span { display: block; height: 100%; border-radius: inherit; background: var(--fill); transform-origin: left; transition: transform 0.9s var(--ease-out); }
+.goalText { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.goalEdit, .goalSet {
+  border: 0; background: none; padding: 0 2px; min-height: 32px; font: 600 13px var(--font-sans), system-ui, sans-serif; color: var(--primary); cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.goalSet { justify-self: start; margin-top: 4px; }
+.goalForm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.goalForm :global(.input) { width: 96px; height: 36px; }
+.goalLabel { width: 100%; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+
+/* What's live right now. */
+.now { display: grid; gap: 10px; align-content: start; }
+
+.active { display: grid; gap: 4px; padding: 18px 18px 16px; border-radius: 20px; background: var(--ink-panel); color: var(--on-ink-panel); box-shadow: var(--shadow-hi); }
+.activeTop { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.liveTag { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #8fd3ab; }
+.dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: #5cd38f; }
+.dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #5cd38f; animation: ping 1.8s var(--ease-out) infinite; }
+@keyframes ping { 0% { transform: scale(1); opacity: 0.6; } 80%, 100% { transform: scale(2.8); opacity: 0; } }
+.activeLink { display: inline-flex; align-items: center; min-height: 36px; padding: 0 4px; font-size: 13px; font-weight: 600; color: var(--on-ink-panel); opacity: 0.8; text-decoration: underline; text-underline-offset: 3px; }
+.activeTitle { font: 600 21px/1.2 var(--font-display), Georgia, serif; color: var(--on-ink-panel); letter-spacing: -0.01em; }
+.activeSub { font-size: 14px; color: var(--on-ink-panel); opacity: 0.75; }
+.activeRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.timer { font: 600 40px/1 var(--font-display), Georgia, serif; color: var(--on-ink-panel); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.timer span { font: 600 16px var(--font-sans), system-ui, sans-serif; opacity: 0.7; margin-left: 2px; }
+.checkout {
+  height: 52px; padding: 0 24px; border: 0; border-radius: 999px; background: var(--on-ink-panel); color: var(--ink-panel);
+  font: 700 16px var(--font-sans), system-ui, sans-serif; cursor: pointer; flex: none;
+}
+.checkout:focus-visible { outline: 3px solid #8fd3ab; outline-offset: 2px; }
+.checkout:disabled { opacity: 0.7; cursor: default; }
+.activeError { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.1); font-size: 14px; }
+
+.pending { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: center; padding: 14px 16px; border-radius: var(--radius); background: var(--amber-soft); color: var(--amber); }
+.pendingIcon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--amber) 14%, transparent); }
+.pendingText { display: grid; gap: 2px; min-width: 0; }
+.pendingText b { font-size: 15px; font-weight: 700; }
+.pendingText span { font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.next {
+  display: grid; grid-template-columns: 46px minmax(0, 1fr) 20px; gap: 12px; align-items: center; padding: 12px 14px; min-height: 72px;
+  border-radius: var(--radius); background: var(--paper); box-shadow: var(--shadow); color: inherit; text-decoration: none;
+}
+.nextDate { display: grid; justify-items: center; align-content: center; height: 46px; border-radius: 10px; background: var(--primary-soft); color: var(--canopy); font-size: 10px; font-weight: 800; letter-spacing: 0.08em; line-height: 1.1; }
+.nextDate b { font: 600 18px var(--font-display), Georgia, serif; letter-spacing: 0; }
+.nextBody { display: grid; gap: 1px; min-width: 0; }
+.nextEyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--primary); }
+.nextTitle { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nextMeta { font-size: 13px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nextChev { color: var(--ink-3); }
+
+/* Organizations. */
+.orgs { display: grid; gap: 4px; }
+.sectionHead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.h2 { font-size: 21px; }
+.headLink { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-size: 14px; font-weight: 600; color: var(--primary); text-decoration: none; }
+
+@media (min-width: 861px) {
+  .page { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 36px 40px; padding-top: 8px; }
+  .hero { grid-column: 1; }
+  .now { grid-column: 2; padding-top: 10px; }
+  .orgs { grid-column: 1 / -1; }
+  .page:not(:has(.now)) .hero { grid-column: 1 / -1; }
+  .heroNum { font-size: 96px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dot::after { animation: none; }
+  .goalBar span { transition: none; }
+}

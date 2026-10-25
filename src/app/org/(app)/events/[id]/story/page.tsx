@@ -6,6 +6,8 @@ import { getCampaign, getClips, getNotes, publishBlockers, storyEnabled, storyFa
 import { fmtDay } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { StoryStudio } from './StoryStudio';
+import { Chip } from '@/components/ui/Chip';
+import { Stagger } from '@/components/motion/Stagger';
 
 export const metadata = { title: 'Event story' };
 
@@ -17,7 +19,7 @@ export default async function StoryPage({ params }: PageProps<'/org/events/[id]/
   const [notes, clips, campaign, facts] = await Promise.all([getNotes(id), getClips(id), getCampaign(id), storyFacts(org, event)]);
 
   return (
-    <div className="page" style={{ gap: 20 }}>
+    <Stagger className="page" style={{ gap: 20 }}>
       <PageHeader
         eyebrow={
           <span className="row" style={{ gap: 8 }}>
@@ -27,10 +29,12 @@ export default async function StoryPage({ params }: PageProps<'/org/events/[id]/
           </span>
         }
         title="Event story"
-        lede="Talk through what happened and add the videos people took. Claude turns them into a campaign you edit and publish. The numbers always come from your verified record."
+        lede="Your notes and videos become a campaign. Every number comes from the verified record."
         action={
           event.attested_at ? (
-            <span className="chip chip-green" style={{ height: 32 }}>✓ Verified · {facts.volunteers} volunteers · {facts.verified_hours} hours</span>
+            <Chip tone="green" icon="check">
+              Verified · {facts.volunteers} volunteers · {facts.verified_hours} hours
+            </Chip>
           ) : (
             <Link className="btn btn-sm" href={`/org/events/${id}/verify`}>
               Verify the event to publish
@@ -45,7 +49,7 @@ export default async function StoryPage({ params }: PageProps<'/org/events/[id]/
         aiEnabled={storyEnabled()}
         initial={JSON.parse(JSON.stringify({ notes, clips, campaign, facts, blockers: publishBlockers(campaign, event) }))}
       />
-    </div>
+    </Stagger>
   );
 }
 

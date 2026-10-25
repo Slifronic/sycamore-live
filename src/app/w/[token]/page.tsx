@@ -38,9 +38,9 @@ export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
       return (
         <main className={s.page}>
           <header className={s.head}>
-            <Cover cover={coverFor({ title: active.title })} variant="band" priority className={`${s.hero} settle`}>
-              <p className={`${s.org} rise`}>{active.org_name}</p>
-              <h1 className={`${s.title} rise`} style={{ ['--d' as string]: '0.08s' }}>
+            <Cover cover={coverFor({ title: active.title })} variant="band" priority className={s.hero}>
+              <p className={s.org}>{active.org_name}</p>
+              <h1 className={s.title}>
                 {active.title}
               </h1>
             </Cover>
@@ -89,9 +89,9 @@ export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
   return (
     <main className={s.page}>
       <header className={s.head}>
-        <Cover cover={coverFor(event)} variant="band" priority className={`${s.hero} settle`}>
-          <p className={`${s.org} rise`}>{org.name}</p>
-          <h1 className={`${s.title} rise`} style={{ ['--d' as string]: '0.08s' }}>
+        <Cover cover={coverFor(event)} variant="band" priority className={s.hero}>
+          <p className={s.org}>{org.name}</p>
+          <h1 className={s.title}>
             {event.title}
           </h1>
         </Cover>

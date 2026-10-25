@@ -111,7 +111,7 @@ export default async function BadgeDetail({ params }: PageProps<'/me/badges/[key
       </Link>
       <PageHeader eyebrow="Signed recognition" title={b.def.name} lede={`${award.org.name} · signed ${signed}`} className="no-print" />
       <div className={s.detail}>
-        <article className={`card ${s.cert}`}>
+        <article className={`card force-light ${s.cert}`}>
           <div className="row between wrap">
             <span className="eyebrow">SycaMore Live · Badge certificate</span>
             <span className="chip chip-green">✓ Signed by the organization</span>

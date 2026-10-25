@@ -48,7 +48,7 @@ export default async function VerifyPage({ params }: PageProps<'/v/[code]'>) {
           <PrintButton label="Print" className="btn btn-quiet btn-sm" />
         </header>
 
-        <section className={`${s.banner} ${ok ? s.ok : s.bad} rise`} role="status">
+        <section className={`${s.banner} ${ok ? s.ok : s.bad}`} role="status">
           <span className={s.bannerDot} aria-hidden />
           <span>
             <strong>{ok ? `Verified · issued by ${r.org.name}` : `Revoked · ${r.org.name} has withdrawn this record`}</strong>
@@ -56,7 +56,7 @@ export default async function VerifyPage({ params }: PageProps<'/v/[code]'>) {
           </span>
         </section>
 
-        <article className={`${s.sheet} ${ok ? '' : s.sheetRevoked} rise`} style={{ ['--d' as string]: '0.08s' }} aria-labelledby="rec-name">
+        <article className={`${s.sheet} ${ok ? "" : s.sheetRevoked} force-light`} aria-labelledby="rec-name">
           <Seal state={ok ? 'verified' : 'revoked'} size={112} className={s.seal} />
           <div className={s.sheetHead}>
             <p className={s.eyebrow}>
@@ -96,7 +96,7 @@ export default async function VerifyPage({ params }: PageProps<'/v/[code]'>) {
           </div>
         </article>
 
-        <section className={`${s.issuer} rise`} style={{ ['--d' as string]: '0.16s' }} aria-labelledby="issuer">
+        <section className={`${s.issuer}`} aria-labelledby="issuer">
           <span className={s.tile} aria-hidden>
             {initials(r.org.name)}
           </span>

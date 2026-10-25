@@ -41,7 +41,7 @@ export default async function BadgeVerifyPage({ params }: PageProps<'/v/b/[code]
           <PrintButton label="Print" className="btn btn-quiet btn-sm" />
         </header>
 
-        <section className={`${s.banner} ${s.ok} rise`} role="status">
+        <section className={`${s.banner} ${s.ok}`} role="status">
           <span className={s.bannerDot} aria-hidden />
           <span>
             <strong>Verified · signed by {b.org.name}</strong>
@@ -51,7 +51,7 @@ export default async function BadgeVerifyPage({ params }: PageProps<'/v/b/[code]
           </span>
         </section>
 
-        <article className={`${s.sheet} rise`} style={{ ['--d' as string]: '0.08s' }} aria-labelledby="badge-name">
+        <article className={`${s.sheet} force-light`} aria-labelledby="badge-name">
           <Seal state="verified" label="Signed badge · verified by the organization · " size={112} className={s.seal} />
           <div className={s.sheetHead}>
             <p className={s.eyebrow}>
@@ -98,7 +98,7 @@ export default async function BadgeVerifyPage({ params }: PageProps<'/v/b/[code]
           </div>
         </article>
 
-        <section className={`${s.issuer} rise`} style={{ ['--d' as string]: '0.16s' }} aria-labelledby="issuer">
+        <section className={`${s.issuer}`} aria-labelledby="issuer">
           <span className={s.tile} aria-hidden>
             {initials(b.org.name)}
           </span>

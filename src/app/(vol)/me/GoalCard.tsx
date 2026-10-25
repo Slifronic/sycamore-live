@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { fmtHours } from '@/lib/hours';
-import s from '../pages.module.css';
+import s from './home.module.css';
 
-// A private personal goal. It's a target the volunteer picks, never a claim of
-// hours served: only attested hours (passed in from the server) fill the ring.
+// A private personal goal, as one line under the hero number. It's a target
+// the volunteer picks, never a claim of hours served: only attested hours
+// (passed in from the server) fill the bar.
 export function GoalCard({ goal, attested }: { goal: number | null; attested: number }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -25,56 +26,56 @@ export function GoalCard({ goal, attested }: { goal: number | null; attested: nu
     router.refresh();
   };
 
-  return (
-    <section className={`card ${s.goal}`} aria-label="Personal goal">
-      <div className={s.goalTop}>
-        <div className="stack" style={{ gap: 4 }}>
-          <span className="eyebrow">Your personal goal</span>
-          <h3>{goal ? (attested >= goal ? 'Goal reached.' : 'A little closer.') : 'Set a goal for yourself'}</h3>
-          <p className="small muted">
-            {goal ? `${fmtHours(attested)} of ${goal} attested hours` : 'Only you see it. Attested hours count toward it.'}
-          </p>
-        </div>
-        {goal && (
-          <span className={s.ring} style={{ background: `conic-gradient(var(--sap) ${pct * 3.6}deg, var(--rule-soft) 0)` }} role="img" aria-label={`${pct}% of your goal`}>
-            <span>{pct}%</span>
-          </span>
-        )}
-      </div>
-      {editing ? (
-        <form
-          className={s.goalForm}
-          onSubmit={(e) => {
-            e.preventDefault();
-            void save(Number(new FormData(e.currentTarget).get('goal')));
-          }}
-        >
-          <div className="field">
-            <label htmlFor="goal-hours">Target hours</label>
-            <input id="goal-hours" className="input" name="goal" type="number" inputMode="numeric" min={1} max={2000} step={1} defaultValue={goal ?? 40} required autoFocus />
-          </div>
-          <button className="btn btn-primary" disabled={busy}>
-            Save
-          </button>
-          {goal && (
-            <button type="button" className="btn btn-quiet" disabled={busy} onClick={() => save(null)}>
-              Remove
-            </button>
-          )}
-          <button type="button" className="btn btn-quiet" onClick={() => setEditing(false)}>
-            Cancel
-          </button>
-        </form>
-      ) : (
-        <button className="btn btn-sm" style={{ justifySelf: 'start' }} onClick={() => setEditing(true)}>
-          {goal ? 'Change goal' : 'Set a goal'}
+  if (editing)
+    return (
+      <form
+        className={s.goalForm}
+        onSubmit={(e) => {
+          e.preventDefault();
+          void save(Number(new FormData(e.currentTarget).get('goal')));
+        }}
+      >
+        <label htmlFor="goal-hours" className={s.goalLabel}>
+          Your goal, in hours
+        </label>
+        <input id="goal-hours" className="input" name="goal" type="number" inputMode="numeric" min={1} max={2000} step={1} defaultValue={goal ?? 40} required autoFocus />
+        <button className="btn btn-primary btn-sm" disabled={busy}>
+          Save
         </button>
-      )}
-      {error && (
-        <p className="notice notice-red small" role="alert">
-          {error}
-        </p>
-      )}
-    </section>
+        {goal && (
+          <button type="button" className="btn btn-quiet btn-sm" disabled={busy} onClick={() => save(null)}>
+            Remove
+          </button>
+        )}
+        <button type="button" className="btn btn-quiet btn-sm" onClick={() => setEditing(false)}>
+          Cancel
+        </button>
+        {error && (
+          <p className="notice notice-red small" role="alert">
+            {error}
+          </p>
+        )}
+      </form>
+    );
+
+  if (!goal)
+    return (
+      <button type="button" className={s.goalSet} onClick={() => setEditing(true)}>
+        Set a private goal
+      </button>
+    );
+
+  return (
+    <div className={s.goal}>
+      <div className={s.goalBar} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Your personal goal">
+        <span style={{ transform: `scaleX(${pct / 100})` }} />
+      </div>
+      <p className={s.goalText}>
+        {attested >= goal ? 'Goal reached' : `${fmtHours(attested)} of your ${goal} h goal`}
+        <button type="button" className={s.goalEdit} onClick={() => setEditing(true)}>
+          Edit
+        </button>
+      </p>
+    </div>
   );
 }

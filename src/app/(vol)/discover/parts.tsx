@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Icon } from '@/components/shell/icons';
 import { useId, useState } from 'react';
 import { modes } from '@/lib/discover/match';
 import { allSkills, groups } from '@/lib/discover/taxonomy';
@@ -137,49 +138,52 @@ export function SaveButton({ id, title, wide = false }: { id: string; title: str
   const on = saved.has(id);
   return (
     <button type="button" className={`btn ${on ? '' : 'btn-primary'} ${wide ? s.wide : ''}`} aria-pressed={on} aria-label={`${on ? 'Unsave' : 'Save'} ${title}`} onClick={() => toggleSave(id)}>
-      {on ? '✓ Saved' : 'Save for later'}
+      {on ? 'Saved' : 'Save for later'}
     </button>
   );
 }
 
 export function OpportunityCard({ r, priority = false }: { r: Evaluation; priority?: boolean }) {
-  const { prefs, tab, hide } = useDiscover();
+  const { tab, hide, saved, toggleSave } = useDiscover();
   const l = listingOf(r);
+  const on = saved.has(l.id);
   return (
-    <article className={`card lift ${s.card}`}>
+    <article className={`card hover-lift ${s.card}`}>
       <Link href={`/discover/${l.slug}`} className={s.cardCover} tabIndex={-1} aria-hidden>
         <Cover cover={listingCover(l)} variant="card" priority={priority} />
       </Link>
-      <div className="row between wrap" style={{ gap: 8 }}>
-        <span className="eyebrow">{l.area ? groups[l.area].name : l.kind}</span>
-        <span className={`chip ${r.status === 'ready' ? 'chip-green' : 'chip-ink'}`}>{statusLabel(r)}</span>
-      </div>
-      <h3 className={s.cardTitle}>{l.title}</h3>
-      <p className="small muted">
-        {l.org}
-        {l.place && l.place !== l.org ? ` · ${l.place}` : ''}
+      <span className="eyebrow">{l.area ? groups[l.area].name : l.kind}</span>
+      <h3 className={s.cardTitle}>
+        <Link href={`/discover/${l.slug}`} className={s.cardLink}>
+          {l.title}
+        </Link>
+      </h3>
+      <p className={s.cardMeta}>
+        {l.org} · {dateLine(l)}
       </p>
-      <p className="small">{dateLine(l)}</p>
-      <div className={s.skillLine}>
-        <span className="small muted">You could practice</span>
+      {(l.practice?.length || l.cause) && (
         <span className="row wrap" style={{ gap: 6 }}>
-          {l.practice?.length ? l.practice.map((t) => <span key={t} className={s.skill}>{t}</span>) : <span className="small muted">Ask the organizer</span>}
+          {l.cause && <span className={s.cause}>{l.cause}</span>}
+          {l.practice?.slice(0, 3).map((t) => (
+            <span key={t} className={s.skill}>
+              {t}
+            </span>
+          ))}
         </span>
-      </div>
-      {l.cause && <span className={s.cause}>{l.cause}</span>}
-      <p className="small">{why(r, prefs)}</p>
+      )}
       <div className={s.fitLine}>
-        <strong>{r.low} fit points</strong>
-        <span className="small muted">{r.knownWeight < 100 ? `supported so far · up to ${r.high} once details are known` : 'out of 100'}</span>
+        <span className="small">
+          <strong>{r.low} fit points</strong>
+          <span className="muted">{r.knownWeight < 100 ? ` · up to ${r.high} once details are known` : ' of 100'}</span>
+        </span>
       </div>
       <div className="bar" aria-hidden>
         <span style={{ width: `${r.low}%` }} />
       </div>
-      <div className="row wrap" style={{ gap: 8 }}>
-        <Link className="btn" href={`/discover/${l.slug}`}>
-          See event & fit
-        </Link>
-        <SaveButton id={l.id} title={l.title} />
+      <div className={s.cardActions}>
+        <button type="button" className={`btn btn-sm ${on ? s.savedBtn : ''}`} aria-pressed={on} aria-label={`${on ? 'Unsave' : 'Save'} ${l.title}`} onClick={() => toggleSave(l.id)}>
+          <Icon name={on ? 'check' : 'plus'} size={16} /> {on ? 'Saved' : 'Save'}
+        </button>
         {tab === 'recommended' && (
           <button type="button" className="btn btn-quiet btn-sm" onClick={() => hide(l.id)}>
             Not for me

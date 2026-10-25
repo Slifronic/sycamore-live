@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { IndexResult } from '@/lib/insights';
 import { Gauge, GrowBar } from './motion/Gauge';
+import { Icon } from './shell/icons';
 import s from './index-card.module.css';
 
 export function IndexCard({ index, full = false, from }: { index: IndexResult; full?: boolean; from?: number }) {
@@ -19,7 +20,7 @@ export function IndexCard({ index, full = false, from }: { index: IndexResult; f
             <p className={s.tierNone}>Verify 3 events to get your score</p>
           ) : (
             <p className={`${s.tier} ${certified ? (gold ? s.tierGold : s.tierSilver) : ''}`}>
-              ★ {index.tier}
+              <Icon name="award" size={18} /> {index.tier}
               {certified ? ' certified' : ''}
             </p>
           )}
@@ -29,7 +30,7 @@ export function IndexCard({ index, full = false, from }: { index: IndexResult; f
           </p>
           {!full && (
             <Link className="btn btn-sm" href="/org/score" style={{ marginTop: 6, justifySelf: 'start' }}>
-              Open the Index →
+              Open the Index <Icon name="arrow-right" size={14} />
             </Link>
           )}
         </div>

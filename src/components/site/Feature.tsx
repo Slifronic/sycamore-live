@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
+import { Icon, type IconName } from '../shell/icons';
 import { Reveal, RevealGroup } from './Reveal';
 import s from './feature.module.css';
 
-// A text-and-picture row for the sub-pages. Rows alternate sides on wide
-// screens and stack (text first) on phones.
+// Building blocks for the sub-pages: a text-and-picture row, and a grid of
+// small cards. Rows alternate sides on wide screens and stack on phones.
 
 export function FeatureRow({
   id,
@@ -29,53 +30,37 @@ export function FeatureRow({
         </h3>
         <div className={s.body}>{children}</div>
       </Reveal>
-      <Reveal className={s.art} delay={90}>
+      <Reveal className={s.art} delay={60}>
         {art}
       </Reveal>
     </section>
   );
 }
 
-/** Bulleted facts with a small sap marker. */
-export function Facts({ items }: { items: ReactNode[] }) {
-  return (
-    <ul className={s.facts}>
-      {items.map((it, i) => (
-        <li key={i}>{it}</li>
-      ))}
-    </ul>
-  );
-}
-
 export function CardGrid({ children, cols = 3 }: { children: ReactNode; cols?: 2 | 3 | 4 }) {
   return (
-    <RevealGroup className={`${s.grid} ${s[`cols${cols}`]}`} step={70}>
+    <RevealGroup className={`${s.grid} ${s[`cols${cols}`]}`} step={50}>
       {children}
     </RevealGroup>
   );
 }
 
-export function MiniCard({ icon, title, children }: { icon?: ReactNode; title: string; children: ReactNode }) {
+export function MiniCard({ icon, title, children }: { icon?: IconName; title: string; children: ReactNode }) {
   return (
     <article className={s.mini}>
-      {icon}
+      {icon && (
+        <span className={s.miniIcon}>
+          <Icon name={icon} size={20} />
+        </span>
+      )}
       <h3 className={s.miniTitle}>{title}</h3>
       <div className={s.miniBody}>{children}</div>
     </article>
   );
 }
 
-/** A sticky row of in-page jump links. */
-export function JumpNav({ label, links, className }: { label: string; links: { href: string; label: string }[]; className?: string }) {
-  return (
-    <nav aria-label={label} className={`${s.jump} ${className ?? ''}`}>
-      <ul>
-        {links.map((l) => (
-          <li key={l.href}>
-            <a href={l.href}>{l.label}</a>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
+/** A plain art panel: a quiet well that holds a drawing at its natural size. */
+export function ArtWell({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={`${s.well} ${className ?? ''}`}>{children}</div>;
 }
+

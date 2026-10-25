@@ -1,0 +1,86 @@
+/* One record: a certificate card, two actions, and the sheet they open. */
+.page { display: grid; gap: 16px; max-width: 680px; margin: 0 auto; }
+.page > * { min-width: 0; }
+.back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; justify-self: start; font-size: 14px; font-weight: 600; color: var(--primary); text-decoration: none; }
+
+/* The certificate. .force-light keeps it paper in the dark theme. */
+.cert {
+  position: relative; isolation: isolate; display: grid; gap: 18px; padding: 30px 30px 24px; border-radius: 18px; color: var(--ink);
+  background: linear-gradient(180deg, var(--paper), color-mix(in srgb, var(--parchment) 70%, var(--paper)));
+  box-shadow: 0 1px 1px rgba(15, 38, 27, 0.04), 0 30px 60px -32px rgba(15, 38, 27, 0.45), 0 0 0 1px rgba(15, 38, 27, 0.07);
+  animation: lift 0.6s var(--ease-out) both;
+}
+.cert::before { content: ''; position: absolute; inset: 9px; z-index: -1; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--canopy) 16%, transparent); pointer-events: none; }
+@keyframes lift {
+  from { transform: translateY(14px) rotate(-0.7deg) scale(0.985); opacity: 0.4; box-shadow: 0 1px 2px rgba(15, 38, 27, 0.08), 0 0 0 1px rgba(15, 38, 27, 0.07); }
+}
+.certHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.brand { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); }
+
+.lead { display: grid; gap: 14px; }
+.titles { order: -1; display: grid; gap: 4px; }
+.title { font: 600 30px/1.12 var(--font-display), Georgia, serif; color: var(--canopy); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.sub { font-size: 15px; color: var(--ink-2); }
+.hours { display: flex; align-items: baseline; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); font: 600 64px/1 var(--font-display), Georgia, serif; letter-spacing: -0.04em; color: var(--canopy); font-variant-numeric: tabular-nums; }
+.hours span { font: 600 16px var(--font-sans), system-ui, sans-serif; letter-spacing: 0; color: var(--field); }
+
+.wording { font-size: 16px; line-height: 1.65; }
+.wording strong { color: var(--canopy); }
+.fine { font-size: 13px; line-height: 1.55; color: var(--ink-3); }
+
+.certFoot { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: center; padding-top: 16px; border-top: 1px solid var(--line); }
+.orgTile { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--canopy); color: var(--paper); font: 600 15px var(--font-display), Georgia, serif; }
+.orgText { display: grid; gap: 2px; min-width: 0; font-size: 13px; color: var(--ink-3); overflow-wrap: anywhere; }
+.orgText b { font-size: 15px; color: var(--ink); }
+
+/* Two actions. */
+.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.action { width: 100%; gap: 8px; height: 56px; border-radius: 14px; }
+.print { grid-column: 1 / -1; justify-self: center; color: var(--ink-2); font-weight: 600; }
+.minorNote { margin-top: -6px; text-align: center; font-size: 13px; color: var(--ink-3); }
+
+/* The sheet: bottom sheet on phones, a centred card on wider screens. */
+.sheet {
+  width: 100%; max-width: 520px; max-height: 88dvh; margin: auto auto 0; padding: 0; border: 0; border-radius: 22px 22px 0 0;
+  background: var(--paper); color: var(--ink); box-shadow: var(--pop); overflow: auto;
+}
+.sheet::backdrop { background: var(--scrim); }
+.sheet[open] { animation: sheet-up var(--dur-3) var(--ease-out); }
+@keyframes sheet-up { from { transform: translateY(24px); opacity: 0; } }
+.sheetInner { display: grid; gap: 16px; padding: 18px 20px calc(24px + env(safe-area-inset-bottom)); }
+.sheetHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sheetTitle { font-size: 20px; }
+.close { width: 44px; height: 44px; margin-right: -8px; border: 0; border-radius: 50%; display: grid; place-items: center; background: transparent; color: var(--ink-2); cursor: pointer; }
+.close:hover { background: var(--wash); }
+.close:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+.paneStack { display: grid; gap: 14px; }
+.paneText { font-size: 15px; color: var(--ink-2); }
+.paneFine { font-size: 13px; color: var(--ink-3); }
+.kinds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.linkRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.linkRow :global(.input) { color: var(--ink-2); }
+.qrCard { display: grid; justify-items: center; gap: 8px; padding: 18px; border-radius: 16px; background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); }
+.qr { width: 176px; height: 176px; }
+.qr svg { width: 100%; height: 100%; display: block; }
+.qrCaption { font-size: 13px; color: var(--ink-3); }
+.locked { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border-radius: 14px; background: var(--amber-soft); color: var(--amber); font-size: 15px; line-height: 1.5; }
+.locked p { color: var(--ink); }
+.lockedIcon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--amber) 14%, transparent); }
+
+@media (min-width: 641px) {
+  .sheet { margin: auto; border-radius: 20px; }
+  .sheetInner { padding: 22px 24px 24px; }
+}
+@media (max-width: 640px) {
+  .cert { padding: 24px 20px 20px; gap: 16px; }
+  .title { font-size: 26px; }
+  .hours { font-size: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cert, .sheet[open] { animation: none; }
+}
+@media print {
+  .page { max-width: none; }
+  .cert { animation: none; box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+}

@@ -57,7 +57,7 @@ export default async function JourneyPage() {
 
   return (
     <div className={s.page}>
-      <PageHeader eyebrow="Your service, over time" title="My journey" lede="Every attested event and role, and the badges signed along the way." />
+      <PageHeader eyebrow="Your service, over time" title="Journey" lede="Every attested event and role, and the badges signed along the way." />
 
       {active.length > 0 && (
         <section className={s.summary} aria-label="Summary">
@@ -142,7 +142,7 @@ export default async function JourneyPage() {
         </ol>
       )}
       <Link href="/me/badges" className={s.link}>
-        See your badges →
+        See your badges
       </Link>
     </div>
   );

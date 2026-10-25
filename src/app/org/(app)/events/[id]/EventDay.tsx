@@ -8,8 +8,10 @@ import { SheetImport } from './SheetImport';
 import { SiteSetup } from './SiteSetup';
 import { WalkinCard } from './WalkinCard';
 import type { WalkinPanel } from '@/lib/walkin-panel';
-import { LiveNumber } from '@/components/motion/LiveNumber';
-import { EmptyState } from '@/components/media/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Chip } from '@/components/ui/Chip';
+import { Icon } from '@/components/shell/icons';
+import { toast } from '@/components/shell/Toast';
 import s from './event.module.css';
 
 type Row = Omit<AttendanceRow, 'checked_in_at' | 'checked_out_at' | 'left_area_at'> & { checked_in_at: string | null; checked_out_at: string | null; left_area_at: string | null };
@@ -38,6 +40,8 @@ export function EventDay(props: {
   site: { lat: number | null; lng: number | null; radius_m: number };
   walkin: WalkinPanel | null;
   now: number;
+  /** Opened from "+ New → Import paper sheet" (?import=1): the import panel starts open. */
+  importOpen?: boolean;
 }) {
   const [rows, setRows] = useState<Row[]>(props.initial);
   const [walkin, setWalkin] = useState(props.walkin);
@@ -62,6 +66,7 @@ export function EventDay(props: {
   const boundAdd = addByName.bind(null, props.eventId);
   const [addState, addAction, adding] = useActionState(boundAdd, null);
   const nameRef = useRef<HTMLInputElement>(null);
+  const lastName = useRef('');
 
   // Live roster: poll every 3 seconds (contract: good enough, no websockets).
   useEffect(() => {
@@ -88,7 +93,9 @@ export function EventDay(props: {
   }, [props.eventId, props.verified]);
 
   useEffect(() => {
-    if (addState?.ok && nameRef.current) nameRef.current.value = '';
+    if (!addState?.ok) return;
+    if (nameRef.current) nameRef.current.value = '';
+    toast.success(lastName.current ? `Added ${lastName.current}` : 'Added to the roster');
   }, [addState]);
 
   // Full-screen QR is a native modal dialog: the page behind is inert, Esc closes
@@ -108,63 +115,63 @@ export function EventDay(props: {
       </p>
       <div className={`${s.grid} ${s.still}`}>
         <div className={s.side}>
-        {props.verified ? (
-          <section className={`card ${s.qrCard}`}>
-            <span className="chip chip-green" style={{ height: 32, fontSize: 14 }}>✓ Verified</span>
-            <p className={s.code}>{rows.filter((r) => r.status === 'attested').length}</p>
-            <p className="small muted" style={{ textAlign: 'center' }}>
-              hour records issued. Each volunteer can share theirs from their phone; anyone can check it at a public link.
-            </p>
-          </section>
-        ) : (
-        <section className={`card ${s.qrCard}`}>
-          <div className={s.qr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
-          <p className={s.code}>{props.code}</p>
-          <p className="small muted" style={{ textAlign: 'center' }}>
-            Scan to check in, or type the code at <br />
-            <strong>{props.url.replace(/^https?:\/\//, '').split('/checkin')[0]}/checkin</strong>
-          </p>
-          <button className={`btn btn-primary ${s.fullBtn}`} onClick={() => openFull('walkin')}>
-            Show QR full screen
-          </button>
-          <Link className="btn btn-sm btn-quiet" href={`/org/events/${props.eventId}/sign`} target="_blank">
-            Print a sign for the table
-          </Link>
-        </section>
-        )}
-        {walkin && walkinLive && walkinLive !== 'verified' && !props.verified && !props.practice && (
-          <WalkinCard
-            eventId={props.eventId}
-            panel={walkin}
-            state={walkinLive}
-            count={walkins}
-            onChange={(p) => {
-              setWalkin(p);
-              setNow(Date.now());
-            }}
-            onFull={() => openFull('walkin')}
-          />
-        )}
+          {props.verified ? (
+            <section className={`card ${s.qrCard}`}>
+              <Chip tone="green" icon="check">
+                Verified
+              </Chip>
+              <p className={`figure ${s.issued}`}>{rows.filter((r) => r.status === 'attested').length}</p>
+              <p className={s.qrHint}>hour records issued. Each volunteer can share theirs; anyone can check it at a public link.</p>
+            </section>
+          ) : (
+            <section className={`card ${s.qrCard}`} aria-label="Check-in code">
+              <div className={`${s.qrTile} force-light`}>
+                <div className={s.qr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
+              </div>
+              <p className={s.code}>{props.code}</p>
+              <p className={s.qrHint}>
+                Scan, or type the code at <strong>{props.url.replace(/^https?:\/\//, '').split('/checkin')[0]}/checkin</strong>
+              </p>
+              <button className={`btn btn-primary ${s.fullBtn}`} onClick={() => openFull('walkin')}>
+                <Icon name="scan" size={16} /> Show QR full screen
+              </button>
+              <Link className="btn btn-sm btn-quiet" href={`/org/events/${props.eventId}/sign`} target="_blank">
+                Print a sign for the table
+              </Link>
+            </section>
+          )}
+          {walkin && walkinLive && walkinLive !== 'verified' && !props.verified && !props.practice && (
+            <WalkinCard
+              eventId={props.eventId}
+              panel={walkin}
+              state={walkinLive}
+              count={walkins}
+              onChange={(p) => {
+                setWalkin(p);
+                setNow(Date.now());
+              }}
+              onFull={() => openFull('walkin')}
+            />
+          )}
         </div>
 
-        <section className="card">
-          <div className="card-head">
+        <section className={`card ${s.roster}`} aria-labelledby="roster-h">
+          <div className={s.rosterHead}>
             <div>
-              <p className="eyebrow">Roster{!props.verified && ' · updates live'}</p>
+              <p className="eyebrow" id="roster-h">
+                Roster{!props.verified && <span className={s.liveTag}> · updates live</span>}
+              </p>
+              {/* The check-in path holds still: the headcount changes without ticking. */}
               <p className={s.headcount} aria-live="polite" aria-atomic="true">
-                <span className="figure" style={{ fontSize: 44 }}>
-                  <LiveNumber value={props.verified ? rows.length : here} />
-                </span>
+                <span className={`figure ${s.headNum}`}>{props.verified ? rows.length : here}</span>
                 <span className="figure-unit">{props.verified ? 'on the record' : 'here now'}</span>
-                <span className="small muted" style={{ marginLeft: 10 }}>
-                  {left} checked out
-                </span>
+                {left > 0 && <span className={s.headSub}>{left} checked out</span>}
               </p>
             </div>
-            <div className="row wrap" style={{ gap: 6 }}>
+            <div className={s.headActions}>
               {props.practice && !props.verified && (
                 <button className="btn btn-sm" disabled={pending} onClick={() => start(() => addPracticeVolunteer(props.eventId))}>
-                  + Add a practice volunteer
+                  <Icon name="plus" size={16} /> Practice volunteer
                 </button>
               )}
               {here > 0 && !props.verified && (
@@ -183,13 +190,19 @@ export function EventDay(props: {
           {/* Above the roster, so it stays in reach on a 58-person event. */}
           {!props.verified && (
             <div className={s.tools}>
-              <form action={addAction} className="row" style={{ flex: '1 1 320px' }}>
+              <form
+                action={addAction}
+                className={s.addForm}
+                onSubmit={() => {
+                  lastName.current = nameRef.current?.value.trim() ?? '';
+                }}
+              >
                 <input ref={nameRef} className="input" name="name" placeholder="No phone? Type their name" aria-label="Volunteer name" />
                 <button className="btn" disabled={adding}>
-                  Add by name
+                  Add
                 </button>
               </form>
-              <SheetImport eventId={props.eventId} enabled={props.aiEnabled} eventDate={props.eventDate} rosterNames={rows.map((r) => r.display_name)} />
+              <SheetImport eventId={props.eventId} enabled={props.aiEnabled} eventDate={props.eventDate} rosterNames={rows.map((r) => r.display_name)} initialOpen={props.importOpen} />
             </div>
           )}
           {addState?.error && (
@@ -198,18 +211,24 @@ export function EventDay(props: {
             </p>
           )}
           {rows.length === 0 ? (
-            <EmptyState compact illo="ledger" title="Nobody yet.">
-              When volunteers scan the QR code, their names appear here within a few seconds.
-              {props.practice && ' This is a practice event: tap “Add a practice volunteer” to see how it fills in.'}
-            </EmptyState>
+            <EmptyState
+              compact
+              icon="users"
+              title="Nobody yet"
+              hint={props.practice ? 'Tap “Practice volunteer” to see how it fills in.' : 'Names appear here a few seconds after someone scans the code.'}
+            />
           ) : (
             <div style={{ overflowX: 'auto', position: 'relative' }}>
-              <table className="t tight">
+              <table className={`t tight ${s.table}`}>
                 <thead>
                   <tr>
                     <th scope="col">Name</th>
-                    <th scope="col">In → Out</th>
-                    <th scope="col">Hours</th>
+                    <th scope="col" className={s.timesCol}>
+                      In – Out
+                    </th>
+                    <th scope="col" className="r">
+                      Hours
+                    </th>
                     <th scope="col">
                       <span className="sr-only">Actions</span>
                     </th>
@@ -219,34 +238,42 @@ export function EventDay(props: {
                   {rows.map((r) => (
                     <tr key={r.id} className={fresh.has(r.id) ? 'fresh' : ''}>
                       <td>
-                        <strong>{r.display_name}</strong>
-                        {r.new_signup && (
-                          <span className="chip chip-green" style={{ height: 20, fontSize: 11, marginLeft: 6 }} title="Signed up for the first time at this event">
-                            New
+                        <span className={s.name}>
+                          <strong>{r.display_name}</strong>
+                          {r.new_signup && (
+                            <span className={`chip chip-green ${s.newChip}`} title="Signed up for the first time at this event">
+                              New
+                            </span>
+                          )}
+                        </span>
+                        <span className={s.how}>
+                          <span className={s.timesInline}>
+                            {t(r.checked_in_at)} – {t(r.checked_out_at)} ·{' '}
                           </span>
-                        )}
-                        <span className="small muted" style={{ display: 'block' }}>
                           {METHOD[r.method]}
                           {r.ai_confidence != null && ` · ${Math.round(Number(r.ai_confidence) * 100)}% sure`}
-                          {r.status === 'checked_in' && r.location_opt_in && ' · 📍 location on'}
+                          {r.status === 'checked_in' && r.location_opt_in && ' · location on'}
                         </span>
                         {r.status === 'checked_in' && r.left_area_at && (
                           <span className={`small ${s.left}`}>
-                            Left the area around {t(r.left_area_at)}{r.left_area_m ? ` (${r.left_area_m >= 1000 ? `${(r.left_area_m / 1000).toFixed(1)} km` : `${r.left_area_m} m`} away)` : ''}?
+                            Left the area around {t(r.left_area_at)}
+                            {r.left_area_m ? ` (${r.left_area_m >= 1000 ? `${(r.left_area_m / 1000).toFixed(1)} km` : `${r.left_area_m} m`} away)` : ''}?
                           </span>
                         )}
                       </td>
-                      <td className="num small" style={{ whiteSpace: 'nowrap' }}>
-                        {t(r.checked_in_at)} → {t(r.checked_out_at)}
+                      <td className={`num ${s.times}`}>
+                        {t(r.checked_in_at)} – {t(r.checked_out_at)}
                       </td>
-                      <td className="num">{r.status === 'checked_in' ? (
+                      <td className="num r">
+                        {r.status === 'checked_in' ? (
                           <span className="chip chip-ink">
                             <span className={s.dot} aria-hidden />
                             here
                           </span>
                         ) : (
                           Number(r.hours_adjusted ?? r.hours_captured)
-                        )}</td>
+                        )}
+                      </td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         {r.status === 'checked_in' && !props.verified && (
                           <button className="btn btn-sm btn-quiet" onClick={() => start(() => checkOutNow(props.eventId, r.id))}>
@@ -267,7 +294,7 @@ export function EventDay(props: {
       {full && (
         <dialog ref={dialog} className={s.full} aria-label="Check-in QR code" onClose={() => setFull(false)}>
           <button className={`btn ${s.close}`} onClick={() => dialog.current?.close()} autoFocus>
-            Close <span className={`muted small ${s.esc}`}>(Esc)</span>
+            <Icon name="x" size={16} /> Close <span className={`kbd ${s.esc}`}>Esc</span>
           </button>
           {pairOk && (
             <div className="seg" role="group" aria-label="Which code to show">
@@ -281,7 +308,7 @@ export function EventDay(props: {
           {showing === 'walkin' && walkin?.qrSvg ? (
             <>
               <p className={s.fullTitle}>First time here?</p>
-              <div className={s.fullQr} role="img" aria-label="Walk-in sign-up QR code" dangerouslySetInnerHTML={{ __html: walkin.qrSvg }} />
+              <div className={`${s.fullQr} ${s.qrTile} force-light`} role="img" aria-label="Walk-in sign-up QR code" dangerouslySetInnerHTML={{ __html: walkin.qrSvg }} />
               <p className={s.fullHint}>
                 Scan to sign up in under a minute{walkin.google ? ' with Google or your email' : ''}. You’re checked in when you’re done.
               </p>
@@ -290,14 +317,14 @@ export function EventDay(props: {
             <>
               <p className={s.fullTitle}>Check in here</p>
               <div className={s.pulse}>
-                <div className={s.fullQr} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
+                <div className={`${s.fullQr} ${s.qrTile} force-light`} role="img" aria-label={`Check-in QR code for code ${props.code}`} dangerouslySetInnerHTML={{ __html: props.qrSvg }} />
               </div>
               <p className={s.fullCode}>{props.code}</p>
               <p className={s.fullHint}>{pairOk ? 'Already signed up? Scan in, and again when you leave.' : 'Scan with your phone camera. Scan again when you leave.'}</p>
             </>
           )}
           <p className={s.fullCount} aria-live="polite" aria-atomic="true">
-            <LiveNumber value={here} /> checked in
+            {here} checked in
           </p>
         </dialog>
       )}

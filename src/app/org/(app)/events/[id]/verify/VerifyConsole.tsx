@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 import { ROLE_LABEL, type AttendanceRow, type Role } from '@/lib/types';
 import { verifyEvent } from '../../../../actions';
+import { Icon } from '@/components/shell/icons';
 import s from './verify.module.css';
 
 type Row = Pick<AttendanceRow, 'id' | 'display_name' | 'method'> & {
@@ -151,7 +152,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
     <div className="stack" style={{ gap: 16 }}>
       <section className={`card ${s.check2}`} aria-labelledby="goal-q">
         <div className={s.goal}>
-          <p className="eyebrow eyebrow-sap">Post-event check · 30 seconds</p>
+          <p className="eyebrow eyebrow-sap">Post-event check</p>
           <h2 id="goal-q">Did the event achieve its goal?</h2>
           {goalText && <p className="small muted">Goal: {goalText}</p>}
           <div className="seg" role="group" aria-labelledby="goal-q" style={{ marginTop: 8 }}>
@@ -164,7 +165,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
         </div>
         <div className="field" style={{ alignSelf: 'end' }}>
           <label htmlFor="outcome" className="small">
-            What got done? <span className="muted">(optional, goes on your funder report)</span>
+            What got done? <span className="muted">(optional, for your funder report)</span>
           </label>
           <input id="outcome" className="input" value={outcome} onChange={(e) => setOutcome(e.target.value)} placeholder="e.g. Planted 46 trees" />
         </div>
@@ -187,8 +188,11 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
         </fieldset>
       </section>
 
-      <p className="small">
-        Verifying as <strong>{signer}</strong>. Your name goes on every record as the person who confirmed these hours.
+      <p className={s.signer}>
+        <Icon name="shield" size={16} />
+        <span>
+          Verifying as <strong>{signer}</strong>. Your name goes on every record.
+        </span>
       </p>
 
       <section className="card">
@@ -258,7 +262,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                           {needsHours && <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>No check-out recorded</span>}
                           {needsHours && r.left_area_at && r.checked_in_at && (
                             <span className="small" style={{ color: 'var(--amber)', display: 'block' }}>
-                              📍 Left the area around {clock(new Date(r.left_area_at).getTime())}{' '}
+                              <Icon name="pin" size={14} style={{ verticalAlign: '-2px' }} /> Left the area around {clock(new Date(r.left_area_at).getTime())}{' '}
                               {r.hours === '' && (
                                 <button type="button" className="btn btn-sm" style={{ height: 24, marginLeft: 4 }} onClick={() => set(r.id, filled(r))}>
                                   Use as check-out
@@ -326,7 +330,9 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
                         aria-label={`${r.display_name} was a no-show`}
                         onClick={() => set(r.id, { no_show: !r.no_show })}
                       >
-                        <span aria-hidden>{r.no_show ? 'No-show ✕' : 'No-show'}</span>
+                        <span aria-hidden className="row" style={{ gap: 4 }}>
+                          No-show{r.no_show && <Icon name="x" size={14} />}
+                        </span>
                       </button>
                     </td>
                   </tr>
@@ -352,7 +358,7 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
             {blockers.length ? (
               <button type="button" className={s.blocker} onClick={() => goTo(blockers[0].target)}>
                 {blockers[0].text}
-                {blockers.length > 1 ? ` (+${blockers.length - 1} more)` : ''} →
+                {blockers.length > 1 ? ` (+${blockers.length - 1} more)` : ''} <Icon name="arrow-right" size={14} style={{ verticalAlign: '-2px' }} />
               </button>
             ) : (
               <span className={s.readyLine}>Ready. Records are issued the moment you verify.</span>
@@ -365,7 +371,13 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coord
           )}
         </div>
         <button className="btn btn-primary btn-big" disabled={blockers.length > 0 || pending} aria-describedby="blockers" onClick={submit}>
-          {pending ? 'Verifying…' : '✓ Verify & close'}
+          {pending ? (
+            'Verifying…'
+          ) : (
+            <>
+              <Icon name="check" size={18} strokeWidth={2} /> Verify &amp; close
+            </>
+          )}
         </button>
       </div>
     </div>

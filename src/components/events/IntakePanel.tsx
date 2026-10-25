@@ -3,6 +3,8 @@
 import { useRef, useState } from 'react';
 import type { IntakeDraft, IntakeResult } from '@/lib/intake-types';
 import type { Place } from '@/lib/place-links';
+import { Icon } from '../shell/icons';
+import { HelpTip } from '../media/HelpTip';
 import s from './events.module.css';
 
 export type RepeatOption = { label: string; draft: IntakeDraft };
@@ -101,11 +103,11 @@ export function IntakePanel({
         }
       }}
     >
-      <div className="row between wrap" style={{ alignItems: 'baseline' }}>
+      <div className="row between wrap" style={{ alignItems: 'center' }}>
         <h2 id="intake-title" style={{ fontSize: 17 }}>
           Start from what you already have
         </h2>
-        <span className="small muted">Optional · nothing saves until you press Create</span>
+        <span className="small muted">Optional · nothing saves until you create</span>
       </div>
 
       <div className={s.intakeBox}>
@@ -134,8 +136,8 @@ export function IntakePanel({
           }}
           placeholder={
             aiEnabled
-              ? 'Paste anything: the invite email, a group-chat message, an event page, a Google Calendar “add to calendar” link, or your calendar’s iCal address. Or drop a file or photo here.'
-              : 'Paste a calendar link, an event page, your calendar’s iCal address, or invite (.ics) text. Or drop an .ics file here.'
+              ? 'Paste an invite, a group-chat message, an event page or a calendar link. Or drop a file or photo here.'
+              : 'Paste a calendar link, an event page or invite (.ics) text. Or drop an .ics file here.'
           }
           aria-label="Paste event details"
           disabled={!!busy}
@@ -145,11 +147,11 @@ export function IntakePanel({
             {busy ?? 'Fill in the form'}
           </button>
           <button type="button" className="btn" disabled={!!busy} onClick={() => fileRef.current?.click()}>
-            📅 Calendar invite (.ics)
+            <Icon name="calendar" size={16} /> Invite (.ics)
           </button>
           {aiEnabled && (
             <button type="button" className="btn" disabled={!!busy} onClick={() => photoRef.current?.click()}>
-              📷 Flyer or screenshot
+              <Icon name="scan" size={16} /> Flyer or screenshot
             </button>
           )}
           {repeats.length > 0 && (
@@ -164,7 +166,7 @@ export function IntakePanel({
                 if (r) onDraft(r.draft);
               }}
             >
-              <option value="">↻ Repeat a past event…</option>
+              <option value="">Repeat a past event…</option>
               {repeats.map((r, i) => (
                 <option key={r.label} value={i}>
                   {r.label}
@@ -234,23 +236,25 @@ export function IntakePanel({
         </div>
       )}
 
-      <details className={s.howto}>
-        <summary className="small">Where do I find my calendar’s iCal address?</summary>
-        <ul className="small muted">
-          <li>
-            <strong>Google Calendar:</strong> Settings → pick the calendar → Integrate calendar → “Secret address in iCal format”.
-          </li>
-          <li>
-            <strong>Apple Calendar:</strong> right-click the calendar → Share Calendar → Public Calendar, then copy the link.
-          </li>
-          <li>
-            <strong>Outlook:</strong> Settings → Calendar → Shared calendars → Publish a calendar → ICS link.
-          </li>
-          <li>
-            <strong>One invite:</strong> in the invite email, download the <code>invite.ics</code> attachment and drop it here.
-          </li>
-        </ul>
-      </details>
+      <div className={s.howto}>
+        <span className="small muted">Where’s my calendar’s iCal address?</span>
+        <HelpTip label="Finding your calendar’s iCal address">
+          <ul className={s.howtoList}>
+            <li>
+              <strong>Google:</strong> Settings, pick the calendar, Integrate calendar, “Secret address in iCal format”.
+            </li>
+            <li>
+              <strong>Apple:</strong> right-click the calendar, Share Calendar, Public Calendar, copy the link.
+            </li>
+            <li>
+              <strong>Outlook:</strong> Settings, Calendar, Shared calendars, Publish a calendar, ICS link.
+            </li>
+            <li>
+              <strong>One invite:</strong> download the <code>invite.ics</code> attachment and drop it here.
+            </li>
+          </ul>
+        </HelpTip>
+      </div>
     </section>
   );
 }

@@ -6,6 +6,7 @@ import { isUuid } from '@/lib/ids';
 import { MINOR_CHAT_OFF, MINOR_MESSAGES_OFF } from '@/lib/minors';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
+import { Stagger } from '@/components/motion/Stagger';
 import { Composer, LiveThread } from './MessagesClient';
 import { EmptyState } from '@/components/media/EmptyState';
 import s from './messages.module.css';
@@ -51,11 +52,10 @@ export default async function MessagesPage({ searchParams }: PageProps<'/me/mess
   const open = !!(thread || canChat);
 
   return (
-    <div className={s.page}>
+    <Stagger className={s.page}>
       <PageHeader
-        eyebrow="Messages"
         title="Messages"
-        lede={vol.is_minor ? 'Announcements from the organizations you volunteer with. No phone numbers change hands.' : 'Notes from your coordinators and the group chat for each event you came to. No phone numbers change hands.'}
+        lede={vol.is_minor ? 'Announcements from your organizations.' : 'Your coordinators and event group chats. No phone numbers shared.'}
         className={open ? s.hideOnPhone : ''}
       />
       <div className={`${s.inbox} ${open ? s.isOpen : ''}`}>
@@ -129,7 +129,7 @@ export default async function MessagesPage({ searchParams }: PageProps<'/me/mess
           )}
         </section>
       </div>
-    </div>
+    </Stagger>
   );
 }
 

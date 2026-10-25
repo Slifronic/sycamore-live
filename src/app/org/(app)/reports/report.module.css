@@ -1,9 +1,12 @@
-.layout { display: grid; grid-template-columns: minmax(0, 900px) 220px; gap: 24px; align-items: start; }
-.rail { position: sticky; top: 24px; display: grid; gap: 22px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 232px; gap: 24px; align-items: start; }
+.rail { position: sticky; top: 88px; display: grid; gap: 16px; }
+.railGroup { display: grid; gap: 8px; }
+.railNote { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; line-height: 1.5; color: var(--ink-3); }
+.railNote > svg { flex: none; margin-top: 1px; color: var(--primary); }
 .report { padding: 32px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
 .head { display: flex; justify-content: space-between; gap: 20px; align-items: start; border-bottom: 2px solid var(--canopy); padding-bottom: 18px; }
 .title { font-size: 28px; }
-.seal { display: grid; justify-items: center; gap: 4px; padding: 12px 16px; border-radius: 14px; background: #f4f5f1; box-shadow: 0 0 0 1px rgba(15, 38, 27, 0.08); min-width: 128px; }
+.seal { display: grid; justify-items: center; gap: 4px; padding: 12px 16px; border-radius: 14px; background: var(--surface-2); box-shadow: 0 0 0 1px var(--line); min-width: 128px; }
 .sealScore { font-family: var(--font-display), Georgia, serif; font-size: 32px; white-space: nowrap; font-weight: 600; color: var(--canopy); line-height: 1; }
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-radius: 14px; background: var(--primary-soft); }
 .kpiBox { display: grid; gap: 4px; padding: 16px 18px; }
@@ -15,7 +18,7 @@
 .foot { font-size: 12px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 12px; }
 @media (max-width: 1180px) {
   .layout { grid-template-columns: minmax(0, 1fr); }
-  .rail { position: static; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); order: -1; }
+  .rail { position: static; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: start; }
 }
 @media (max-width: 760px) {
   .kpis, .two { grid-template-columns: 1fr 1fr; }

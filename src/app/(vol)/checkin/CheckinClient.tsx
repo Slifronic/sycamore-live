@@ -172,7 +172,7 @@ export function CheckinForm({ initialCode, fromQr, ready }: { initialCode: strin
           autoCapitalize="characters"
           spellCheck={false}
           inputMode="text"
-          placeholder="PLANT2"
+          placeholder="••••••"
           style={{ height: 60, fontSize: 28, letterSpacing: '0.3em', textAlign: 'center', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontWeight: 700 }}
         />
       </div>

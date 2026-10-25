@@ -1,58 +1,94 @@
 import Link from 'next/link';
 import { requireVolunteer } from '@/lib/vol-data';
 import { initials } from '@/lib/format';
-import { PageHeader } from '@/components/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { Icon, type IconName } from '@/components/shell/icons';
+import { Stagger } from '@/components/motion/Stagger';
 import { volSignOut } from '../../actions';
+import { accountSettings } from '@/app/api/vol/_account';
+import { DeleteAccount, MarketingSwitch } from './AccountClient';
+import s from './account.module.css';
 
 export const metadata = { title: 'Me' };
 
-// PLACEHOLDER from the round-1 shell (the "Me" tab). The volunteer agent
-// replaces this with the full account screen: message opt-in, download my
-// data, delete my account, Privacy and Terms. It keeps every page the old
-// sidebar reached one tap away (Badges, My journey, Check in).
+// The Me tab: who you are, your settings, your data. Grouped rows like a
+// phone's settings screen. Badges and Journey live here too, one tap away.
 
-const LINKS: { href: string; label: string; icon: IconName }[] = [
-  { href: '/me/badges', label: 'Badges', icon: 'award' },
-  { href: '/me/journey', label: 'My journey', icon: 'route' },
-  { href: '/checkin', label: 'Check in at an event', icon: 'scan' },
-  { href: '/privacy', label: 'Privacy', icon: 'shield' },
-  { href: '/terms', label: 'Terms', icon: 'report' },
-];
+function Row({ href, icon, label, hint, external }: { href: string; icon: IconName; label: string; hint?: string; external?: boolean }) {
+  const inner = (
+    <>
+      <span className={s.rowIcon} aria-hidden>
+        <Icon name={icon} size={20} />
+      </span>
+      <span className={s.rowText}>
+        <span className={s.rowLabel}>{label}</span>
+        {hint && <span className={s.rowHint}>{hint}</span>}
+      </span>
+      <Icon name={external ? 'download' : 'chevron-right'} size={16} className={s.chev} />
+    </>
+  );
+  return external ? (
+    <a href={href} className={s.row} download>
+      {inner}
+    </a>
+  ) : (
+    <Link href={href} className={s.row}>
+      {inner}
+    </Link>
+  );
+}
 
 export default async function AccountPage() {
   const vol = await requireVolunteer('/me/account');
+  const settings = await accountSettings(vol.id);
+
   return (
-    <div className="page" style={{ maxWidth: 560 }}>
-      <PageHeader eyebrow="Your account" title="Me" />
-      <div className="card card-pad row" style={{ gap: 14 }}>
-        <span className="avatar" style={{ width: 48, height: 48, fontSize: 16 }} aria-hidden>
+    <Stagger className={s.page}>
+      <section className={s.who} aria-label="Your profile">
+        <span className={s.avatar} aria-hidden>
           {initials(vol.name)}
         </span>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 700 }}>{vol.name}</p>
-          <p className="muted small" style={{ overflowWrap: 'anywhere' }}>
-            {vol.email}
-          </p>
+        <div className={s.whoText}>
+          <h1 className={s.name}>{vol.name}</h1>
+          <p className={s.email}>{vol.email}</p>
         </div>
-      </div>
-      <nav className="card" aria-label="Account" style={{ padding: 6 }}>
-        {LINKS.map((l) => (
-          <Link key={l.href} href={l.href} className="row" style={{ minHeight: 48, padding: '0 12px', borderRadius: 10, textDecoration: 'none', gap: 12 }}>
-            <Icon name={l.icon} size={20} style={{ color: 'var(--ink-3)' }} />
-            <span style={{ flex: 1, fontWeight: 600 }}>{l.label}</span>
-            <Icon name="chevron-right" size={16} style={{ color: 'var(--ink-3)' }} />
-          </Link>
-        ))}
+        {vol.is_minor && <span className="chip chip-ink">Under 18</span>}
+      </section>
+
+      <nav className={s.list} aria-label="Your service">
+        <Row href="/me/badges" icon="award" label="Badges" />
+        <Row href="/me/journey" icon="route" label="Journey" />
       </nav>
-      <ThemeToggle variant="row" />
-      <form action={volSignOut}>
-        <button className="btn" style={{ width: '100%' }}>
+
+      <section className={s.group} aria-labelledby="settings-h">
+        <h2 id="settings-h" className={s.groupLabel}>
+          Settings
+        </h2>
+        <div className={s.list}>
+          <ThemeToggle variant="row" className={s.themeRow} />
+          <MarketingSwitch initial={settings?.marketing_opt_in ?? false} />
+        </div>
+      </section>
+
+      <section className={s.group} aria-labelledby="data-h">
+        <h2 id="data-h" className={s.groupLabel}>
+          Your data
+        </h2>
+        <div className={s.list}>
+        <Row href="/api/vol/account/export" icon="download" label="Download my data" hint="Everything we keep, as a JSON file" external />
+        <Row href="/privacy" icon="shield" label="Privacy" />
+        <Row href="/terms" icon="report" label="Terms" />
+        <Row href="/data" icon="clipboard" label="Deletion and retention" />
+        <DeleteAccount />
+        </div>
+      </section>
+
+      <form action={volSignOut} className={s.signout}>
+        <button className="btn btn-big">
           <Icon name="logout" size={16} /> Sign out on this device
         </button>
       </form>
-    </div>
+    </Stagger>
   );
 }
 

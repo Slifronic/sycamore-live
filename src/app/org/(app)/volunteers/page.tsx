@@ -6,11 +6,16 @@ import { AWAY_AFTER_DAYS, loadOrgInsights } from '@/lib/insights';
 import { badgeByKey } from '@/lib/badges';
 import { ROLE_LABEL } from '@/lib/types';
 import { ago, fmtDay, initials } from '@/lib/format';
-import { inviteBack, sayThanks } from '@/lib/mailto';
+import { inviteBack, milestoneThanks, sayThanks } from '@/lib/mailto';
 import { lastCame, requestNow } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { Segmented } from '@/components/Segmented';
-import { EmptyState } from '@/components/media/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Chip } from '@/components/ui/Chip';
+import { Icon } from '@/components/shell/icons';
+import { Stagger } from '@/components/motion/Stagger';
+import { Help } from '../messages/Help';
+import s from './volunteers.module.css';
 
 export const metadata = { title: 'Volunteers' };
 
@@ -18,7 +23,8 @@ const TABS = [
   { key: 'all', label: 'Everyone' },
   { key: 'new', label: 'First-timers' },
   { key: 'active', label: 'Regulars' },
-  { key: 'away', label: 'Haven’t come in 30+ days' },
+  { key: 'away', label: 'Away 30+ days' },
+  { key: 'milestones', label: 'Milestones' },
 ] as const;
 
 export default async function VolunteersPage({ searchParams }: PageProps<'/org/volunteers'>) {
@@ -35,58 +41,66 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
     ),
   );
   const next = ins.events.find((e) => !e.is_practice && new Date(e.starts_at).getTime() > requestNow() && !e.attested_at);
-  const list = ins.volunteers.filter((v) => (tab === 'all' || v.status === tab) && (!q || v.name.toLowerCase().includes(q)));
-  const counts = Object.fromEntries(TABS.map((t) => [t.key, t.key === 'all' ? ins.volunteers.length : ins.volunteers.filter((v) => v.status === t.key).length]));
+  // Milestones: passed 10, 25, 50, 100 or 250 verified hours in the last 30 days (lib/insights).
+  const base = tab === 'milestones' ? ins.milestones : ins.volunteers.filter((v) => tab === 'all' || v.status === tab);
+  const list = base.filter((v) => !q || v.name.toLowerCase().includes(q));
+  const counts = Object.fromEntries(
+    TABS.map((t) => [t.key, t.key === 'all' ? ins.volunteers.length : t.key === 'milestones' ? ins.milestones.length : ins.volunteers.filter((v) => v.status === t.key).length]),
+  );
 
   return (
-    <div className="page" style={{ gap: 20 }}>
+    <Stagger className="page" style={{ gap: 20 }}>
       <PageHeader
-        eyebrow={`People · ${ins.volunteers.length.toLocaleString()} with verified hours`}
+        eyebrow={`${ins.volunteers.length.toLocaleString()} with verified hours`}
         title="Volunteers"
         lede="Built from your events; you never type anyone in."
+        controls={
+          <Help label="About these lists" placement="bottom-end">
+            <p>
+              <strong>Away</strong>: came at least twice, but not in the last {AWAY_AFTER_DAYS} days. “Invite back” opens a ready-to-send email with your next event in it.
+            </p>
+            <p>
+              <strong>Milestones</strong>: passed 10, 25, 50, 100 or 250 verified hours this month. Two lines of thanks from you is enough.
+            </p>
+          </Help>
+        }
         action={
           <a className="btn" href="/api/org/reports/csv">
-            Download hours (CSV)
+            <Icon name="download" size={16} /> Export CSV
           </a>
         }
       />
 
-      <div className="row between wrap" style={{ alignItems: 'end' }}>
+      <div className={s.bar}>
         <Segmented
           id="volunteers"
           label="Filter volunteers"
-          className="seg-tiles"
+          className={`seg-tiles ${s.tiles}`}
           items={TABS.map((t) => ({
             href: `/org/volunteers?tab=${t.key}`,
             on: tab === t.key,
             label: (
               <>
-                <span className="figure" style={{ fontSize: 24 }}>
-                  {counts[t.key]}
-                </span>
-                <span className="eyebrow" style={{ fontSize: 10.5 }}>{t.label}</span>
+                <span className={`figure ${s.tileNum}`}>{counts[t.key]}</span>
+                <span className={s.tileLabel}>{t.label}</span>
               </>
             ),
           }))}
         />
-        <form className="row" role="search">
+        <form className={s.search} role="search">
           <input type="hidden" name="tab" value={tab} />
-          <input className="input" style={{ height: 40, width: 220 }} name="q" defaultValue={q} placeholder="Find a name" aria-label="Find a name" />
+          <Icon name="search" size={16} />
+          <input className="input" name="q" defaultValue={q} placeholder="Find a name" aria-label="Find a name" />
         </form>
       </div>
-      {tab === 'away' && (
-        <p className="notice small">
-          Came at least twice, but not in the last {AWAY_AFTER_DAYS} days. “Invite back” opens a ready-to-send email with your next event in it.
-        </p>
-      )}
 
-      <div className="card" style={{ overflowX: 'auto', position: 'relative' }}>
+      <div className={`card ${s.tableCard}`}>
         <table className="t tight">
           <thead>
             <tr>
               <th scope="col">Volunteer</th>
               <th scope="col">Served</th>
-              <th scope="col">Last came</th>
+              <th scope="col">{tab === 'milestones' ? 'Milestone' : 'Last came'}</th>
               <th scope="col">
                 <span className="sr-only">Actions</span>
               </th>
@@ -96,13 +110,18 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
             {list.map((v) => {
               const email = v.volunteer_id ? emails.get(v.volunteer_id) : undefined;
               return (
-                <tr key={v.key} style={invite === v.key ? { outline: '2px solid var(--amber)' } : undefined}>
+                <tr key={v.key} className={invite === v.key ? s.invited : undefined}>
                   <td>
                     <span className="row" style={{ gap: 10 }}>
                       <span className="avatar">{initials(v.name)}</span>
                       <span>
                         <strong>{v.name}</strong>
-                        {v.standouts > 0 && <span className="small" style={{ color: 'var(--gold)' }}> · ★ {v.standouts}</span>}
+                        {v.standouts > 0 && (
+                          <span className={s.standout} title={`Starred as a standout ${v.standouts} ${v.standouts === 1 ? 'time' : 'times'}`}>
+                            {' '}
+                            · {v.standouts}× standout
+                          </span>
+                        )}
                         <br />
                         <span className="small muted">
                           {ROLE_LABEL[v.topRole]} · since {fmtDay(v.first_seen)}
@@ -110,12 +129,12 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                         {(v.badgesEarned.length > 0 || v.badgesReady.length > 0) && (
                           <span className="row wrap" style={{ gap: 4, marginTop: 4 }}>
                             {v.badgesEarned.map((b) => (
-                              <span key={b} className="chip chip-green" style={{ height: 20, fontSize: 11 }}>
+                              <Chip key={b} tone="green" className={s.small}>
                                 {badgeByKey[b].name}
-                              </span>
+                              </Chip>
                             ))}
                             {v.badgesReady.length > 0 && (
-                              <Link href="/org/badges" className="chip chip-amber" style={{ height: 20, fontSize: 11 }}>
+                              <Link href="/org/badges" className={`chip chip-amber ${s.small}`}>
                                 {v.badgesReady.length} ready to sign
                               </Link>
                             )}
@@ -130,17 +149,35 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                     <span className="muted">{v.events} {v.events === 1 ? 'event' : 'events'}</span>
                   </td>
                   <td className="small">
-                    {v.status === 'away' ? lastCame(v.last_seen) : ago(v.last_seen)}
-                    {v.status === 'new' && (
+                    {tab === 'milestones' && v.milestone ? (
                       <>
+                        <Chip tone="gold" className={s.small}>
+                          {v.milestone.hours} hrs
+                        </Chip>
                         <br />
-                        <span className="chip chip-ink">first-timer</span>
+                        <span className="muted">passed {ago(v.milestone.at)}</span>
+                      </>
+                    ) : (
+                      <>
+                        {v.status === 'away' ? lastCame(v.last_seen) : ago(v.last_seen)}
+                        {v.status === 'new' && (
+                          <>
+                            <br />
+                            <Chip tone="ink" className={s.small}>
+                              first-timer
+                            </Chip>
+                          </>
+                        )}
                       </>
                     )}
                   </td>
                   <td>
-                    <div className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
-                    {email && v.status === 'away' ? (
+                    <div className={s.actions}>
+                    {email && tab === 'milestones' && v.milestone ? (
+                      <a className="btn btn-sm" href={milestoneThanks(org, v.name, email, v.milestone.hours, next)}>
+                        Thank them
+                      </a>
+                    ) : email && v.status === 'away' ? (
                       <a className="btn btn-sm" href={inviteBack(org, v.name, email, next)}>
                         Invite back
                       </a>
@@ -164,29 +201,27 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                 <td colSpan={4} style={{ padding: 0 }}>
                   {ins.volunteers.length === 0 ? (
                     <EmptyState
-                      illo="sapling"
-                      title="No volunteers yet."
+                      icon="users"
+                      title="No volunteers yet"
+                      hint="People appear here after your first verified event, each with an hour letter."
                       action={
                         <Link className="btn btn-primary btn-sm" href="/org/events">
                           Go to events
                         </Link>
                       }
-                    >
-                      Volunteers appear here after your first verified event, with their hours, events and an hour letter each.
-                    </EmptyState>
+                    />
                   ) : (
                     <EmptyState
                       compact
-                      illo="compass"
-                      title={q ? `Nobody matches “${q}”.` : 'Nobody in this list.'}
+                      icon={q ? 'search' : tab === 'milestones' ? 'award' : 'users'}
+                      title={q ? `Nobody matches “${q}”` : tab === 'milestones' ? 'No milestones this month' : 'Nobody in this list'}
+                      hint={q ? 'Check the spelling, or search by first name only.' : tab === 'milestones' ? 'When someone passes 10, 25, 50 or 100 verified hours, they show up here.' : 'Try another tab.'}
                       action={
                         <Link className="btn btn-sm" href="/org/volunteers">
                           Show everyone
                         </Link>
                       }
-                    >
-                      {q ? 'Check the spelling, or search by first name only.' : 'Try another tab.'}
-                    </EmptyState>
+                    />
                   )}
                 </td>
               </tr>
@@ -194,7 +229,7 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
           </tbody>
         </table>
       </div>
-    </div>
+    </Stagger>
   );
 }
 

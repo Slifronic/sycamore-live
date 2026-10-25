@@ -41,32 +41,18 @@ export function DiscoverHome() {
 
   return (
     <div className={s.page}>
-      <PageHeader
-        eyebrow="Discover"
-        title="Your skills. A cause that matters."
-        lede="Upcoming events from organizations on SycaMore, ranked by rules you can read. Change what matters to you and the list re-ranks."
-      />
+      <PageHeader eyebrow="Discover" title="Find your next event" lede="Upcoming events on SycaMore, ranked by rules you can read." />
 
-      <div className={s.modes} role="group" aria-label="How to rank">
-        {(Object.keys(modes) as Mode[]).map((m) => (
-          <button key={m} type="button" className={s.mode} aria-pressed={prefs.mode === m} onClick={() => setPrefs({ mode: m })}>
-            {prefs.mode === m && <motion.span layoutId="discover-mode" className={s.modePill} transition={spring} aria-hidden />}
-            <strong>{modes[m]}</strong>
-            <span>{MODE_HINT[m]}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="row wrap" style={{ gap: 8 }}>
-        <span className="small muted">Try a direction:</span>
-        {PRESETS.map((p) => (
-          <button key={p.label} type="button" className={`${s.skillBtn} ${s.preset}`} aria-pressed={presetOn(p.prefs)} onClick={() => setPrefs({ roleArea: 'any', day: 'any', format: 'any', ...p.prefs })}>
-            <span className={s.presetTick} aria-hidden>
-              ✓
-            </span>
-            {p.label}
-          </button>
-        ))}
+      <div className={s.modeBlock}>
+        <div className={s.modes} role="group" aria-label="How to rank">
+          {(Object.keys(modes) as Mode[]).map((m) => (
+            <button key={m} type="button" className={s.mode} aria-pressed={prefs.mode === m} onClick={() => setPrefs({ mode: m })}>
+              {prefs.mode === m && <motion.span layoutId="discover-mode" className={s.modePill} transition={spring} aria-hidden />}
+              <span className={s.modeText}>{modes[m]}</span>
+            </button>
+          ))}
+        </div>
+        <p className={s.modeHint}>{MODE_HINT[prefs.mode]}</p>
       </div>
 
       <button type="button" className={`btn ${s.prefsToggle}`} aria-expanded={showPrefs} aria-controls="discover-prefs" onClick={() => setShowPrefs((v) => !v)}>
@@ -76,8 +62,14 @@ export function DiscoverHome() {
       <div className={s.body}>
         <aside className={`${s.rail} ${showPrefs ? s.railOpen : ''}`} id="discover-prefs">
           <section className="card card-pad stack">
-            <span className="eyebrow">Cause, contribution, curiosity</span>
-            <h3>Make it meaningful</h3>
+            <h3>Your preferences</h3>
+            <div className="row wrap" style={{ gap: 6 }} role="group" aria-label="Quick starts">
+              {PRESETS.map((p) => (
+                <button key={p.label} type="button" className={`${s.skillBtn} ${s.preset}`} aria-pressed={presetOn(p.prefs)} onClick={() => setPrefs({ roleArea: 'any', day: 'any', format: 'any', ...p.prefs })}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
             <div className="field">
               <label htmlFor="pref-cause">Cause I care about</label>
               <select id="pref-cause" className="select" value={prefs.cause} onChange={(e) => setPrefs({ cause: e.target.value })}>
@@ -129,14 +121,12 @@ export function DiscoverHome() {
                 </div>
               </div>
             </details>
-            <p className="small muted">Organizations don’t list journey times or travel costs yet, so every event shows that part as unknown instead of a guess.</p>
             <button type="button" className="btn" onClick={d.resetPrefs}>
               Reset preferences
             </button>
           </section>
 
           <section className="card card-pad stack" style={{ background: 'var(--primary-soft)', boxShadow: 'none' }}>
-            <span className="eyebrow">Experience → skills → possibilities</span>
             <h3>{reviewed ? 'Build on a real responsibility' : 'What have you done before?'}</h3>
             {reviewed ? (
               roles.map((r) => (
@@ -161,17 +151,13 @@ export function DiscoverHome() {
             <Link className={s.textlink} href="/discover/profile">
               {reviewed ? 'Edit role experience →' : 'Add my role experience →'}
             </Link>
-            <p className="small muted">Self-reported experience. Neither a LinkedIn entry nor a tag proves proficiency.</p>
           </section>
         </aside>
 
         <section className={s.results} aria-labelledby="discover-results">
-          <div className="row between wrap" style={{ gap: 10 }}>
-            <div className="stack" style={{ gap: 4 }}>
-              <span className="eyebrow">{prefs.cause === 'any' ? 'Open to possibility' : prefs.cause}</span>
-              <h2 id="discover-results">{tab === 'saved' ? 'Saved for later' : tab === 'all' ? 'Every upcoming event' : 'Find a contribution that fits'}</h2>
-            </div>
-          </div>
+          <h2 id="discover-results" className="sr-only">
+            {tab === 'saved' ? 'Saved for later' : tab === 'all' ? 'Every upcoming event' : 'Recommended for you'}
+          </h2>
           <div className="seg" role="tablist" aria-label="Event lists">
             {(
               [

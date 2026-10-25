@@ -1,4 +1,7 @@
-.sign { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 40px 48px; display: grid; justify-items: center; text-align: center; gap: 14px; }
+.page { max-width: 760px; }
+.back { color: inherit; text-decoration: none; }
+.back:hover { text-decoration: underline; }
+.sign { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); border-radius: 16px; padding: 40px 48px; display: grid; justify-items: center; text-align: center; gap: 14px; }
 .org { font-weight: 700; color: var(--primary); letter-spacing: 0.02em; }
 .title { font-size: clamp(32px, 9vw, 56px); line-height: 1; letter-spacing: -0.02em; }
 .event { font-size: 18px; color: var(--ink-2); }
@@ -13,7 +16,7 @@
 }
 @media print {
   @page { size: letter portrait; margin: 0.5in; }
-  .sign { border: 0; padding: 0; }
+  .sign { border: 0; box-shadow: none; padding: 0; }
   /* Paper stays exactly as before: the phone-width rules above are screen only. */
   .title { font-size: 56px; }
   .qr { width: 360px; height: 360px; }

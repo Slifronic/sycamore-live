@@ -1,5 +1,5 @@
 .top { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-.focus { padding: 22px 24px; display: grid; gap: 10px; background: #fffcf3; box-shadow: 0 0 0 1.5px #ecd59a, 0 10px 24px -16px rgba(107, 76, 7, 0.25); }
+.focus { padding: 22px 24px; display: grid; gap: 10px; box-shadow: var(--shadow), inset 3px 0 0 var(--amber); }
 .focusFig { display: flex; align-items: baseline; gap: 4px; }
 .formula { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .term { display: inline-flex; align-items: center; gap: 10px; }

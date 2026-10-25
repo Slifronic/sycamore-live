@@ -41,15 +41,13 @@ export function WalkinCard(props: {
       <div>
         <p className="eyebrow">New here?</p>
         <h2 id="walkin-title" className={s.walkinTitle}>Walk-in sign-up</h2>
-        <p className="small muted">
-          For someone who just showed up. They scan this, sign up with {panel.google ? 'Google or ' : ''}name, email and birth date, and they’re checked in.
-        </p>
+        <p className={s.walkinHint}>For first-timers: they scan, sign up{panel.google ? ' with Google or email' : ''}, and they’re checked in.</p>
       </div>
 
       {showQr ? (
         <>
-          <div className={s.walkinQr} role="img" aria-label="Walk-in sign-up QR code" dangerouslySetInnerHTML={{ __html: panel.qrSvg! }} />
-          <p className="small" style={{ textAlign: 'center' }}>
+          <div className={`${s.walkinQr} force-light`} role="img" aria-label="Walk-in sign-up QR code" dangerouslySetInnerHTML={{ __html: panel.qrSvg! }} />
+          <p className={s.walkinHint} style={{ textAlign: 'center' }}>
             {state === 'open' ? (
               <>Works until <strong>{time(panel.closes)}</strong>, or until you verify.</>
             ) : (
@@ -96,9 +94,7 @@ export function WalkinCard(props: {
       ) : null}
 
       {!panel.google && showQr && (
-        <p className="small muted">
-          Google sign-in is off until <code>NEXT_PUBLIC_GOOGLE_CLIENT_ID</code> is set. The short form works without it.
-        </p>
+        <p className={s.walkinHint}>Google sign-in is off on this server; the short form works without it.</p>
       )}
       {error && (
         <p className="notice notice-red" role="alert">

@@ -6,6 +6,9 @@ import { fmtDay, fmtTime } from '@/lib/format';
 import { PrintButton } from '../../../reports/PrintButton';
 import { ensureWalkinToken, walkinWindow } from '@/lib/walkin';
 import { walkinUrl } from '@/lib/walkin-panel';
+import { PageHeader } from '@/components/PageHeader';
+import { Stagger } from '@/components/motion/Stagger';
+import Link from 'next/link';
 import s from './sign.module.css';
 
 export const metadata = { title: 'Check-in sign' };
@@ -27,12 +30,19 @@ export default async function SignPage({ params }: PageProps<'/org/events/[id]/s
   const { opens, closes } = walkinWindow(event);
 
   return (
-    <div className="stack" style={{ gap: 16, maxWidth: 760 }}>
-      <div className="row between no-print">
-        <p className="muted small">Print this and tape it to the sign-in table. Letter size, portrait.</p>
-        <PrintButton label="Print sign" />
-      </div>
-      <article className={s.sign}>
+    <Stagger className={`page ${s.page}`}>
+      <PageHeader
+        className="no-print"
+        eyebrow={
+          <Link href={`/org/events/${event.id}`} className={s.back}>
+            {event.title}
+          </Link>
+        }
+        title="Check-in sign"
+        lede={`Tape it to the sign-in table. Letter size, portrait${walkinQr ? ', two pages' : ''}.`}
+        action={<PrintButton label="Print sign" />}
+      />
+      <article className={`force-light ${s.sign}`}>
         <p className={s.org}>{org.name}</p>
         <h1 className={s.title}>Check in here</h1>
         <p className={s.event}>
@@ -50,7 +60,7 @@ export default async function SignPage({ params }: PageProps<'/org/events/[id]/s
         <p className={s.foot}>No phone at all? Tell {org.coordinator_name}. Your hours still count.</p>
       </article>
       {walkinQr && (
-        <article className={`${s.sign} ${s.second}`}>
+        <article className={`force-light ${s.sign} ${s.second}`}>
           <p className={s.org}>{org.name}</p>
           <h2 className={s.title}>First time here?</h2>
           <p className={s.event}>
@@ -67,7 +77,7 @@ export default async function SignPage({ params }: PageProps<'/org/events/[id]/s
           </p>
         </article>
       )}
-    </div>
+    </Stagger>
   );
 }
 

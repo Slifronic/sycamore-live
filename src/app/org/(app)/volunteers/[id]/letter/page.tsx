@@ -9,6 +9,7 @@ import { ACTIVITY_LABEL, ROLE_LABEL, type Activity, type Role } from '@/lib/type
 import { fmtDay } from '@/lib/format';
 import { PrintButton } from '../../../reports/PrintButton';
 import s from './letter.module.css';
+import { Icon } from '@/components/shell/icons';
 
 export const metadata = { title: 'Hour letter' };
 
@@ -50,9 +51,11 @@ export default async function HourLetter({ params }: PageProps<'/org/volunteers/
     <div className="stack" style={{ gap: 16, maxWidth: 800 }}>
       <h1 className="sr-only">Hour letter</h1>
       <div className="row between wrap no-print">
-        <p className="small muted">
-          <Link href="/org/volunteers">Volunteers</Link> / Hour letter
-        </p>
+        <nav aria-label="Breadcrumb" className={s.crumbs}>
+          <Link href="/org/volunteers">Volunteers</Link>
+          <Icon name="chevron-right" size={14} />
+          <span aria-current="page">Hour letter · {vol.name}</span>
+        </nav>
         <PrintButton label="Print or save letter" />
       </div>
       <article className={`paper-sheet ${s.letter}`}>

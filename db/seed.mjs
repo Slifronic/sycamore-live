@@ -197,6 +197,9 @@ async function main() {
   // random; this one is fixed so it can go on a slide.) Jay is 16: he can see
   // his records but can't share them.
   await sql`update volunteer set hours_goal = 40 where id = ${ana.id}`;
+  // Everyone in the demo agreed to the Terms when they joined; nobody has opted
+  // in to announcements (that stays off until a volunteer turns it on).
+  await sql`update volunteer set terms_accepted_at = created_at where terms_accepted_at is null`;
   await sql`
     update record r set code = 'SYC-RVR7-PLNT', shared_at = r.issued_at + interval '1 day'
     from attendance a where a.id = r.attendance_id and a.event_id = ${plantings[2].id} and r.volunteer_id = ${ana.id}`;

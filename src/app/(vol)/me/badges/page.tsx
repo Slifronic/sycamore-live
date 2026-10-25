@@ -3,6 +3,8 @@ import { requireVolunteer } from '@/lib/vol-data';
 import { volunteerBadges, type VolBadge } from '@/lib/vol-badges';
 import { plural } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
+import { Stagger } from '@/components/motion/Stagger';
+import { Icon } from '@/components/shell/icons';
 import { Segmented } from '@/components/Segmented';
 import { BadgeEmblem } from '@/components/vol/BadgeEmblem';
 import { longDay, targetLine } from '@/components/vol/badge-format';
@@ -16,7 +18,7 @@ export const metadata = { title: 'Badges' };
 // badges.ts and are never a credential on their own.
 
 const STATE_CHIP: Record<VolBadge['state'], [string, string]> = {
-  signed: ['✓ Signed', 'chip-green'],
+  signed: ['Signed', 'chip-green'],
   ready: ['Ready for sign-off', 'chip-green'],
   progress: ['In progress', 'chip-ink'],
   locked: ['Not started', 'chip-ink'],
@@ -48,11 +50,11 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
   const next = [...badges].filter((b) => b.state === 'ready' || b.state === 'progress').sort((a, b) => (b.best?.progress ?? 0) - (a.best?.progress ?? 0))[0];
 
   return (
-    <div className={s.page}>
+    <Stagger className={s.page}>
       <PageHeader
         eyebrow="Your work, recognized"
         title="My badges"
-        lede="Signed by the organizations that saw the work. Progress comes only from hours they’ve attested."
+        lede="Signed by the organizations that saw the work."
         action={<span className={`chip ${signed ? 'chip-green' : 'chip-ink'}`}>{plural(signed, 'signed badge')}</span>}
       />
 
@@ -69,7 +71,7 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
             <span className="small muted">{targetLine(next)}</span>
           </div>
           <span className={s.arrow} aria-hidden>
-            →
+            <Icon name="arrow-right" size={20} />
           </span>
         </Link>
       )}
@@ -101,7 +103,10 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
               <Link key={b.def.key} href={`/me/badges/${b.def.key}`} className={`card lift fade-in ${s.tile}`} style={{ ['--d' as string]: `${i * 0.06}s` }}>
                 <div className="row between" style={{ alignItems: 'flex-start' }}>
                   <BadgeEmblem badge={b.def.key} state={b.state} />
-                  <span className={`chip ${chip}`}>{label}</span>
+                  <span className={`chip ${chip}`}>
+                    {b.state === 'signed' && <Icon name="check" size={14} />}
+                    {label}
+                  </span>
                 </div>
                 <h3 className={s.tileTitle}>{b.def.name}</h3>
                 <p className="small muted">{blurb(b)}</p>
@@ -113,20 +118,15 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
                     <span className="small muted">{b.best ? targetLine(b) : 'No attested hours toward this yet'}</span>
                   </div>
                 )}
-                <span className={s.more}>{b.state === 'signed' ? 'Evidence, certificate and sharing →' : 'See the rule →'}</span>
+                <span className={s.more}>{b.state === 'signed' ? 'Evidence, certificate and sharing' : 'See the rule'}</span>
               </Link>
             );
           })}
         </div>
       )}
 
-      <p className="notice notice-green small">
-        A badge is earned only when its organization signs it. Progress here is computed from your attested hours with each organization, so it moves when a coordinator verifies an event, never from a check-in alone.
-      </p>
-      <Link href="/me/journey" className={s.link}>
-        See the service behind your badges →
-      </Link>
-    </div>
+      <p className="small muted">Progress moves only when an organization verifies an event. A badge counts once they sign it.</p>
+    </Stagger>
   );
 }
 

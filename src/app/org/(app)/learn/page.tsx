@@ -1,7 +1,14 @@
 import Link from 'next/link';
 import { requireOrg } from '@/lib/session';
-import { LESSONS, courseProgress } from '@/lib/course';
+import { LESSONS, COURSE_MINUTES, courseProgress } from '@/lib/course';
 import { MarkDone } from './MarkDone';
+import { PageHeader } from '@/components/PageHeader';
+import { Card } from '@/components/ui/Card';
+import { Chip } from '@/components/ui/Chip';
+import { Icon } from '@/components/shell/icons';
+import { CountUp } from '@/components/motion/CountUp';
+import { Stagger } from '@/components/motion/Stagger';
+import { PinReveal } from '@/components/PinReveal';
 import s from './learn.module.css';
 
 export const metadata = { title: 'Learn' };
@@ -10,63 +17,101 @@ export default async function LearnPage() {
   const org = await requireOrg();
   const flags = org.course;
   const p = courseProgress(flags);
-  const minutes = LESSONS.reduce((n, l) => n + l.minutes, 0);
+  const pct = Math.round((100 * p.done) / p.total);
 
   return (
-    <div className="stack" style={{ gap: 24, maxWidth: 860 }}>
-      <header className={s.head}>
-        <div>
-          <p className="eyebrow eyebrow-sap">Help · getting started course</p>
-          <h1>SycaMore in {minutes} minutes</h1>
-          <p className="muted">
-            Six short lessons. Each one opens the real screen and finishes itself when you do the thing, so there’s nothing to memorize. Use the practice
-            event; nothing you do there shows up in your reports.
-          </p>
-        </div>
-        <div className={s.progress}>
-          <span className={s.big}>
-            {p.done}/{p.total}
-          </span>
-          <span className="small muted">{p.complete ? 'Done. You’re trained.' : `${minutes - LESSONS.filter((l) => flags[l.key]).reduce((n, l) => n + l.minutes, 0)} min left`}</span>
-        </div>
-      </header>
+    <Stagger className={`page ${s.page}`}>
+      <PageHeader
+        eyebrow="Getting started"
+        title={`SycaMore in ${COURSE_MINUTES} minutes`}
+        lede="Six short lessons. Each opens the real screen and ticks itself off when you do the thing."
+        action={
+          p.next ? (
+            <Link className="btn btn-primary" href={p.next.href}>
+              {p.done === 0 ? 'Start the first lesson' : 'Next lesson'} <Icon name="arrow-right" size={16} />
+            </Link>
+          ) : undefined
+        }
+      />
 
-      <ol className={s.list}>
+      <Card pad className={s.progressCard}>
+        <div className={s.progressNum}>
+          <span className="figure">
+            <CountUp value={p.done} />
+            <span className="figure-unit">of {p.total} done</span>
+          </span>
+          <span className={s.progressSub}>{p.complete ? 'You’re trained. Revisit any lesson below.' : `${p.minutesLeft} min left`}</span>
+        </div>
+        <div className={s.fat} role="progressbar" aria-label="Lessons done" aria-valuemin={0} aria-valuemax={p.total} aria-valuenow={p.done}>
+          <span style={{ width: `${Math.max(4, pct)}%` }} />
+        </div>
+        <p className={s.practice}>
+          <Icon name="shield" size={16} />
+          Use the practice event to try things. Nothing you do there shows up in your reports.
+        </p>
+      </Card>
+
+      <ol className={s.list} aria-label="Lessons">
         {LESSONS.map((l, i) => {
           const done = !!flags[l.key];
           const isNext = p.next?.key === l.key;
           return (
-            <li key={l.key} className={`card ${s.lesson} ${done ? s.done : ''} ${isNext ? s.next : ''}`}>
+            <li key={l.key} className={`card ${s.lesson}`} data-state={done ? 'done' : isNext ? 'next' : 'todo'}>
               <span className={s.num} aria-hidden>
-                {done ? '✓' : i + 1}
+                {done ? <Icon name="check" size={16} strokeWidth={2.25} /> : i + 1}
               </span>
               <div className={s.body}>
-                <div className="row between wrap">
+                <div className={s.titleRow}>
                   <h2 className={s.title}>{l.title}</h2>
-                  <span className="small muted">{l.minutes} min</span>
+                  {done ? (
+                    <Chip tone="green" icon="check">
+                      Done
+                    </Chip>
+                  ) : (
+                    <span className={s.mins}>
+                      <Icon name="clock" size={14} /> {l.minutes} min
+                    </span>
+                  )}
                 </div>
-                <p>{l.why}</p>
-                {(isNext || !done) && (
-                  <>
+                {!done && <p className={s.why}>{l.why}</p>}
+                {isNext && (
+                  <div className={s.detail}>
                     <ol className={s.steps}>
                       {l.steps.map((st) => (
                         <li key={st}>{st}</li>
                       ))}
                     </ol>
-                    <p className="small muted">
-                      <strong>Tip:</strong> {l.tip}
+                    <p className={s.tip}>
+                      <strong>Tip</strong> {l.tip}
                     </p>
-                  </>
+                  </div>
                 )}
-                <div className="row wrap">
+                {!done && !isNext && (
+                  <details className={s.more}>
+                    <summary>
+                      Steps <Icon name="chevron-down" size={14} />
+                    </summary>
+                    <ol className={s.steps}>
+                      {l.steps.map((st) => (
+                        <li key={st}>{st}</li>
+                      ))}
+                    </ol>
+                    <p className={s.tip}>
+                      <strong>Tip</strong> {l.tip}
+                    </p>
+                  </details>
+                )}
+                <div className={s.actions}>
                   {done ? (
-                    <span className="chip chip-green">Done</span>
+                    <Link className="btn btn-quiet btn-sm" href={l.href}>
+                      Open again
+                    </Link>
                   ) : (
                     <>
-                      <Link className={`btn ${isNext ? 'btn-primary' : ''}`} href={l.href}>
+                      <Link className={`btn btn-sm ${isNext ? 'btn-primary' : ''}`} href={l.href}>
                         Try it
                       </Link>
-                      <MarkDone lesson={l.key} />
+                      <MarkDone lesson={l.key} title={l.title} />
                     </>
                   )}
                 </div>
@@ -76,14 +121,17 @@ export default async function LearnPage() {
         })}
       </ol>
 
-      <section className="card card-pad stack">
-        <h2>Bringing on another coordinator?</h2>
-        <p className="muted">
-          Give them your PIN (<strong className="num">{org.coordinator_pin}</strong>). The same six lessons are here for them, and the practice event stays
-          separate from your real numbers.
-        </p>
-      </section>
-    </div>
+      <Card pad className={s.team}>
+        <span className={s.teamIcon} aria-hidden>
+          <Icon name="users" size={20} />
+        </span>
+        <div className={s.teamText}>
+          <h2>Bringing on another coordinator?</h2>
+          <p>Share your PIN. The same lessons are here for them, and the practice event stays out of your numbers.</p>
+        </div>
+        <PinReveal pin={org.coordinator_pin} />
+      </Card>
+    </Stagger>
   );
 }
 

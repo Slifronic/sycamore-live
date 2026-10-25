@@ -8,6 +8,7 @@ import type { FormState } from '@/app/org/actions';
 import { IntakePanel, type RepeatOption } from './IntakePanel';
 import { PlacePicker } from './PlacePicker';
 import { TagInput, type TagOption } from './TagInput';
+import { Icon } from '../shell/icons';
 import s from './events.module.css';
 
 const ACTIVITY_HINT: Record<Activity, string> = {
@@ -171,7 +172,7 @@ export function EventForm({
               <label className={s.checkRow}>
                 <input type="checkbox" name="use_for_site" checked={v.use_for_site} onChange={(e) => set('use_for_site', e.target.checked)} />
                 <span className="small">
-                  Also use this pin for the <strong>leave-the-area check</strong> (suggests a check-out time when someone who opted in leaves). You can change the radius on the day.
+                  Also use this pin for the <strong>leave-the-area check</strong>. You can change the radius on the day.
                 </span>
               </label>
             )}
@@ -182,7 +183,7 @@ export function EventForm({
               For volunteers <span className="muted small">(optional)</span>
             </label>
             <textarea className={`input ${hl('notes')}`} id="notes" name="notes" rows={2} value={v.notes} onChange={(e) => set('notes', e.target.value)} placeholder="What to bring or wear, parking, where to meet" />
-            <span className="hint">Shows on the event page you share, and in the calendar invite.</span>
+            <span className="hint">Shows on the shared event page and in the calendar invite.</span>
           </div>
 
           <div className="field">
@@ -190,7 +191,7 @@ export function EventForm({
               Goal <span className="muted small">(optional)</span>
             </label>
             <input className={`input ${hl('goal')}`} id="goal" name="goal" value={v.goal} onChange={(e) => set('goal', e.target.value)} placeholder="e.g. Plant 40 trees, or sort 500 lbs of food" />
-            <span className="hint">One concrete goal makes the post-event check easy, and it goes on your funder report.</span>
+            <span className="hint">One concrete goal makes the post-event check easy.</span>
           </div>
 
           <div className="field">
@@ -198,7 +199,7 @@ export function EventForm({
               Tags <span className="muted small">(optional)</span>
             </span>
             <TagInput value={v.tags} onChange={(t) => set('tags', t)} options={tagOptions} highlight={!!hl('tags')} />
-            <span className="hint">Group events by program, place or who they suit. Filter by them on Events and the calendar, and subscribe to one tag’s feed.</span>
+            <span className="hint">Group events by program or place; filter and subscribe by tag.</span>
           </div>
 
           <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
@@ -226,7 +227,7 @@ export function EventForm({
             <button className="btn btn-primary btn-big" disabled={pending}>
               {pending ? (mode === 'new' ? 'Creating…' : 'Saving…') : mode === 'new' ? 'Create event and get QR code' : 'Save changes'}
             </button>
-            {mode === 'new' && <span className="small muted">You’ll get a check-in QR code and a link to share with volunteers.</span>}
+
           </div>
         </form>
       </div>
@@ -245,7 +246,8 @@ export function EventForm({
             <p className="small">{fmtWhen(v.date, v.start, v.end)}</p>
             {(v.place || v.location) && (
               <p className="small">
-                📍 {v.place?.name ?? v.location}
+                <Icon name="pin" size={14} style={{ verticalAlign: '-2px', marginRight: 4 }} />
+                {v.place?.name ?? v.location}
                 {v.place?.address && v.place.address !== v.place.name ? <span className="muted"> · {v.place.address}</span> : null}
               </p>
             )}
@@ -266,7 +268,7 @@ export function EventForm({
             </div>
           </div>
         </div>
-        <p className="small muted">After you create it, share one link in your group chats. It has the map, directions and add-to-calendar buttons. The check-in QR code stays with you.</p>
+        <p className="small muted">One link for your group chats, with the map and add-to-calendar.</p>
       </aside>
     </div>
   );
