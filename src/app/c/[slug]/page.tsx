@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { sql } from '@/lib/db';
 import { getPublishedCampaign } from '@/lib/story';
 import { Reel, type Shot } from '@/components/Reel';
+import { Cover } from '@/components/media/Cover';
+import { coverFor } from '@/lib/covers';
 import s from './campaign.module.css';
 
 // Public campaign page. Numbers come from the snapshot of the attested record
@@ -30,7 +32,7 @@ async function load(slug: string) {
 
 export async function generateMetadata({ params }: PageProps<'/c/[slug]'>): Promise<Metadata> {
   const data = await load((await params).slug);
-  if (!data) return { title: 'Campaign not found · SycaMore Live' };
+  if (!data) return { title: 'Campaign not found' };
   const { draft, facts } = data.campaign;
   return { title: `${draft.headline} · ${facts.org.name}`, description: draft.subhead };
 }
@@ -43,15 +45,34 @@ export default async function CampaignPage({ params }: PageProps<'/c/[slug]'>) {
 
   return (
     <main className={s.page}>
-      <header className={s.head}>
-        <p className={s.org}>{facts.org.name}</p>
-        <h1 className={s.title}>{draft.headline}</h1>
-        <p className={s.sub}>{draft.subhead}</p>
-      </header>
+      {shots.length === 0 ? (
+        // No consented clips to play: a cover photo for the kind of work carries the header.
+        <header className={s.head}>
+          <Cover cover={coverFor({ title: facts.event.title })} variant="hero" priority className="settle">
+            <p className={`${s.org} ${s.onPhoto} rise`}>{facts.org.name}</p>
+            <h1 className={`${s.title} ${s.onPhoto} rise`} style={{ ['--d' as string]: '0.08s' }}>
+              {draft.headline}
+            </h1>
+          </Cover>
+          <p className={`${s.sub} rise`} style={{ ['--d' as string]: '0.16s' }}>
+            {draft.subhead}
+          </p>
+        </header>
+      ) : (
+        <header className={s.head}>
+          <p className={`${s.org} rise`}>{facts.org.name}</p>
+          <h1 className={`${s.title} rise`} style={{ ['--d' as string]: '0.08s' }}>
+            {draft.headline}
+          </h1>
+          <p className={`${s.sub} rise`} style={{ ['--d' as string]: '0.16s' }}>
+            {draft.subhead}
+          </p>
+        </header>
+      )}
 
       {shots.length > 0 && <Reel shots={shots} label={`Highlights from ${facts.event.title}`} />}
 
-      <section className={s.verified} aria-label="Verified record">
+      <section className={`${s.verified} rise`} style={{ ['--d' as string]: '0.24s' }} aria-label="Verified record">
         <span className={s.check} aria-hidden>✓</span>
         <div>
           <p className={s.vLine}>
@@ -66,11 +87,15 @@ export default async function CampaignPage({ params }: PageProps<'/c/[slug]'>) {
       </section>
 
       <article className={s.story}>
-        {draft.story.split(/\n{2,}/).map((p, i) => <p key={i}>{p}</p>)}
+        {draft.story.split(/\n{2,}/).map((p, i) => (
+          <p key={i} className="reveal">
+            {p}
+          </p>
+        ))}
       </article>
 
       {draft.quote && (
-        <blockquote className={s.quote}>
+        <blockquote className={`${s.quote} reveal`}>
           <p>“{draft.quote}”</p>
           <footer>{facts.org.coordinator}, {facts.org.name}</footer>
         </blockquote>

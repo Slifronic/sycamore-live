@@ -17,7 +17,7 @@ const longDay = (d: Date) => new Date(d).toLocaleDateString('en-US', { timeZone:
 
 export async function generateMetadata({ params }: PageProps<'/e/[slug]'>): Promise<Metadata> {
   const e = await publicEvent((await params).slug);
-  if (!e) return { title: 'Event not found · SycaMore Live' };
+  if (!e) return { title: 'Event not found' };
   const when = `${longDay(e.starts_at)}, ${fmtTime(e.starts_at)} to ${fmtTime(e.ends_at)}`;
   return {
     title: `${e.title} · ${e.org_name}`,

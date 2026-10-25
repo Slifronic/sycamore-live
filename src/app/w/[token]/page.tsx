@@ -5,6 +5,9 @@ import { googleClientId } from '@/lib/google';
 import { currentVolunteerId } from '@/lib/vol-session';
 import { ageOn, eventByWalkinToken, STATE_MESSAGE, walkinState } from '@/lib/walkin';
 import { WalkinFlow, type WalkinAttendance } from './WalkinFlow';
+import { Cover } from '@/components/media/Cover';
+import { EmptyState } from '@/components/media/EmptyState';
+import { coverFor } from '@/lib/covers';
 import s from './walkin.module.css';
 
 // Walk-in sign-up, the page behind an event's second QR code. Someone with no
@@ -12,7 +15,7 @@ import s from './walkin.module.css';
 // already signed up on this phone checks in with one tap, and comes back here
 // to check out.
 
-export const metadata: Metadata = { title: 'Sign up and check in · SycaMore Live', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: 'Sign up and check in', robots: { index: false, follow: false } };
 
 export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
   const { token } = await params;
@@ -35,8 +38,12 @@ export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
       return (
         <main className={s.page}>
           <header className={s.head}>
-            <p className={s.org}>{active.org_name}</p>
-            <h1 className={s.title}>{active.title}</h1>
+            <Cover cover={coverFor({ title: active.title })} variant="band" priority className={`${s.hero} settle`}>
+              <p className={`${s.org} rise`}>{active.org_name}</p>
+              <h1 className={`${s.title} rise`} style={{ ['--d' as string]: '0.08s' }}>
+                {active.title}
+              </h1>
+            </Cover>
             <p className={s.lede}>
               {fmtDay(active.starts_at)} · {fmtTime(active.starts_at)} to {fmtTime(active.ends_at)}
               {active.location ? ` · ${active.location}` : ''}
@@ -58,10 +65,9 @@ export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
     return (
       <main className={s.page}>
         <section className={s.card}>
-          <h1 className={s.title}>This sign-up link doesn’t work</h1>
-          <p className={s.lede}>
+          <EmptyState compact illo="compass" title={<span className={s.badTitle}>This sign-up link doesn’t work</span>}>
             It may have been replaced with a new one. Ask the coordinator at the sign-in table for the current QR code, or to add you by name. Your time still counts.
-          </p>
+          </EmptyState>
         </section>
       </main>
     );
@@ -83,8 +89,12 @@ export default async function WalkinPage({ params }: PageProps<'/w/[token]'>) {
   return (
     <main className={s.page}>
       <header className={s.head}>
-        <p className={s.org}>{org.name}</p>
-        <h1 className={s.title}>{event.title}</h1>
+        <Cover cover={coverFor(event)} variant="band" priority className={`${s.hero} settle`}>
+          <p className={`${s.org} rise`}>{org.name}</p>
+          <h1 className={`${s.title} rise`} style={{ ['--d' as string]: '0.08s' }}>
+            {event.title}
+          </h1>
+        </Cover>
         <p className={s.lede}>
           {fmtDay(event.starts_at)} · {fmtTime(event.starts_at)} to {fmtTime(event.ends_at)}
           {event.location ? ` · ${event.location}` : ''}

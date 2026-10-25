@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { requireOrg } from '@/lib/session';
@@ -17,6 +18,8 @@ import { RouteTransition } from '@/components/motion/RouteTransition';
 
 // Every org screen reads the coordinator's cookie, so it renders per request.
 export const instant = false;
+
+export const metadata: Metadata = { title: 'Coordinator', robots: { index: false, follow: false } };
 
 export default async function OrgShell({ children }: LayoutProps<'/org'>) {
   const org = await requireOrg();
