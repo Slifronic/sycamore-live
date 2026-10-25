@@ -99,7 +99,7 @@ export default async function VerifyPage({ params, searchParams }: PageProps<'/o
         title={`Verify ${event.title}`}
         lede={`${roster.length} people. Hours are filled in from the scans: answer the goal question, set roles, star anyone who stood out, then verify. This replaces signing hour letters.`}
       />
-      <VerifyConsole eventId={id} before={before} goalText={event.goal_text} signer={`${org.coordinator_name}, ${org.name}`} endsAt={new Date(event.ends_at).toISOString()} initial={JSON.parse(JSON.stringify(roster))} />
+      <VerifyConsole eventId={id} before={before} goalText={event.goal_text} signer={`${org.coordinator_name}, ${org.name}`} coordinator={org.coordinator_name} endsAt={new Date(event.ends_at).toISOString()} initial={JSON.parse(JSON.stringify(roster))} />
     </div>
   );
 }

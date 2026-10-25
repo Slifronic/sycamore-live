@@ -22,7 +22,7 @@ type Row = Pick<AttendanceRow, 'id' | 'display_name' | 'method'> & {
 const ROLES = Object.keys(ROLE_LABEL) as Role[];
 const initials = (n: string) => n.split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
 
-export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initial }: { eventId: string; before: number | null; endsAt: string; goalText: string | null; signer: string; initial: (Omit<AttendanceRow, 'left_area_at'> & { checked_in_at: string | null; checked_out_at: string | null; left_area_at: string | null })[] }) {
+export function VerifyConsole({ eventId, before, endsAt, goalText, signer, coordinator, initial }: { eventId: string; before: number | null; endsAt: string; goalText: string | null; signer: string; coordinator: string; initial: (Omit<AttendanceRow, 'left_area_at'> & { checked_in_at: string | null; checked_out_at: string | null; left_area_at: string | null })[] }) {
   const [rows, setRows] = useState<Row[]>(() =>
     initial.map((a) => ({
       id: a.id,
@@ -55,14 +55,19 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
   const missing = rows.filter((r) => !r.no_show && !r.checked_out_at && r.hours === '' && r.checked_in_at);
   const clock = (ms: number) => new Date(ms).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
   function filled(r: Row): Partial<Row> {
-    const close = Math.min(Date.now(), new Date(endsAt).getTime());
+    const now = Date.now();
+    const ended = new Date(endsAt).getTime() <= now;
+    const close = Math.min(now, new Date(endsAt).getTime());
     const left = r.left_area_at ? new Date(r.left_area_at).getTime() : null;
     const end = left != null && left < close ? left : close;
     const h = Math.max(0, Math.round((end - new Date(r.checked_in_at!).getTime()) / 900_000) * 0.25);
+    // The reason says when the hours were counted to: the event's end, or (verifying early) the moment they were filled in.
     const reason =
       end === left
         ? `Didn't scan out; their phone showed them leaving the event area around ${clock(end)}, counted until then`
-        : `Didn't scan out; counted until ${clock(end)} when the event closed`;
+        : ended
+          ? `Didn't scan out; counted until ${clock(end)} when the event closed`
+          : `Filled in at ${clock(end)} by ${coordinator}; didn't scan out`;
     return { hours: String(h), reason };
   }
   function fillMissing() {
@@ -74,15 +79,25 @@ export function VerifyConsole({ eventId, before, endsAt, goalText, signer, initi
 
   // Name exactly who is blocking the button, instead of a vague disabled state.
   // Each one points at the control that fixes it, so the bar can take you there.
+  // These mirror the server's rules in attestEvent (lib/org-data.ts), which has the final say:
+  // "Ready" here means the server will accept the sheet.
   const blockers = useMemo(() => {
     const out: { text: string; target: string }[] = [];
     if (!goal) out.push({ text: 'Answer “did the event achieve its goal?”', target: 'goal-yes' });
     for (const r of rows) {
       if (r.no_show) continue;
-      if (!r.checked_out_at && r.hours === '') out.push({ text: `${r.display_name} never checked out: enter hours with a reason, or mark no-show`, target: `hours-${r.id}` });
+      const h = Number(r.hours);
+      if (r.hours !== '' && (isNaN(h) || h < 0 || h > 24)) out.push({ text: `${r.display_name}'s hours must be between 0 and 24`, target: `hours-${r.id}` });
+      else if (r.hours !== '' && !Number.isInteger(h * 4)) out.push({ text: `${r.display_name}'s hours go in quarter hours (like 2.25 or 2.5)`, target: `hours-${r.id}` });
       else if (changed(r) && !r.reason.trim()) out.push({ text: `Add a reason for changing ${r.display_name}'s hours`, target: `reason-${r.id}` });
-      else if (r.hours !== '' && (isNaN(Number(r.hours)) || Number(r.hours) < 0 || Number(r.hours) > 24)) out.push({ text: `${r.display_name}'s hours must be between 0 and 24`, target: `hours-${r.id}` });
-      else if (r.hours !== '' && !Number.isInteger(Number(r.hours) * 4)) out.push({ text: `${r.display_name}'s hours go in quarter hours (like 2.25 or 2.5)`, target: `hours-${r.id}` });
+      // Unchanged hours stand only on a complete check-in and check-out.
+      else if (!changed(r) && !r.checked_out_at)
+        out.push({
+          text: r.hours === '' ? `${r.display_name} never checked out: enter hours with a reason, or mark no-show` : `${r.display_name} never checked out: enter more than ${r.hours_captured} hours with a reason, or mark no-show`,
+          target: `hours-${r.id}`,
+        });
+      else if (!changed(r) && r.checked_in_at && r.checked_out_at && new Date(r.checked_out_at) < new Date(r.checked_in_at))
+        out.push({ text: `${r.display_name}'s time out is before their time in: enter their hours with a reason, or mark no-show`, target: `hours-${r.id}` });
     }
     return out;
   }, [rows, goal]);
