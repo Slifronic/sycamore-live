@@ -32,11 +32,11 @@ export default async function EventsPage({ searchParams }: PageProps<'/org/event
     order by e.is_practice desc, e.starts_at desc
   `) as unknown as Row[];
   const now = requestNow();
-  // Today's unverified events go first (the live one is what the coordinator opens on the day).
+  // A live event goes first, then the rest of today's unverified events: on the day, that's what the coordinator opens.
   const todayYmd = utcToPacific(new Date(now)).ymd;
   const isToday = (e: Row) => !e.attested_at && !e.is_practice && utcToPacific(new Date(e.starts_at)).ymd === todayYmd;
   const isLive = (e: Row) => !e.attested_at && new Date(e.starts_at).getTime() <= now && new Date(e.ends_at).getTime() >= now;
-  const rank = (e: Row) => (isToday(e) ? (isLive(e) ? 0 : 1) : 2);
+  const rank = (e: Row) => (isLive(e) ? 0 : isToday(e) ? 1 : 2);
   events.sort((a, b) => rank(a) - rank(b));
   const [tags, tagMap] = await Promise.all([listTags(org.id), tagsForEvents(events.map((e) => e.id))]);
   const q = (t: string | null) => (t ? `?tag=${encodeURIComponent(t)}` : '');

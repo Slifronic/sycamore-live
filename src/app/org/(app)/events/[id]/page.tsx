@@ -46,8 +46,8 @@ export default async function EventPage({ params, searchParams }: PageProps<'/or
 
   // Before the day, sharing the event is the job, so it comes first; on the day, the QR code is.
   const share = !event.is_practice && !event.attested_at && !ended;
-  // On the day itself, phones lead with the QR code: this event's other links move below the roster.
-  const dayOf = !event.is_practice && !event.attested_at && utcToPacific(new Date(event.starts_at)).ymd === utcToPacific(new Date(now)).ymd;
+  // On the day itself (or while it's live), phones lead with the QR code: this event's other links move below the roster.
+  const dayOf = !event.is_practice && !event.attested_at && (live || utcToPacific(new Date(event.starts_at)).ymd === utcToPacific(new Date(now)).ymd);
   const sharePanel = <SharePanel url={links.page} title={event.title} announcement={announcement(event, org.name)} links={{ google: links.google, ics: links.ics, outlook: links.outlook }} />;
 
   return (
