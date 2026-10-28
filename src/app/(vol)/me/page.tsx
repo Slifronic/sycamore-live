@@ -172,9 +172,14 @@ export default async function Home() {
             Your organizations
           </h2>
           {records.length > 0 && (
-            <Link href="/me/journey" className={s.headLink}>
-              Journey <Icon name="arrow-right" size={16} />
-            </Link>
+            <span className="row" style={{ gap: 16 }}>
+              <Link href="/me/transcript" className={s.headLink}>
+                Transcript <Icon name="arrow-right" size={16} />
+              </Link>
+              <Link href="/me/journey" className={s.headLink}>
+                Journey <Icon name="arrow-right" size={16} />
+              </Link>
+            </span>
           )}
         </div>
         {records.length ? (

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { currentVolunteerId } from '@/lib/vol-session';
 import { recordPresence, setLocationOptIn, validLatLng } from '@/lib/presence';
 
 // Volunteer side (owner: volunteer). Reference implementation written with the
@@ -9,8 +9,8 @@ import { recordPresence, setLocationOptIn, validLatLng } from '@/lib/presence';
 //   { attendance_id, lat, lng, accuracy_m }          a ping while the page is open
 // Returns PresenceResult. Coordinates are used once and never stored.
 export async function POST(req: Request) {
-  const vid = (await cookies()).get('vid')?.value;
-  if (!vid || !/^[0-9a-f-]{36}$/.test(vid)) return NextResponse.json({ error: 'Join first.' }, { status: 401 });
+  const vid = await currentVolunteerId();
+  if (!vid) return NextResponse.json({ error: 'Join first.' }, { status: 401 });
   const body = await req.json().catch(() => null);
   const attendanceId = String(body?.attendance_id ?? '');
   if (!/^[0-9a-f-]{36}$/.test(attendanceId)) return NextResponse.json({ error: 'Missing attendance_id.' }, { status: 400 });

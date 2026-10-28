@@ -3,6 +3,7 @@ import { illo, type IlloName } from './media';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { Icon } from '../shell/icons';
+import { Rays } from './Rays';
 import { Reveal } from './Reveal';
 import s from './site.module.css';
 
@@ -28,23 +29,39 @@ export function PageHero({
   lede,
   children,
   art,
+  ambient,
 }: {
   eyebrow: string;
   title: ReactNode[];
   lede?: ReactNode;
   children?: ReactNode;
   art?: ReactNode;
+  /** The drifting rays backdrop (animated-rays port). */
+  ambient?: boolean;
 }) {
   return (
-    <section className={s.pageHero} aria-labelledby="page-title">
+    <section className={`${s.pageHero} ${ambient ? s.ambient : ''}`} aria-labelledby="page-title">
+      {ambient && <Rays />}
       <div className={`${s.wrap} ${art ? s.pageHeroGrid : ''}`}>
         <div className={s.pageHeroText}>
-          <p className={s.eyebrow}>{eyebrow}</p>
+          <p className={`${s.eyebrow} ${s.fade}`}>{eyebrow}</p>
           <RiseTitle lines={title} id="page-title" />
-          {lede && <p className={s.lede}>{lede}</p>}
-          {children}
+          {lede && (
+            <p className={`${s.lede} ${s.fade}`} style={{ ['--d' as string]: '0.28s' }}>
+              {lede}
+            </p>
+          )}
+          {children && (
+            <div className={`${s.heroExtra} ${s.fade}`} style={{ ['--d' as string]: '0.38s' }}>
+              {children}
+            </div>
+          )}
         </div>
-        {art && <div className={s.pageHeroArt}>{art}</div>}
+        {art && (
+          <div className={`${s.pageHeroArt} ${s.fade}`} style={{ ['--d' as string]: '0.2s' }}>
+            {art}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -136,11 +153,13 @@ export function Facts({ items }: { items: ReactNode[] }) {
   );
 }
 
+/** The closing call to action (vengeance-ui call-to-action/one: centred
+    title, one line, two buttons), on a paper card with the rays backdrop. */
 export function CtaBand({
-  title = 'Run your next event on the record.',
+  title = 'Put your next event on the record.',
   text = 'Set-up takes about a minute, then a practice event teaches the rest. Volunteers never pay.',
-  primary = { href: '/org/start', label: 'Set up your organization' },
-  secondary = { href: '/join', label: 'I’m volunteering' },
+  primary = { href: '/org/start', label: 'Start free' },
+  secondary = { href: '/join', label: 'Join as a volunteer' },
   note = 'Free while SycaMore Live is a student demo. Nothing is charged.',
 }: {
   title?: string;
@@ -153,23 +172,20 @@ export function CtaBand({
     <section className={s.cta} aria-labelledby="cta-title">
       <div className={s.wrap}>
         <Reveal className={s.ctaCard}>
-          <div>
-            <h2 className={s.ctaTitle} id="cta-title">
-              {title}
-            </h2>
-            <p className={s.ctaText}>{text}</p>
+          <Rays corner="center" />
+          <h2 className={s.ctaTitle} id="cta-title">
+            {title}
+          </h2>
+          <p className={s.ctaText}>{text}</p>
+          <div className={s.ctas}>
+            <Link href={primary.href} className={`btn btn-primary btn-big ${s.ctaBtn}`}>
+              {primary.label} <Icon name="arrow-right" size={20} />
+            </Link>
+            <Link href={secondary.href} className="btn btn-big">
+              {secondary.label}
+            </Link>
           </div>
-          <div className={s.ctaActions}>
-            <div className={s.ctas}>
-              <Link href={primary.href} className="btn btn-primary btn-big">
-                {primary.label}
-              </Link>
-              <Link href={secondary.href} className="btn btn-big">
-                {secondary.label}
-              </Link>
-            </div>
-            {note && <p className={s.ctaNote}>{note}</p>}
-          </div>
+          {note && <p className={s.ctaNote}>{note}</p>}
         </Reveal>
       </div>
     </section>

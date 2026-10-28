@@ -44,6 +44,8 @@ const addMin = (d, m) => new Date(d.getTime() + m * 60_000);
 
 async function main() {
   await sql.unsafe(readFileSync(new URL('./schema.sql', import.meta.url), 'utf8'));
+  await sql.unsafe(readFileSync(new URL('./migrations-auth.sql', import.meta.url), 'utf8'));
+  await sql.unsafe(readFileSync(new URL('./migrations-transcript.sql', import.meta.url), 'utf8'));
 
   const [org] = await sql`
     insert into org (name, contact_phone, contact_email, coordinator_name, coordinator_pin, kind, city, course)
@@ -327,6 +329,8 @@ async function main() {
   const [t] = await sql`select count(*)::int as n, coalesce(sum(coalesce(a.hours_adjusted, a.hours_captured)),0)::float as h from attendance a join event e on e.id = a.event_id where a.status = 'attested' and e.org_id = ${org.id}`;
   console.log(`Seeded Riverside Restoration Crew (PIN 246810): ${vols.length} volunteers, ${t.n} attested attendances, ${t.h} hours.`);
   console.log(`Seeded 3 more organizations for Discover (PINs 135790, 864202, 975318): ${discoverEvents} upcoming public events.`);
+  // Made-up demo organizations count as reviewed, so their records read "Verified" on stage.
+  await sql`update org set reviewed_at = now()`;
   await sql.end();
 }
 

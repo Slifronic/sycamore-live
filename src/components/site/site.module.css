@@ -80,6 +80,16 @@
 }
 .pageTitle em { font-style: normal; color: var(--primary); }
 .pageHeroArt { position: relative; min-width: 0; }
+.heroExtra { display: grid; gap: 16px; justify-items: start; }
+.ambient { position: relative; isolation: isolate; }
+
+/* Supporting hero copy fades up on its own delay (hero-entrance.md):
+   from-only keyframes, so without the animation it simply rests visible. */
+@media (prefers-reduced-motion: no-preference) {
+  .fade { animation: fade-up 0.7s var(--d, 0.05s) var(--ease-out) both; }
+}
+@keyframes fade-up { from { opacity: 0; transform: translateY(14px); } }
+@media print { .fade { animation: none; } }
 
 /* Masked line rise (hero-entrance.md). The first frame already shows each line
    most of the way up inside its mask, so nothing is blank at first paint, and
@@ -92,36 +102,51 @@
 }
 @keyframes rise { from { transform: translateY(42%); opacity: 0.3; } }
 
-/* ── CTA band: a paper card on the page, no glow ─────────── */
+/* ── CTA band: call-to-action/one, centred on a paper card ── */
 .cta { padding: 0 0 clamp(64px, 8vw, 104px); }
 /* After a band on the quiet surface, the card needs its own gap above it. */
 .section.well + .cta { padding-top: clamp(56px, 6vw, 80px); }
 .ctaCard {
-  border-radius: 20px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 24px;
   background: var(--paper);
-  padding: clamp(36px, 5vw, 64px) clamp(24px, 5vw, 64px);
+  padding: clamp(48px, 7vw, 96px) clamp(24px, 5vw, 64px);
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) auto;
-  gap: 28px 48px;
-  align-items: end;
+  justify-items: center;
+  text-align: center;
+  gap: 16px;
   box-shadow: var(--shadow);
 }
-.ctaTitle { color: var(--canopy); font-size: clamp(30px, 3.8vw, 48px); line-height: 1.04; letter-spacing: -0.03em; font-weight: 500; text-wrap: balance; max-width: 18ch; }
-.ctaText { color: var(--ink-2); font-size: 16px; line-height: 1.55; margin-top: 14px; max-width: 48ch; }
-.ctaActions { display: grid; gap: 12px; justify-items: start; }
+.ctaTitle { color: var(--canopy); font-size: clamp(32px, 4.4vw, 56px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 500; text-wrap: balance; max-width: 18ch; }
+.ctaText { color: var(--ink-2); font-size: 17px; line-height: 1.55; max-width: 50ch; text-wrap: pretty; }
+.ctaCard .ctas { justify-content: center; margin-top: 16px; }
+.ctaBtn svg { transition: transform var(--dur-2) var(--ease-out); }
+.ctaBtn:hover svg { transform: translateX(3px); }
 .ctaNote { font-size: 13px; color: var(--ink-3); }
 
 /* ── Cards ───────────────────────────────────────────────── */
 .paper { position: relative; background: var(--paper); border-radius: 16px; box-shadow: var(--shadow); }
 .spot { isolation: isolate; overflow: hidden; }
+/* The pointer glow moves by transform (a disc translated to the pointer),
+   so following the mouse never repaints the card. */
 .spot::before {
   content: '';
   position: absolute;
-  inset: 0;
   z-index: -1;
+  left: -180px;
+  top: -180px;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(320px 240px at var(--mx, -999px) var(--my, -999px), color-mix(in srgb, var(--sap) 11%, transparent), transparent 70%);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--sap) 12%, transparent), transparent);
+  transform: translate(var(--mx, -999px), var(--my, -999px));
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-out);
 }
+.spot:hover::before { opacity: 1; }
 
 .icon {
   flex: none;
@@ -141,14 +166,13 @@
 .facts b, .facts strong { color: var(--ink); font-weight: 650; }
 
 @media (max-width: 960px) {
-  .pageHeroGrid, .ctaCard { grid-template-columns: minmax(0, 1fr); }
+  .pageHeroGrid { grid-template-columns: minmax(0, 1fr); }
   .headRow { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
   .ctas > a { flex: 1 1 auto; }
   .ctaCard { border-radius: 20px; }
-  .ctaActions { justify-items: stretch; }
-  .ctaActions .ctas { display: grid; }
+  .ctaCard .ctas { display: grid; width: 100%; }
 }
 
 /* The global skip link, made a full 44px target on the marketing pages. */

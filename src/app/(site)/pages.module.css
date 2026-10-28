@@ -124,3 +124,44 @@
   .steps li, .steps li + li, .timeline li, .timeline li + li { padding: 20px 0; border-left: 0; border-bottom: 1px solid var(--line); }
   .hoursDemo, .banners, .compare { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* A quiet band between sections (the sustained-service statement). */
+.season { padding: clamp(56px, 7vw, 96px) 0; background: var(--surface-2); border-block: 1px solid var(--line); }
+.season + section { padding-top: clamp(64px, 8vw, 112px) !important; }
+
+/* Trust: each wording line gets an accent rule that draws as it scrolls
+   through the middle of the screen (scroll-driven, transform only). */
+.line { position: relative; }
+.line::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: 18px;
+  bottom: 18px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--primary);
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .line::before {
+      animation: line-mark linear both;
+      animation-timeline: view();
+      animation-range: cover 30% cover 55%;
+    }
+  }
+}
+@keyframes line-mark { to { transform: scaleY(1); } }
+@media (max-width: 960px) { .line::before { left: -10px; } }
+
+/* Pricing: what volunteers pay, and the small print, side by side. */
+.zero { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px 48px; align-items: center; padding: clamp(28px, 4vw, 44px); border-radius: 20px; background: var(--paper); box-shadow: var(--shadow); }
+.zeroNum { font-family: var(--font-display), Georgia, serif; font-size: clamp(72px, 9vw, 128px); line-height: 0.9; letter-spacing: -0.05em; font-weight: 500; color: var(--canopy); }
+.zeroNum small { display: block; margin-top: 10px; font-size: 0.16em; letter-spacing: 0.02em; color: var(--ink-3); font-family: var(--font-sans), system-ui, sans-serif; font-weight: 600; }
+.zeroText { display: grid; gap: 12px; }
+.pricingFaq { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: 32px 72px; align-items: start; }
+@media (max-width: 760px) {
+  .zero, .pricingFaq { grid-template-columns: minmax(0, 1fr); }
+}

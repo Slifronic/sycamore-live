@@ -145,3 +145,22 @@
 .rosterName { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-weight: 650; color: var(--ink); }
 .rosterName :global(.chip) { height: 20px; font-size: 10.5px; padding: 0 7px; }
 .rosterTime { color: var(--ink-3); font-variant-numeric: tabular-nums; font-size: 12.5px; white-space: nowrap; }
+
+/* Fill in / flags */
+.fill { display: grid; gap: 8px; }
+.fillRow { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--paper); box-shadow: var(--shadow); font-size: 13px; }
+.fillRow > svg { color: var(--amber); }
+.fillRow b { display: block; color: var(--ink); font-weight: 650; }
+.fillRow small { display: block; font-size: 11.5px; color: var(--ink-3); line-height: 1.35; }
+
+/* Funder report */
+.report { display: grid; gap: 12px; padding: 14px; border-radius: 12px; background: var(--paper); box-shadow: var(--shadow); }
+.reportHead { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.reportActions { display: flex; gap: 6px; }
+.reportGrid { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--rule-soft); border-radius: 10px; overflow: hidden; }
+.reportGrid > div { display: grid; gap: 2px; padding: 10px 12px; background: var(--paper); }
+.reportGrid dd { margin: 0; font-family: var(--font-display), Georgia, serif; font-size: 24px; font-weight: 600; color: var(--canopy); letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.reportGrid dt { font-size: 11.5px; color: var(--ink-3); font-weight: 600; }
+.reportNote { font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
+.fill .bar { font-size: 12.5px; }
+.fill .bar > span:first-child { white-space: nowrap; }

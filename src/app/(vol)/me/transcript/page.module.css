@@ -1,0 +1,15 @@
+.page { display: grid; gap: 16px; max-width: 880px; }
+.card { display: grid; gap: 12px; }
+.card h2 { font-size: 20px; margin: 0; }
+.linkRow { display: flex; gap: 8px; }
+.linkRow .input { flex: 1; min-width: 0; font-variant-numeric: tabular-nums; }
+.form { display: grid; gap: 12px; padding-top: 12px; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.requests { list-style: none; margin: 0; padding: 0; display: grid; }
+.request { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.request:first-child { border-top: 0; }
+.reqMain { display: grid; gap: 2px; min-width: 0; }
+.reqEnd { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.more { border-top: 1px solid var(--line); padding-top: 4px; }
+.more > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
+@media (max-width: 560px) { .two { grid-template-columns: minmax(0, 1fr); } }

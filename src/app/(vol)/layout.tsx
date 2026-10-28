@@ -32,8 +32,8 @@ export default async function VolShell({ children }: LayoutProps<'/'>) {
               <Leaf size={22} color="var(--canopy)" /> SycaMore
             </Link>
             <div className={s.bareRight}>
-              <Link href="/org/login" className={s.signin}>
-                Coordinator? Sign in
+              <Link href="/signin" className={s.signin}>
+                Sign in
               </Link>
               <ThemeToggle tooltip="left" />
             </div>

@@ -1,0 +1,64 @@
+.wrap { display: grid; gap: 28px; }
+.h3 { font-size: 18px; margin: 0 0 4px; }
+.hint { color: var(--ink-3); font-size: 14px; margin: 0 0 12px; }
+
+.totals { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 24px; align-items: center; }
+.total { display: grid; gap: 2px; }
+.big { font-family: var(--font-display), Georgia, serif; font-size: clamp(48px, 9vw, 76px); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.label { color: var(--ink-3); font-size: 15px; }
+.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; margin: 0; }
+.split div { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+.split dt { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.split dd { margin: 0; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sub { display: block; font-size: 12px; font-weight: 500; color: var(--ink-3); }
+
+.milestone { display: grid; gap: 14px; padding: 18px; border-radius: 16px; background: var(--surface-2); }
+.msHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.msHead h3 { margin: 0; font-size: 18px; }
+.msNote { font-size: 12px; color: var(--ink-3); }
+.msTrack { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.msTrack li { display: grid; justify-items: center; gap: 4px; text-align: center; color: var(--ink-3); }
+.msDot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--paper); transition: background-color 0.3s, border-color 0.3s, transform 0.3s; }
+.msTrack li[data-reached] { color: var(--ink); }
+.msTrack li[data-reached] .msDot { background: var(--primary); border-color: var(--primary); transform: scale(1.15); }
+.msName { font-size: 13px; font-weight: 600; }
+.msHours { font-size: 12px; font-variant-numeric: tabular-nums; }
+.bar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar span { display: block; height: 100%; border-radius: inherit; background: var(--primary); transform-origin: left; animation: grow 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes grow { from { transform: scaleX(0); } }
+
+.tableWrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+.table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.table th, .table td { padding: 10px 12px; text-align: left; border-top: 1px solid var(--line); white-space: nowrap; }
+.table thead th { border-top: 0; font-size: 12px; color: var(--ink-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.table tbody th { font-weight: 600; white-space: normal; min-width: 160px; }
+.nowrap { white-space: nowrap; }
+
+.log { list-style: none; margin: 0; padding: 0; display: grid; }
+.line { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 4px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.line:first-child { border-top: 0; }
+.date { font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.what { display: grid; gap: 2px; min-width: 0; }
+.what span { font-size: 13px; color: var(--ink-3); }
+.hours { font-weight: 700; font-variant-numeric: tabular-nums; }
+.proof { grid-column: 2 / -1; font-size: 12px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 0 4px; align-items: center; }
+.proof::before { content: ''; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; background: var(--primary); }
+.proof[data-kind='email']::before { background: var(--sun, #d9a441); }
+
+@media (max-width: 640px) {
+  .totals { grid-template-columns: minmax(0, 1fr); }
+  .line { grid-template-columns: minmax(0, 1fr) auto; }
+  .date { grid-column: 1 / -1; }
+  .proof { grid-column: 1 / -1; }
+  .msName { font-size: 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar span { animation: none; }
+  .msDot { transition: none; }
+}
+
+@media print {
+  .wrap { gap: 18px; }
+  .milestone { background: none; border: 1px solid #ccc; }
+}

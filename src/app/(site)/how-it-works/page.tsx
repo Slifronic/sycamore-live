@@ -4,6 +4,7 @@ import { ArtWell, CardGrid, FeatureRow, MiniCard } from '@/components/site/Featu
 import { Shot } from '@/components/site/Frames';
 import { CheckInMock, MyHoursMock, PasteMock, RosterMock, ShareMock, VerifyMock } from '@/components/site/Drawings';
 import { pageMeta } from '@/components/site/meta';
+import { StepBar } from '@/components/site/StepBar';
 import p from '../pages.module.css';
 
 export const metadata = pageMeta(
@@ -18,14 +19,23 @@ export default function HowItWorks() {
       <PageHero
         eyebrow="How it works"
         title={['One event,', <>start to <em>record</em>.</>]}
-        lede="What SycaMore Live does today, in the order it happens."
-      >
-        <nav aria-label="On this page" className={p.jump}>
-          <a href="#coordinators">Coordinators</a>
-          <a href="#volunteers">Volunteers</a>
-        </nav>
-      </PageHero>
+        lede="What SycaMore Live does today, in the order it happens: eight steps, six for the coordinator and two for the volunteer."
+        ambient
+      />
 
+      <StepBar
+        label="Steps on this page"
+        steps={[
+          { id: 'setup', label: 'Set up' },
+          { id: 'event-day', label: 'Event day' },
+          { id: 'walk-ins', label: 'Walk-ins' },
+          { id: 'paper', label: 'Paper sheets' },
+          { id: 'verify', label: 'Verify' },
+          { id: 'letters', label: 'Letters' },
+          { id: 'checkin', label: 'Check in' },
+          { id: 'record', label: 'Your record' },
+        ]}
+      >
       <Section id="coordinators" eyebrow="For coordinators" title="Before, during and after the event.">
         <FeatureRow id="setup" eyebrow="Before · Set up" title="Four boxes, then a practice run." art={<ArtWell><div className={p.mockW}><PasteMock /></div></ArtWell>}>
           <p>Set-up takes about a minute, then a practice event and a 7-minute course teach the rest by doing.</p>
@@ -120,6 +130,8 @@ export default function HowItWorks() {
           </MiniCard>
         </CardGrid>
       </Section>
+
+      </StepBar>
 
       <div className={`${ss.wrap} ${p.more}`}>
         <TextLink href="/trust">What the record says, line by line</TextLink>

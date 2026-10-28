@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import QRCode from 'qrcode';
-import { requireVolunteer, volunteerRecords } from '@/lib/vol-data';
+import { guardianApproved, requireVolunteer, volunteerRecords } from '@/lib/vol-data';
 import { badgeUrl, volunteerBadge } from '@/lib/vol-badges';
 import { fmtHours } from '@/lib/hours';
 import { plural } from '@/lib/format';
@@ -27,6 +27,7 @@ export async function generateMetadata({ params }: PageProps<'/me/badges/[key]'>
 export default async function BadgeDetail({ params }: PageProps<'/me/badges/[key]'>) {
   const { key } = await params;
   const vol = await requireVolunteer(`/me/badges/${key}`);
+  const locked = vol.is_minor && !(await guardianApproved(vol.id));
   const b = await volunteerBadge(vol.id, key);
   if (!b) notFound();
   const award = b.awards[0];
@@ -174,8 +175,8 @@ export default async function BadgeDetail({ params }: PageProps<'/me/badges/[key
         </article>
 
         <aside className={`${s.side} no-print`}>
-          <BadgeSharePanel awardId={award.id} url={url} qrSvg={qr} isMinor={vol.is_minor} />
-          {!vol.is_minor && (
+          <BadgeSharePanel awardId={award.id} url={url} qrSvg={qr} isMinor={locked} />
+          {!locked && (
             <LinkedInPanel
               key={url ?? 'no-link'}
               badgeName={b.def.name}

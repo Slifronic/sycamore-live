@@ -35,7 +35,7 @@ export function OrgTopBar({
   signOut,
 }: {
   org: { name: string; initials: string; kind: string };
-  me: { name: string; first: string; initials: string; pin: string };
+  me: { name: string; first: string; initials: string; pin: string | null };
   greeting: string;
   waiting: Waiting[];
   waitingCount: number;
@@ -193,11 +193,16 @@ export function OrgTopBar({
               </p>
             </div>
           </div>
-          <div className={s.accountRow}>
-            <Icon name="key" size={16} className={s.accountIcon} />
-            <PinReveal pin={me.pin} />
-          </div>
+          {me.pin && (
+            <div className={s.accountRow}>
+              <Icon name="key" size={16} className={s.accountIcon} />
+              <PinReveal pin={me.pin} />
+            </div>
+          )}
           <ThemeToggle variant="row" className={s.accountTheme} />
+          <Link href="/org/settings" className={s.accountLink}>
+            <Icon name="shield" size={16} /> Account and team
+          </Link>
           <Link href="/org/learn" className={s.accountLink}>
             <Icon name="book" size={16} /> Learn SycaMore
           </Link>

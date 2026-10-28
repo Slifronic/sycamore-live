@@ -2,6 +2,9 @@ import Link from 'next/link';
 import { CtaBand, Facts, PageHero, Section, siteStyles as ss } from '@/components/site/Blocks';
 import { ArtWell, CardGrid, FeatureRow, MiniCard } from '@/components/site/Feature';
 import { Shot } from '@/components/site/Frames';
+import { CoordinatorPath } from '@/components/site/CoordinatorPath';
+import { EvidenceCompare } from '@/components/site/Proof';
+import { StepBar } from '@/components/site/StepBar';
 import { VerifyMock } from '@/components/site/Drawings';
 import { pageMeta } from '@/components/site/meta';
 import p from '../pages.module.css';
@@ -18,18 +21,43 @@ export default function Organizations() {
       <PageHero
         eyebrow="For organizations"
         title={['Run the day.', <em key="e">Verify in two minutes.</em>]}
-        lede="Built for the coordinator at the sign-in table, who vouches for every hour."
+        lede="Built for the coordinator at the sign-in table, who vouches for every hour. Free to start."
         art={<Shot name="event-day" preload sizes="(min-width: 960px) 600px, 92vw" />}
+        ambient
       >
         <div className={ss.ctas}>
           <Link href="/org/start" className="btn btn-primary btn-big">
-            Set up your organization
+            Start free
           </Link>
-          <Link href="/org/login" className="btn btn-big">
-            Coordinator sign in
+          <Link href="/signin" className="btn btn-big">
+            Sign in
           </Link>
         </div>
       </PageHero>
+
+      <StepBar
+        label="On this page"
+        steps={[
+          { id: 'path', label: 'Your event, start to finish' },
+          { id: 'evidence', label: 'Why it holds up' },
+          { id: 'get', label: 'What you get' },
+          { id: 'detail', label: 'Verify and reports' },
+          { id: 'edges', label: 'Straight answers' },
+        ]}
+      >
+      <Section id="path" eyebrow="Start to finish" title="From set-up to the funder report, in four steps.">
+        <CoordinatorPath />
+      </Section>
+
+      <Section
+        id="evidence"
+        well
+        eyebrow="Why it holds up"
+        title="Evidence from the day, not a signature after the fact."
+        lede="Your volunteers’ hours are captured while they’re standing there, and you confirm them the same day."
+      >
+        <EvidenceCompare />
+      </Section>
 
       <Section id="get" eyebrow="What you get" title="Less paperwork, and a record you can stand behind.">
         <CardGrid cols={3}>
@@ -85,11 +113,12 @@ export default function Organizations() {
           </MiniCard>
         </CardGrid>
       </Section>
+      </StepBar>
 
       <CtaBand
         title="Set up your organization in a minute."
-        text="You’ll land on a practice event and a short course. Already set up? Sign in with your coordinator PIN."
-        secondary={{ href: '/org/login', label: 'Coordinator sign in' }}
+        text="You’ll land on a practice event and a short course. Already set up? Sign in."
+        secondary={{ href: '/signin', label: 'Sign in' }}
       />
     </>
   );

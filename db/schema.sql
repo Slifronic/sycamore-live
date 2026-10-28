@@ -4,6 +4,17 @@
 
 create extension if not exists pgcrypto;
 
+-- Accounts and sign-in (migrations-auth.sql) and the transcript (migrations-transcript.sql)
+-- live in their own files, which the seed runs after this one.
+drop table if exists hour_request cascade;
+drop table if exists guardian_request cascade;
+drop table if exists rate_limit cascade;
+drop table if exists email_code cascade;
+drop table if exists auth_pending cascade;
+drop table if exists auth_session cascade;
+drop table if exists org_invite cascade;
+drop table if exists org_member cascade;
+drop table if exists account cascade;
 drop table if exists event_chat_read cascade;
 drop table if exists event_chat cascade;
 drop table if exists automation_rule cascade;

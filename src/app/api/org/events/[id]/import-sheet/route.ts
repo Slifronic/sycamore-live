@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { limitAi, rateLimited } from '@/lib/rate-limit';
 import { currentOrg } from '@/lib/session';
 import { getEvent } from '@/lib/org-data';
 import { draftFromSheet, SheetImportError } from '@/lib/sheet-import';
@@ -7,6 +8,13 @@ import { draftFromSheet, SheetImportError } from '@/lib/sheet-import';
 export async function POST(req: Request, { params }: RouteContext<'/api/org/events/[id]/import-sheet'>) {
   const org = await currentOrg();
   if (!org) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+  try {
+    await limitAi(`org:${org.id}`);
+  } catch (e) {
+    const r = rateLimited(e);
+    if (r) return r;
+    throw e;
+  }
   const { id } = await params;
   const event = await getEvent(org.id, id);
   if (!event) return NextResponse.json({ error: 'Event not found.' }, { status: 404 });

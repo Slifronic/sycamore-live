@@ -4,7 +4,7 @@ import { useActionState } from 'react';
 import { startOrg } from '../actions';
 import s from '../auth.module.css';
 
-export function StartForm() {
+export function StartForm({ owner }: { owner: { name: string; email: string } | null }) {
   const [state, action, pending] = useActionState(startOrg, null);
   return (
     <form action={action} className="stack" style={{ gap: 16 }}>
@@ -22,15 +22,19 @@ export function StartForm() {
         <input className="input" id="name" name="name" placeholder="e.g. Riverside Restoration Crew" autoComplete="organization" required />
         <span className="hint">Use the legal name. It prints on every record you issue.</span>
       </div>
-      <div className="field">
-        <label htmlFor="coordinator">Your name</label>
-        <input className="input" id="coordinator" name="coordinator" autoComplete="name" required />
-      </div>
-      <div className="row wrap" style={{ alignItems: 'start' }}>
-        <div className="field" style={{ flex: '1 1 200px' }}>
-          <label htmlFor="email">Contact email</label>
-          <input className="input" id="email" name="email" type="email" autoComplete="email" required />
+      {!owner && (
+        <div className="field">
+          <label htmlFor="coordinator">Your name</label>
+          <input className="input" id="coordinator" name="coordinator" autoComplete="name" required />
         </div>
+      )}
+      <div className="row wrap" style={{ alignItems: 'start' }}>
+        {!owner && (
+          <div className="field" style={{ flex: '1 1 200px' }}>
+            <label htmlFor="email">Contact email</label>
+            <input className="input" id="email" name="email" type="email" autoComplete="email" required />
+          </div>
+        )}
         <div className="field" style={{ flex: '1 1 160px' }}>
           <label htmlFor="phone">Contact phone</label>
           <input className="input" id="phone" name="phone" type="tel" autoComplete="tel" required aria-describedby="phone-hint" />

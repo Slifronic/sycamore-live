@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import QRCode from 'qrcode';
-import { appUrl, requireVolunteer, volunteerRecord } from '@/lib/vol-data';
+import { appUrl, guardianApproved, requireVolunteer, volunteerRecord } from '@/lib/vol-data';
 import { fmtHours } from '@/lib/hours';
 import { ROLE_LABEL } from '@/lib/types';
 import { RecordWording, longDate } from '@/components/vol/RecordWording';
@@ -91,7 +91,7 @@ export default async function RecordPage({ params }: PageProps<'/me/records/[id]
         </footer>
       </article>
 
-      <RecordActions recordId={r.id} url={url} qrSvg={qr} isMinor={vol.is_minor} revoked={revoked} orgName={r.org.name} orgPhone={r.org.contact_phone} />
+      <RecordActions recordId={r.id} url={url} qrSvg={qr} isMinor={vol.is_minor && !(await guardianApproved(vol.id))} revoked={revoked} orgName={r.org.name} orgPhone={r.org.contact_phone} />
     </div>
   );
 }

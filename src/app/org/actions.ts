@@ -5,6 +5,9 @@ import { revalidatePath } from 'next/cache';
 import { sql } from '@/lib/db';
 import { pin } from '@/lib/codes';
 import { clearOrgCookie, requireOrg, safeOrgNext, setOrgCookie } from '@/lib/session';
+import { clearPending, readPending } from '@/lib/accounts';
+import { googleOAuthReady } from '@/lib/google-oauth';
+import { limit, limitByIp, RateLimitError } from '@/lib/rate-limit';
 import { addManual, attestEvent, checkOutAll, checkOutAttendance, createEvent, getEvent, markLesson, RuleError, type AttestRow } from '@/lib/org-data';
 import { loadOrgInsights } from '@/lib/insights';
 import { badgeByKey, type BadgeKey } from '@/lib/badges';
@@ -17,23 +20,47 @@ const PRACTICE_NAMES = ['Ana Practice', 'Ben Practice', 'Cleo Practice', 'Dev Pr
 
 
 export async function startOrg(_: FormState, form: FormData): Promise<FormState> {
-  const name = String(form.get('name') ?? '').trim();
-  const coordinator = String(form.get('coordinator') ?? '').trim();
-  const email = String(form.get('email') ?? '').trim();
-  const phone = String(form.get('phone') ?? '').trim();
+  const name = String(form.get('name') ?? '').trim().slice(0, 120);
   const kind = form.get('kind') === 'school' ? 'school' : 'nonprofit';
-  if (!name || !coordinator || !email || !phone) return { error: 'Fill in all four boxes. They print on every record you issue.' };
+  const phone = String(form.get('phone') ?? '').trim().slice(0, 40);
+  // With Google on, setup needs the Google sign-in it came from: the account
+  // becomes the org's owner and the PIN stays off. Without Google (local
+  // development), the four boxes and a PIN work as before.
+  const pending = await readPending('org');
+  if (googleOAuthReady() && !pending) return { error: 'Continue with Google first, so your organization has an owner who can sign in.' };
+  const coordinator = (pending?.name ?? String(form.get('coordinator') ?? '')).trim().slice(0, 80);
+  const email = (pending?.email ?? String(form.get('email') ?? '')).trim().slice(0, 200);
+  if (!name || !coordinator || !email || !phone) return { error: 'Fill in every box. They print on every record you issue.' };
+  if (pending) {
+    const [a] = await sql`select 1 from account where google_sub = ${pending.google_sub}`;
+    if (!a) return { error: 'That Google sign-in expired. Continue with Google again.' };
+  }
+  try {
+    await limitByIp('org-start', 5, 3600);
+  } catch (e) {
+    if (e instanceof RateLimitError) return { error: e.message };
+    throw e;
+  }
 
   let orgId: string | null = null;
   for (let i = 0; i < 5 && !orgId; i++) {
     try {
       const [org] = await sql`
-        insert into org (name, contact_phone, contact_email, coordinator_name, coordinator_pin, kind)
-        values (${name}, ${phone}, ${email}, ${coordinator}, ${pin()}, ${kind}) returning id`;
+        insert into org (name, contact_phone, contact_email, coordinator_name, coordinator_pin, kind, pin_enabled)
+        values (${name}, ${phone}, ${email}, ${coordinator}, ${pin()}, ${kind}, ${!pending}) returning id`;
       orgId = org.id;
     } catch (e) {
       if (!String(e).includes('coordinator_pin')) throw e;
     }
+  }
+  let accountId: string | null = null;
+  if (pending) {
+    // The Google callback already made (or found) the account.
+    const [a] = await sql`select id from account where google_sub = ${pending.google_sub}`;
+    if (!a) return { error: 'That Google sign-in expired. Continue with Google again.' };
+    accountId = a.id;
+    await sql`insert into org_member (org_id, account_id, role) values (${orgId}, ${accountId}, 'owner')`;
+    await clearPending();
   }
   // Every new org gets a practice event so the course has something to try on.
   const now = new Date();
@@ -45,15 +72,31 @@ export async function startOrg(_: FormState, form: FormData): Promise<FormState>
     activity: 'general',
     is_practice: true,
   });
-  await setOrgCookie(orgId!);
+  await setOrgCookie(orgId!, accountId);
   redirect('/org?welcome=1');
 }
 
 export async function signIn(_: FormState, form: FormData): Promise<FormState> {
   const code = String(form.get('pin') ?? '').replace(/\D/g, '');
   if (code.length !== 6) return { error: 'Your PIN is 6 digits.' };
-  const [org] = await sql`select id from org where coordinator_pin = ${code}`;
-  if (!org) return { error: 'That PIN doesn’t match an organization. Check the welcome email or set one up.' };
+  // A 6-digit PIN is guessable, so: 8 tries per 15 minutes per address, and a
+  // site-wide ceiling on misses. Orgs that link Google turn their PIN off.
+  try {
+    await limitByIp('pin', 8, 900);
+  } catch (e) {
+    if (e instanceof RateLimitError) return { error: e.message };
+    throw e;
+  }
+  const [org] = await sql`select id from org where coordinator_pin = ${code} and pin_enabled`;
+  if (!org) {
+    try {
+      await limit('pin:misses', 300, 3600);
+    } catch (e) {
+      if (e instanceof RateLimitError) return { error: 'PIN sign-in is paused for a few minutes. Use Google instead.' };
+      throw e;
+    }
+    return { error: 'That PIN doesn’t match an organization that signs in with a PIN. Try Google, or set one up.' };
+  }
   await setOrgCookie(org.id);
   redirect(safeOrgNext(form.get('next')));
 }

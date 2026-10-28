@@ -113,6 +113,10 @@ export type WalkinResult = {
   is_minor: boolean;
   is_new: boolean;   // this sign-up created the volunteer
   already: boolean;  // they were already on this event's roster
+  // Whether this phone may now act as the volunteer. An existing account found
+  // by email + birth date is checked in (the coordinator is right there and
+  // verifies the roster) but not signed in: that pair isn't proof of owning it.
+  sign_in: boolean;
 };
 
 type Vol = { id: string; name: string; date_of_birth: Date; google_sub: string | null };
@@ -139,11 +143,11 @@ export async function walkInCheckIn(token: string, who: WalkinWho): Promise<Walk
         where google_sub = ${who.identity.sub} or email = ${email}
         order by (google_sub = ${who.identity.sub}) desc nulls last limit 1`) as unknown as Vol[];
       // Google has confirmed this email, so link it to the existing account.
-      if (vol && !vol.google_sub) await sql`update volunteer set google_sub = ${who.identity.sub} where id = ${vol.id}`;
+      if (vol && !vol.google_sub) await sql`update volunteer set google_sub = ${who.identity.sub}, email_verified_at = coalesce(email_verified_at, now()) where id = ${vol.id}`;
     } else {
-      // An existing email signs that person back in only with the birth date
-      // they signed up with, so typing someone else's email doesn't open their
-      // record or messages. (Still demo-grade: real auth is a magic link.)
+      // An existing email is checked in only with the birth date it signed up
+      // with, and is never signed in here (see sign_in): opening the account
+      // takes Google or an emailed code.
       [vol] = (await sql`select id, name, date_of_birth, google_sub from volunteer where email = ${email}`) as unknown as Vol[];
       if (vol && isoDay(vol.date_of_birth) !== checkBirthDate(who.date_of_birth)) {
         throw new WalkinError(
@@ -160,8 +164,8 @@ export async function walkInCheckIn(token: string, who: WalkinWho): Promise<Walk
       if (name.length > 80) throw new WalkinError('That name is too long.', 400);
       const dob = checkBirthDate(who.date_of_birth);
       [vol] = (await sql`
-        insert into volunteer (name, email, date_of_birth, google_sub, signup_method, signup_event_id)
-        values (${name}, ${email}, ${dob}, ${who.kind === 'google' ? who.identity.sub : null},
+        insert into volunteer (name, email, date_of_birth, google_sub, email_verified_at, signup_method, signup_event_id)
+        values (${name}, ${email}, ${dob}, ${who.kind === 'google' ? who.identity.sub : null}, ${who.kind === 'google' ? sql`now()` : null},
                 ${who.kind === 'google' ? 'walk_in_google' : 'walk_in_email'}, ${event.id})
         returning id, name, date_of_birth, google_sub`) as unknown as Vol[];
       isNew = true;
@@ -189,6 +193,7 @@ export async function walkInCheckIn(token: string, who: WalkinWho): Promise<Walk
     is_minor: ageOn(new Date(vol!.date_of_birth)) < 18,
     is_new: isNew,
     already,
+    sign_in: who.kind !== 'email' || isNew,
   };
 }
 

@@ -33,9 +33,16 @@
   border-radius: 24px;
   background: var(--paper);
   box-shadow: var(--shadow);
-  transition: transform 0.35s var(--out), box-shadow 0.35s var(--out);
+  transition: transform 0.35s var(--out);
 }
-.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hi); }
+/* The lifted shadow fades in on a layer (opacity), never by animating box-shadow. */
+.card::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--shadow-hi); opacity: 0; transition: opacity 0.35s var(--out); pointer-events: none; }
+@media (hover: hover) {
+  .card:hover { transform: translateY(-4px); }
+  .card:hover::after { opacity: 1; }
+}
+.features li { transition: transform var(--dur-2) var(--ease-out); }
+.card:hover .features li:hover { transform: translateX(3px); }
 .featured { box-shadow: var(--shadow-hi), inset 0 0 0 1.5px var(--canopy); }
 .flag {
   position: absolute;
@@ -46,7 +53,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   background: var(--ink);
-  color: #fff;
+  color: var(--on-ink);
   padding: 5px 10px;
   border-radius: 999px;
 }

@@ -58,14 +58,23 @@ export async function requireVolunteer(next: string): Promise<Volunteer> {
 /** Only same-site paths survive a ?next= round trip; anything else goes to /me. */
 export function safeNext(raw: unknown): string {
   const s = typeof raw === 'string' ? raw : '';
-  return s.startsWith('/') && !s.startsWith('//') && !s.startsWith('/\\') && s.length < 300 ? s : '/me';
+  // Control characters and backslashes are dropped or rewritten by URL parsers
+  // ("/\t/evil.com" becomes "//evil.com"), so refuse them outright, then make
+  // sure the path still resolves to this site.
+  if (!s.startsWith('/') || s.length >= 300 || /[\u0000-\u001f\u007f\\]/.test(s)) return '/me';
+  try {
+    const u = new URL(s, 'https://sycamore.invalid');
+    return u.origin === 'https://sycamore.invalid' ? u.pathname + u.search + u.hash : '/me';
+  } catch {
+    return '/me';
+  }
 }
 
 // ---------- join ----------
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-export async function join(input: { name?: unknown; email?: unknown; date_of_birth?: unknown }) {
+export async function join(input: { name?: unknown; email?: unknown; date_of_birth?: unknown; google?: { sub: string; email: string } | null }) {
   const email = String(input.email ?? '').trim().toLowerCase();
   if (!EMAIL.test(email) || email.length > 200) throw new VolError('That email doesn’t look right.', 400);
   let dob: string;
@@ -80,29 +89,25 @@ export async function join(input: { name?: unknown; email?: unknown; date_of_bir
     throw e;
   }
 
-  // An existing email signs back in, but only with the birth date it signed up
-  // with, so typing someone else's email doesn't open their records or messages.
-  // (Same rule as the walk-in page; real auth would be a magic link.)
-  const [existing] = (await sql`
-    select id, to_char(date_of_birth, 'YYYY-MM-DD') as dob, google_sub from volunteer where email = ${email}`) as unknown as {
-    id: string; dob: string; google_sub: string | null;
-  }[];
+  // An existing email never signs in here: knowing someone's email and
+  // birthday isn't proof of owning the account. They sign in with Google or an
+  // emailed code instead (/signin).
+  const [existing] = await sql`select 1 from volunteer where email = ${email}`;
   if (existing) {
-    if (existing.dob !== dob) {
-      throw new VolError('That email is already signed up, with a different date of birth. Check it and try again.', 409);
-    }
-    return { volunteer: (await getVolunteer(existing.id))!, is_new: false };
+    throw new VolError('That email already has a SycaMore account. Sign in with Google or an emailed code.', 409, { signin: true });
   }
 
   const name = String(input.name ?? '').trim().replace(/\s+/g, ' ');
   if (name.length < 2) throw new VolError('Add your name, the way you want it on your record.', 400);
   if (name.length > 80) throw new VolError('That name is too long.', 400);
+  const g = input.google ?? null;
+  if (g && g.email !== email) throw new VolError('Use the email Google confirmed.', 400);
   const [v] = (await sql`
-    insert into volunteer (name, email, date_of_birth, signup_method)
-    values (${name}, ${email}, ${dob}, 'join')
+    insert into volunteer (name, email, date_of_birth, signup_method, google_sub, email_verified_at)
+    values (${name}, ${email}, ${dob}, 'join', ${g?.sub ?? null}, ${g ? sql`now()` : null})
     on conflict (email) do nothing
     returning id`) as unknown as { id: string }[];
-  if (!v) throw new VolError('That email just signed up. Try again.', 409);
+  if (!v) throw new VolError('That email just signed up. Sign in instead.', 409, { signin: true });
   return { volunteer: (await getVolunteer(v.id))!, is_new: true };
 }
 
@@ -244,8 +249,16 @@ export type VolRecord = RecordView & {
 type RecordRow = {
   id: string; code: string | null; status: 'active' | 'revoked'; shared_at: Date | null; volunteer_name: string;
   org_id: string; org_name: string; contact_phone: string; contact_email: string; coordinator_name: string;
+  org_reviewed: boolean; owner_email: string | null;
   event_id: string; title: string; location: string | null; starts_at: Date;
   role: Role; hours_captured: number; hours_adjusted: number | null; adjustment_reason: string | null; attested_at: Date | null; issued_at: Date;
+};
+
+// Free mail domains say nothing about which organization someone works for.
+const PERSONAL = new Set(['gmail.com', 'googlemail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'me.com', 'aol.com', 'proton.me', 'protonmail.com', 'live.com']);
+const orgDomain = (email: string | null) => {
+  const d = email?.split('@')[1]?.toLowerCase();
+  return d && !PERSONAL.has(d) ? d : null;
 };
 
 const toRecord = (r: RecordRow): VolRecord => ({
@@ -253,7 +266,7 @@ const toRecord = (r: RecordRow): VolRecord => ({
   code: r.code,
   status: r.status,
   volunteer_name: r.volunteer_name,
-  org: { name: r.org_name, contact_phone: r.contact_phone, contact_email: r.contact_email },
+  org: { name: r.org_name, contact_phone: r.contact_phone, contact_email: r.contact_email, reviewed: r.org_reviewed, verified_domain: orgDomain(r.owner_email) },
   event: { title: r.title, location: r.location, date: utcToPacific(new Date(r.starts_at)).ymd },
   role: r.role,
   hours_total: Number(r.hours_adjusted ?? r.hours_captured),
@@ -272,6 +285,9 @@ const toRecord = (r: RecordRow): VolRecord => ({
 const recordSelect = () => sql`
   select r.id, r.code, r.status, r.shared_at, r.issued_at, coalesce(v.name, a.display_name) as volunteer_name,
          o.id as org_id, o.name as org_name, o.contact_phone, o.contact_email, o.coordinator_name,
+         o.reviewed_at is not null as org_reviewed,
+         (select a2.email from org_member m join account a2 on a2.id = m.account_id
+          where m.org_id = o.id and m.role = 'owner' order by m.created_at limit 1) as owner_email,
          e.id as event_id, e.title, coalesce(e.place_name, e.location) as location, e.starts_at,
          a.role, a.hours_captured, a.hours_adjusted, a.adjustment_reason, a.attested_at
   from record r
@@ -301,6 +317,12 @@ export async function recordByCode(raw: string): Promise<VolRecord | null> {
   if (!SHARE_CODE.test(code)) return null;
   const [r] = (await sql`${recordSelect()} where r.code = ${code} and not e.is_practice`) as unknown as RecordRow[];
   return r ? toRecord(r) : null;
+}
+
+/** 13 to 17: whether a parent or guardian approved sharing (see transcript.ts). */
+export async function guardianApproved(volunteerId: string): Promise<boolean> {
+  const [r] = (await sql`select guardian_share_ok_at is not null as ok from volunteer where id = ${volunteerId}`) as unknown as { ok: boolean }[];
+  return !!r?.ok;
 }
 
 /** Strips what a stranger doesn't need from the public JSON. */
@@ -365,7 +387,9 @@ export async function shareRecord(volunteerId: string, recordId: string): Promis
   if (!rec) throw new VolError('No record with that id.', 404);
   if (rec.volunteer_id !== volunteerId) throw new VolError('That record isn’t yours to share.', 403);
   // Checked on the server, so the rule doesn't depend on the button being hidden.
-  if (vol.is_minor) throw new VolError('Sharing needs a guardian’s OK. That’s coming after the hackathon.', 403);
+  if (vol.is_minor && !(await guardianApproved(volunteerId))) {
+    throw new VolError('Sharing needs a parent or guardian’s OK first. Ask for it on your Transcript page.', 403);
+  }
   if (rec.status !== 'active') throw new VolError('This record was revoked by the organization, so it can’t be shared.', 409);
 
   let code = rec.code;

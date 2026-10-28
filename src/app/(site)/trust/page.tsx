@@ -4,6 +4,8 @@ import { RecordPreview } from '@/components/site/RecordPreview';
 import { Reveal, RevealGroup } from '@/components/site/Reveal';
 import { featuredRecord } from '@/components/site/featured-record';
 import { pageMeta } from '@/components/site/meta';
+import { EvidenceCompare, TrustBento } from '@/components/site/Proof';
+import { StepBar } from '@/components/site/StepBar';
 import { Icon } from '@/components/shell/icons';
 import { fmtHours } from '@/lib/hours';
 import type { RecordView } from '@/lib/types';
@@ -63,10 +65,36 @@ export default async function Trust() {
       <PageHero
         eyebrow="Trust"
         title={['What the record says,', <em key="e">and what it doesn’t.</em>]}
-        lede="A record is worth something only if a stranger can tell who vouches for it."
+        lede="A record is worth something only if a stranger can tell who vouches for it, when, and how the hours were captured."
+        ambient
       >
         {href && <TextLink href={href}>Open a live verified record</TextLink>}
       </PageHero>
+
+      <StepBar
+        label="On this page"
+        steps={[
+          { id: 'evidence', label: 'Evidence' },
+          { id: 'rules', label: 'The rules' },
+          { id: 'wording', label: 'The wording' },
+          { id: 'captured', label: 'Captured and adjusted' },
+          { id: 'verify-page', label: 'The link' },
+          { id: 'ai', label: 'AI' },
+          { id: 'minors', label: 'Minors' },
+        ]}
+      >
+      <Section
+        id="evidence"
+        eyebrow="Where the proof comes from"
+        title="Evidence from the day, not a signature after the fact."
+        lede="Hours are captured by the volunteer’s own scans at the event, and the organization confirms them when it closes the event."
+      >
+        <EvidenceCompare />
+      </Section>
+
+      <Section id="rules" well eyebrow="The rules" title="Who attests, what can change, and what can’t.">
+        <TrustBento />
+      </Section>
 
       <Section id="wording" eyebrow="The record wording" title="Line by line.">
         <div className={p.wordingGrid}>
@@ -175,6 +203,7 @@ export default async function Trust() {
           </MiniCard>
         </CardGrid>
       </Section>
+      </StepBar>
 
       <CtaBand title="Put your next event on the record." />
     </>

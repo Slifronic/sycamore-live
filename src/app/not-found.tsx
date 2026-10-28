@@ -38,7 +38,7 @@ export default function NotFound() {
             <Link href="/discover">Discover events</Link>
           </li>
           <li>
-            <Link href="/org/login">Coordinator sign in</Link>
+            <Link href="/signin?as=org">Coordinator sign in</Link>
           </li>
         </ul>
       </div>

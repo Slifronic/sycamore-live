@@ -105,11 +105,11 @@ export function SiteHeader() {
         </nav>
 
         <div className={s.actions}>
-          <Link href="/org/login" className={s.signin}>
+          <Link href="/signin" className={s.signin}>
             Sign in
           </Link>
           <Link href="/org/start" className={`btn btn-primary ${s.cta}`}>
-            Get started
+            Start free
           </Link>
           <button
             ref={button}
@@ -173,13 +173,13 @@ export function SiteHeader() {
               </nav>
               <div className={s.sheetActions}>
                 <Link href="/org/start" className="btn btn-primary btn-big" onClick={() => setOpen(false)}>
-                  Set up your organization
+                  Start free
                 </Link>
                 <Link href="/join" className="btn btn-big" onClick={() => setOpen(false)}>
-                  I’m volunteering
+                  Join as a volunteer
                 </Link>
-                <Link href="/org/login" className={s.sheetSignin} onClick={() => setOpen(false)}>
-                  Coordinator sign in
+                <Link href="/signin" className={s.sheetSignin} onClick={() => setOpen(false)}>
+                  Sign in
                 </Link>
               </div>
             </motion.div>

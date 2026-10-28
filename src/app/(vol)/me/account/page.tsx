@@ -61,6 +61,7 @@ export default async function AccountPage() {
       <nav className={s.list} aria-label="Your service">
         <Row href="/me/badges" icon="award" label="Badges" />
         <Row href="/me/journey" icon="route" label="Journey" />
+        <Row href="/me/transcript" icon="clipboard" label="Transcript and hour requests" />
       </nav>
 
       <section className={s.group} aria-labelledby="settings-h">

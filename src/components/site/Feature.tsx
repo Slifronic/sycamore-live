@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Icon, type IconName } from '../shell/icons';
 import { Reveal, RevealGroup } from './Reveal';
+import { SpotlightGroup } from './Spotlight';
 import s from './feature.module.css';
 
 // Building blocks for the sub-pages: a text-and-picture row, and a grid of
@@ -39,15 +40,17 @@ export function FeatureRow({
 
 export function CardGrid({ children, cols = 3 }: { children: ReactNode; cols?: 2 | 3 | 4 }) {
   return (
-    <RevealGroup className={`${s.grid} ${s[`cols${cols}`]}`} step={50}>
-      {children}
-    </RevealGroup>
+    <SpotlightGroup>
+      <RevealGroup className={`${s.grid} ${s[`cols${cols}`]}`} step={50}>
+        {children}
+      </RevealGroup>
+    </SpotlightGroup>
   );
 }
 
 export function MiniCard({ icon, title, children }: { icon?: IconName; title: string; children: ReactNode }) {
   return (
-    <article className={s.mini}>
+    <article className={s.mini} data-spot="">
       {icon && (
         <span className={s.miniIcon}>
           <Icon name={icon} size={20} />

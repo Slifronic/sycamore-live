@@ -16,11 +16,30 @@ function privateV4(ip: string): boolean {
   );
 }
 
+/** The IPv4 address inside an IPv6 one that embeds it, written either way (::ffff:1.2.3.4 or ::ffff:102:304). */
+function embeddedV4(v6: string, prefix: string): string | null {
+  if (!v6.startsWith(prefix)) return null;
+  const rest = v6.slice(prefix.length);
+  if (isIP(rest) === 4) return rest;
+  const m = /^([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(rest);
+  if (!m) return null;
+  const hi = parseInt(m[1]!, 16);
+  const lo = parseInt(m[2]!, 16);
+  return `${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`;
+}
+
 function privateIp(ip: string): boolean {
   if (isIP(ip) === 4) return privateV4(ip);
   const v6 = ip.toLowerCase();
-  if (v6.startsWith('::ffff:')) return privateV4(v6.slice(7));
-  return v6 === '::' || v6 === '::1' || v6.startsWith('fc') || v6.startsWith('fd') || v6.startsWith('fe80') || v6.startsWith('ff');
+  // IPv4-mapped, IPv4-compatible and NAT64 addresses reach the IPv4 network: check that address.
+  for (const prefix of ['::ffff:', '::ffff:0:', '64:ff9b::', '::']) {
+    const v4 = embeddedV4(v6, prefix);
+    if (v4) return privateV4(v4);
+  }
+  return (
+    v6 === '::' || v6 === '::1' || v6.startsWith('fc') || v6.startsWith('fd') || v6.startsWith('fe8') || v6.startsWith('fe9') ||
+    v6.startsWith('fea') || v6.startsWith('feb') || v6.startsWith('ff') || v6.startsWith('2002:') || v6.startsWith('64:ff9b:')
+  );
 }
 
 async function checkHost(url: URL, allowHosts?: (host: string) => boolean) {

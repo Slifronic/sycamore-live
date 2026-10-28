@@ -1,19 +1,37 @@
 /* The home page. Token colours only; the shared rhythm lives in
-   components/site/site.module.css. */
+   components/site/site.module.css, the journey in journey.module.css. */
 
 /* ── 1 · Hero ─────────────────────────────────────────────── */
-.hero { padding: clamp(40px, 6vw, 88px) 0 clamp(56px, 7vw, 96px); }
-.heroGrid { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 48px 48px; align-items: center; }
+.hero { position: relative; isolation: isolate; padding: clamp(40px, 6vw, 88px) 0 clamp(56px, 7vw, 96px); }
+.heroGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr); gap: 48px 64px; align-items: center; }
 .heroText { display: grid; gap: 22px; justify-items: start; }
 .heroTitle {
-  font-size: clamp(42px, 4.9vw, 68px);
-  line-height: 0.98;
-  letter-spacing: -0.04em;
+  font-size: clamp(44px, 5.6vw, 80px);
+  line-height: 0.97;
+  letter-spacing: -0.045em;
   font-weight: 500;
   color: var(--canopy);
 }
-.heroTitle em { font-style: normal; color: var(--primary); }
-.heroLede { font-size: clamp(17px, 1.45vw, 19px); line-height: 1.55; color: var(--ink-2); max-width: 40ch; text-wrap: pretty; }
+.heroTitle em { position: relative; font-style: normal; color: var(--primary); }
+/* The underline draws in after the headline lands (hero-entrance.md), by
+   transform, and rests drawn. */
+.heroTitle em::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0.12em;
+  bottom: 0.02em;
+  height: 0.06em;
+  border-radius: 1em;
+  background: currentColor;
+  opacity: 0.35;
+  transform-origin: 0 50%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .heroTitle em::after { animation: underline 0.8s 0.85s cubic-bezier(0.6, 0, 0.2, 1) both; }
+}
+@keyframes underline { from { transform: scaleX(0); } }
+.heroLede { font-size: clamp(17px, 1.45vw, 19.5px); line-height: 1.55; color: var(--ink-2); max-width: 44ch; text-wrap: pretty; }
 
 .paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 520px; margin-top: 4px; }
 .path { height: auto; min-height: 64px; padding: 10px 14px 10px 18px; justify-content: space-between; text-align: left; white-space: normal; }
@@ -21,37 +39,60 @@
 .pathText small { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.72; }
 .path svg { flex: none; transition: transform var(--dur-2) var(--ease-out); }
 .path:hover svg { transform: translateX(3px); }
+.reviewer { display: flex; gap: 10px; align-items: flex-start; max-width: 520px; font-size: 14px; line-height: 1.5; color: var(--ink-3); padding-top: 14px; border-top: 1px solid var(--line); }
+.reviewer > svg { flex: none; margin-top: 2px; color: var(--primary); }
+.reviewer b { color: var(--ink); font-weight: 700; }
+.reviewer a { color: var(--primary); font-weight: 700; text-underline-offset: 3px; }
 
+.heroArt { min-width: 0; padding-top: 18px; }
 
-.heroArt { min-width: 0; display: grid; gap: 12px; }
-.heroCaption { font-size: 12.5px; color: var(--field); padding-left: 2px; }
-.capNarrow { display: none; }
-/* Under 640px the hero shows only the phone (ProductMock hides the window). */
-@media (max-width: 639px) {
-  .capWide { display: none; }
-  .capNarrow { display: inline; }
-  .heroCaption { text-align: center; padding-left: 0; }
+/* ── 4 · Fork ─────────────────────────────────────────────── */
+.forkSection { padding: 0 0 clamp(64px, 8vw, 112px); }
+.fork { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.forkCard {
+  position: relative;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  transition: transform 0.35s var(--out);
 }
+.forkCard::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--shadow-hi); opacity: 0; transition: opacity 0.35s var(--out); pointer-events: none; }
+@media (hover: hover) {
+  .forkCard:hover { transform: translateY(-4px); }
+  .forkCard:hover::after { opacity: 1; }
+}
+.forkInner { display: grid; gap: 12px; align-content: start; justify-items: start; padding: 14px 14px 26px; height: 100%; }
+.forkInner > :not(.forkArt) { margin-inline: 12px; }
+.forkArt { width: 100%; padding: 22px; border-radius: 14px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--rule-soft); margin-bottom: 10px; overflow: hidden; }
+.forkArt > * { transition: transform 0.5s var(--out); }
+@media (hover: hover) {
+  .forkCard:hover .forkArt > * { transform: translateY(-4px) rotate(-0.6deg); }
+}
+.forkTitle { font-size: clamp(22px, 2.1vw, 28px); line-height: 1.15; letter-spacing: -0.02em; font-weight: 600; text-wrap: balance; }
+.forkActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-top: 6px; }
+.forkMain { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 700; font-size: 15px; color: var(--primary); text-decoration: none; }
+.forkMain svg { transform: rotate(90deg); transition: transform var(--dur-2) var(--ease-out); }
+.forkMain:hover { text-decoration: underline; text-underline-offset: 4px; }
+.forkMain:hover svg { transform: rotate(90deg) translateX(3px); }
 
-/* ── 2 · How it works ─────────────────────────────────────── */
-.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.step { height: 100%; }
-.stepInner { display: grid; grid-template-rows: 220px auto; align-content: start; gap: 18px; padding: 12px 12px 22px; height: 100%; }
-.stepMock { min-width: 0; }
-.stepCopy { display: grid; gap: 6px; padding: 0 10px; align-content: start; }
-.stepNum { font-size: 12px; font-weight: 700; color: var(--field); font-variant-numeric: tabular-nums; }
+/* ── 5 · Journey ──────────────────────────────────────────── */
+.journey { padding: clamp(64px, 8vw, 112px) 0 clamp(48px, 6vw, 80px); border-top: 1px solid var(--line); scroll-margin-top: 68px; }
+.journeyHead { display: grid; gap: 14px; max-width: 760px; margin-bottom: clamp(32px, 4vw, 52px); }
 
-/* ── 3 · Proof ────────────────────────────────────────────── */
-.proof { padding: clamp(56px, 6vw, 80px) 0; border-block: 1px solid var(--line); background: var(--surface-2); }
+/* ── 8 · Sustained service and the pilot ──────────────────── */
+.season { padding: clamp(64px, 8vw, 104px) 0; background: var(--surface-2); border-block: 1px solid var(--line); }
 .proofGrid {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
   grid-template-areas: 'head stats' 'head note';
   gap: 20px 56px;
   align-items: start;
+  margin-top: clamp(56px, 7vw, 88px);
+  padding-top: clamp(40px, 5vw, 56px);
+  border-top: 1px solid var(--line);
 }
 .proofHead { grid-area: head; display: grid; gap: 12px; align-content: start; }
-.proofTitle { font-size: clamp(26px, 2.6vw, 34px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 500; max-width: 14ch; }
+.proofTitle { font-family: var(--font-display), Georgia, serif; font-size: clamp(26px, 2.6vw, 34px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 500; max-width: 14ch; color: var(--canopy); }
 .proofStats { grid-area: stats; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; }
 .proofStats > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 6px; padding: 0 0 0 20px; border-left: 1px solid var(--line-2); }
 .proofStats > div:first-child { padding-left: 0; border-left: 0; }
@@ -68,21 +109,7 @@
 .proofStats dt { font-size: 14px; font-weight: 650; color: var(--ink-2); }
 .proofNote { grid-area: note; font-size: 14px; line-height: 1.55; color: var(--ink-3); max-width: 64ch; }
 
-/* ── 4 · Split value ──────────────────────────────────────── */
-.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.side { display: grid; grid-template-rows: auto 1fr; gap: 24px; padding: 14px 14px 26px; }
-.side > :first-child { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--rule-soft); min-height: 170px; align-content: center; }
-.sideCopy { display: grid; gap: 14px; align-content: start; padding: 0 12px; }
-.sideTitle { font-size: clamp(22px, 2.1vw, 27px); line-height: 1.15; letter-spacing: -0.02em; font-weight: 600; }
-.sideActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-top: 6px; }
-
-/* ── 5 · Trust and safety ─────────────────────────────────── */
-.safety { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
-.safety > li { padding: 4px 32px 4px 0; }
-.safety > li + li { padding-left: 32px; border-left: 1px solid var(--line); }
-.safetyItem { display: grid; gap: 12px; justify-items: start; }
-
-/* ── 6 · Pricing and FAQ ──────────────────────────────────── */
+/* ── 9 · Pricing and FAQ ──────────────────────────────────── */
 .closing { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 48px 80px; align-items: start; }
 .pricing { display: grid; gap: 16px; justify-items: start; position: sticky; top: 100px; }
 .plans { margin: 8px 0 0; display: grid; width: 100%; border-top: 1px solid var(--line); }
@@ -99,19 +126,17 @@
 @media (max-width: 1060px) {
   .heroGrid { grid-template-columns: minmax(0, 1fr); }
   .heroText { max-width: 640px; }
-  .steps { grid-template-columns: minmax(0, 1fr); max-width: 640px; }
-  .stepInner { grid-template-rows: auto auto; }
+  .heroArt { max-width: 600px; }
 }
 @media (max-width: 900px) {
   .proofGrid { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'head' 'stats' 'note'; }
-  .split, .closing { grid-template-columns: minmax(0, 1fr); }
+  .fork, .closing { grid-template-columns: minmax(0, 1fr); }
   .pricing { position: static; }
-  .safety { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-  .safety > li, .safety > li + li { padding: 0; border-left: 0; }
 }
 @media (max-width: 520px) {
   .paths { grid-template-columns: minmax(0, 1fr); }
   .proofStats > div { padding-left: 14px; }
-  .side { padding: 10px 10px 22px; }
-  .sideCopy { padding: 0 8px; }
+  .forkInner { padding: 10px 10px 22px; }
+  .forkInner > :not(.forkArt) { margin-inline: 8px; }
+  .forkArt { padding: 14px; }
 }
