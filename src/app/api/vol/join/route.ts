@@ -4,9 +4,12 @@ import { join } from '@/lib/vol-data';
 import { ageOn } from '@/lib/walkin';
 import { volError } from '../_respond';
 import { acceptTerms } from '../_account';
+import { clearPending, readPending } from '@/lib/accounts';
+import { limitByIp, RateLimitError } from '@/lib/rate-limit';
 
-// Contract: POST { name, email, date_of_birth } → { volunteer, is_minor } and sets `vid`.
-// 403 under 13 (nothing stored). An existing email signs back in with its birth date.
+// Contract: POST { name, email, date_of_birth } → { volunteer, is_minor } and starts a volunteer session.
+// 403 under 13 (nothing stored). 409 { signin: true } for an email that already has an
+// account: those sign in at /signin (Google or an emailed code), never with a birth date.
 // Volunteer addition: `accept_terms: true` is required ("I agree to the Terms and
 // Privacy Policy"), and 13 to 17 also need `guardian_ok: true` ("and a parent or
 // guardian knows I'm using SycaMore"). The times are kept as terms_accepted_at
@@ -27,7 +30,15 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { volunteer, is_new } = await join(body);
+    await limitByIp('join', 10, 3600);
+    // Finishing a Google sign-up: the name and email come from Google, not the form.
+    const pending = await readPending('vol');
+    const { volunteer, is_new } = await join(
+      pending
+        ? { ...body, name: body.name || pending.name, email: pending.email, google: { sub: pending.google_sub, email: pending.email } }
+        : { ...body, google: null },
+    );
+    if (pending) await clearPending();
     await acceptTerms(volunteer.id, { guardian: volunteer.is_minor && body.guardian_ok === true });
     await setVolunteerCookie(volunteer.id);
     return NextResponse.json(
@@ -35,6 +46,7 @@ export async function POST(req: Request) {
       { status: is_new ? 201 : 200 },
     );
   } catch (e) {
+    if (e instanceof RateLimitError) return NextResponse.json({ error: e.message }, { status: 429 });
     return volError(e);
   }
 }

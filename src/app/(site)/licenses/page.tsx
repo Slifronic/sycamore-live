@@ -2,6 +2,8 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { cacheLife } from 'next/cache';
 import { siteStyles as ss } from '@/components/site/Blocks';
+import { Botanicals } from '@/components/site/Botanicals';
+import { Rays } from '@/components/site/Rays';
 import { LEGAL_UPDATED, LEGAL_UPDATED_ISO } from '@/components/site/Legal';
 import { pageMeta } from '@/components/site/meta';
 import l from './licenses.module.css';
@@ -47,6 +49,10 @@ export default async function Licenses() {
 
   return (
     <article className={l.page} aria-labelledby="page-title">
+      <div className={l.mist} aria-hidden="true">
+        <Rays />
+        <Botanicals items={[{ kind: 'fern', right: 'max(16px, calc((100vw - 1240px) / 2 + 20px))', top: '36px', size: 150, rotate: 14, tone: 'soft' }]} />
+      </div>
       <header className={`${ss.wrap} ${l.head}`}>
         <p className={ss.eyebrow}>Legal</p>
         <h1 className={l.title} id="page-title">

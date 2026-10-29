@@ -1,0 +1,19 @@
+.box { display: grid; gap: 18px; padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: var(--shadow); }
+.eyebrow { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.title { margin: 0; font-family: var(--font-display), Georgia, serif; font-size: clamp(26px, 6vw, 34px); line-height: 1.1; }
+.facts { margin: 0; display: grid; gap: 10px; }
+.facts div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; }
+.facts dt { color: var(--ink-3); font-size: 14px; }
+.facts dd { margin: 0; }
+.choice { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.choice legend { font-weight: 600; margin-bottom: 8px; padding: 0; }
+.choice label { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 1px solid var(--line-2); border-radius: 12px; cursor: pointer; font-weight: 600; }
+.choice label:has(input:checked) { border-color: var(--ink); background: var(--primary-soft); }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.check input { width: 20px; height: 20px; margin-top: 1px; flex: none; accent-color: var(--ink); }
+.done { margin: 0; font-size: 22px; }
+@media (max-width: 520px) {
+  .two { grid-template-columns: minmax(0, 1fr); }
+  .facts div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}

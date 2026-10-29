@@ -15,7 +15,13 @@ export async function GET() {
     where e.org_id = ${org.id} and not e.is_practice and a.status = 'attested'
     order by e.starts_at, a.display_name`;
   const cols = ['display_name', 'email', 'title', 'date', 'role', 'hours', 'hours_captured', 'hours_adjusted', 'adjustment_reason', 'verified_at'];
-  const esc = (v: unknown) => (v == null ? '' : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
+  // A leading = + - @ (or tab/CR) would run as a formula in Excel or Sheets: prefix a quote so it stays text.
+  const esc = (v: unknown) => {
+    if (v == null) return '';
+    const raw = String(v);
+    const s = typeof v === 'string' && /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
   const csv = [['volunteer', 'email', 'event', 'date', 'role', 'hours', 'hours_from_scans', 'hours_adjusted', 'adjustment_reason', 'verified_at'].join(','),
     ...rows.map((r) => cols.map((c) => esc((r as Record<string, unknown>)[c])).join(','))].join('\n');
   const name = org.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase();

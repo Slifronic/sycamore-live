@@ -1,0 +1,70 @@
+/* The sticky in-page step bar. It sticks under the site header while its
+   scope (the sections it lists) is on screen. */
+.scope { position: relative; }
+.scope :where([id]) { scroll-margin-top: 136px; }
+
+.bar { position: sticky; top: 68px; z-index: 50; isolation: isolate; }
+.bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--glass) 72%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+  border-bottom: 1px solid var(--line);
+}
+.inner { width: min(100% - 32px, 1240px); margin-inline: auto; }
+.row {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, black 92%, transparent);
+  mask-image: linear-gradient(90deg, black 92%, transparent);
+}
+.row::-webkit-scrollbar { display: none; }
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px 0 8px;
+  border-radius: 999px;
+  font-family: var(--font-site), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--dur-2) var(--ease-out);
+}
+.chip:hover { color: var(--ink); }
+.chip[aria-current='step'] { color: var(--ink); }
+.pill { position: absolute; inset: 0; border-radius: 999px; background: var(--paper); box-shadow: var(--shadow); z-index: 0; }
+.n, .t { position: relative; z-index: 1; }
+.n {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.chip[aria-current='step'] .n { background: var(--canopy); color: var(--paper); box-shadow: none; transform: scale(1.06); }
+.chip:hover .n { transform: scale(1.06); }
+
+.rule { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; }
+.rule i { display: block; height: 100%; background: var(--primary); transform-origin: 0 50%; transform: scaleX(0); transition: transform 0.5s var(--ease-out); }
+
+@media (pointer: coarse) { .chip { min-height: 44px; } }
+@media (prefers-reduced-motion: reduce) { .rule i, .n { transition: none; } }
+@media print { .bar { display: none; } }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { limitAi, rateLimited } from '@/lib/rate-limit';
 import { currentVolunteerId } from '@/lib/vol-session';
 import { volunteerRecord } from '@/lib/vol-data';
 import { writeBlurb } from '@/lib/blurb-ai';
@@ -10,6 +11,13 @@ import { writeBlurb } from '@/lib/blurb-ai';
 export async function POST(req: Request, { params }: RouteContext<'/api/vol/records/[id]/blurb'>) {
   const vid = await currentVolunteerId();
   if (!vid) return NextResponse.json({ error: 'Join first.' }, { status: 401 });
+  try {
+    await limitAi(`vol:${vid}`, 20);
+  } catch (e) {
+    const r = rateLimited(e);
+    if (r) return r;
+    throw e;
+  }
   const body = await req.json().catch(() => null);
   const kind = body?.kind;
   if (kind !== 'resume' && kind !== 'scholarship') return NextResponse.json({ error: 'Pick resume or scholarship.' }, { status: 400 });

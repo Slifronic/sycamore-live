@@ -119,12 +119,19 @@ export function RecordActions(props: Props) {
 }
 
 // Under 18: the reason sits right under the sheet's title, then what they can
-// actually do today. No guardian-consent flow is promised; it doesn't exist.
+// actually do today: ask a parent or guardian to approve sharing (Transcript page), or print.
 function LockedPane({ orgName, orgPhone, onUse }: { orgName: string; orgPhone: string; onUse: () => void }) {
   return (
     <div className={s.paneStack}>
-      <p className={s.lockedWhy}>You’re under 18, so a public link to your record stays off for now. The record itself is safe here.</p>
+      <p className={s.lockedWhy}>You’re under 18, so a public link needs a parent or guardian’s OK first. The record itself is safe here.</p>
       <ol className={s.steps}>
+        <li>
+          <b>Ask a parent or guardian to approve sharing.</b>
+          <span>
+            We email them a link to approve. Once they do, you can share this record and your whole transcript.{' '}
+            <a href="/me/transcript#guardian">Ask on your Transcript page</a>.
+          </span>
+        </li>
         <li>
           <b>Ask your coordinator for an hour letter.</b>
           <span>

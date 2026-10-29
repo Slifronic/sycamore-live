@@ -55,6 +55,7 @@ export async function serveMedia(req: Request, name: string, mime: string): Prom
   const headers: Record<string, string> = {
     'Content-Type': baseMime(mime),
     'Accept-Ranges': 'bytes',
+    'X-Content-Type-Options': 'nosniff',
     'Cache-Control': 'private, max-age=3600',
   };
   const range = req.headers.get('range');

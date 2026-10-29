@@ -230,7 +230,7 @@ export function parseIcs(text: string, opts: { from?: Date; to?: Date } = {}): I
 
 // ---------- writing ----------
 
-const escapeText = (v: string) => v.replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1');
+const escapeText = (v: string) => v.replace(/\\/g, '\\\\').replace(/\r\n|\r|\n/g, '\\n').replace(/([,;])/g, '\\$1');
 
 /** Fold to 75 octets per line, as the spec asks; continuation lines start with a space. */
 function fold(line: string): string {

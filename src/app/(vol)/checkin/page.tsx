@@ -1,3 +1,4 @@
+import { limit, RateLimitError } from '@/lib/rate-limit';
 import { activeSession, checkinState, eventByCheckinCode, leaveCheck, normalizeCheckinCode, requireVolunteer } from '@/lib/vol-data';
 import { fmtDay, fmtTime } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
@@ -33,7 +34,9 @@ export default async function CheckinPage({ searchParams }: PageProps<'/checkin'
     );
   }
 
-  const event = code ? await eventByCheckinCode(code) : null;
+  // Looking a code up shows the event, so it counts toward the same limit as checking in.
+  const slow = code ? await limit(`checkin:${vol.id}`, 12, 3600).then(() => false, (e) => (e instanceof RateLimitError ? true : Promise.reject(e))) : false;
+  const event = code && !slow ? await eventByCheckinCode(code) : null;
   const state = event ? checkinState(event) : null;
   return (
     <div className={s.narrow}>
@@ -42,7 +45,8 @@ export default async function CheckinPage({ searchParams }: PageProps<'/checkin'
         title={event ? event.title : 'Check in to an event'}
         lede={event ? `${fmtDay(event.starts_at)}, ${fmtTime(event.starts_at)} to ${fmtTime(event.ends_at)}${event.location ? ` · ${event.location}` : ''}` : 'The QR code is on the sign at the sign-in table.'}
       />
-      {code && !event && <p className="notice notice-amber">We couldn’t find an event with the code {code}. Check it with the coordinator, or type it again below.</p>}
+      {slow && <p className="notice notice-amber">Too many codes tried from this account. Wait a while, or ask the coordinator to add you by name.</p>}
+      {code && !event && !slow && <p className="notice notice-amber">We couldn’t find an event with the code {code}. Check it with the coordinator, or type it again below.</p>}
       {event && state !== 'open' && (
         <p className="notice notice-amber">
           {state === 'verified'

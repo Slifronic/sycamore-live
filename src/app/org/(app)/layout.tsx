@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { currentOrg } from '@/lib/session';
+import { currentAccount, currentOrg } from '@/lib/session';
 import { loadOrgInsights } from '@/lib/insights';
 import { courseProgress } from '@/lib/course';
 import { unreadCount } from '@/lib/messages';
@@ -27,7 +27,9 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
   // Signed out, the page itself redirects to the PIN screen with its own path as ?next=.
   const org = await currentOrg();
   if (!org) return children;
-  const [ins, inboxUnread, chatUnread] = await Promise.all([loadOrgInsights(org.id), unreadCount(org.id), orgChatUnread(org.id)]);
+  const [ins, inboxUnread, chatUnread, account] = await Promise.all([loadOrgInsights(org.id), unreadCount(org.id), orgChatUnread(org.id), currentAccount()]);
+  // A Google sign-in shows the person signed in; a PIN session shows the org's coordinator.
+  const myName = account?.name ?? org.coordinator_name;
   const course = courseProgress(org.course);
   const now = requestNow();
 
@@ -59,7 +61,7 @@ export default async function OrgShell({ children }: LayoutProps<'/org'>) {
         </a>
         <OrgTopBar
           org={{ name: org.name, initials: initials(org.name), kind: org.kind === 'school' ? 'School' : 'Nonprofit' }}
-          me={{ name: org.coordinator_name, first: org.coordinator_name.split(' ')[0], initials: initials(org.coordinator_name), pin: org.coordinator_pin }}
+          me={{ name: myName, first: myName.split(' ')[0]!, initials: initials(myName), pin: org.pin_enabled ? org.coordinator_pin : null }}
           greeting={greeting}
           waiting={waiting}
           waitingCount={ins.totals.awaiting}

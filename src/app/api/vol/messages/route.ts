@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { currentVolunteerId } from '@/lib/vol-session';
 import { MessageError, volunteerMarkRead, volunteerReply, volunteerThreads } from '@/lib/messages';
 
 // Volunteer side (owner: volunteer). Reference implementation written with the
@@ -11,8 +11,7 @@ import { MessageError, volunteerMarkRead, volunteerReply, volunteerThreads } fro
 const UUID = /^[0-9a-f-]{36}$/;
 
 async function volunteerId() {
-  const vid = (await cookies()).get('vid')?.value;
-  return vid && UUID.test(vid) ? vid : null;
+  return currentVolunteerId();
 }
 
 export async function GET() {

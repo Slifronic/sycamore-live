@@ -33,8 +33,9 @@ export default function About() {
     <>
       <PageHero
         eyebrow="About"
+        motif="leaf"
         title={['We counted the hours', <em key="e">on paper first.</em>]}
-        lede="A student project, built because we saw where the hours went missing."
+        lede="A student project, built where the hours went missing."
         art={
           <figure className={p.figure}>
             <Photo src={photo('cover-planting')} alt="Young native trees staked along a creek bank" sizes="(min-width: 960px) 560px, 92vw" ratio="4 / 3" preload />
@@ -47,10 +48,10 @@ export default function About() {
         <div className={p.storyGrid}>
           <Reveal className={p.prose}>
             <p>
-              In February and March 2026, the SycaMore team ran a paper pilot with <strong>Our City Forest</strong>. Afterwards the hours had to be typed
-              up, checked against memory, and turned into letters signed by hand. A school reading one had no way to check it.
+              Early 2026: a paper pilot with <strong>Our City Forest</strong>. The hours were typed up from memory and signed by hand. No school could
+              check them.
             </p>
-            <p>SycaMore Live moves the record to the moment of service: scan in and out, the organization confirms, anyone with the link can check.</p>
+            <p>SycaMore Live moves the record to the moment of service.</p>
           </Reveal>
           <dl className={p.statRow}>
             <div>
@@ -75,7 +76,7 @@ export default function About() {
         </div>
       </Section>
 
-      <Section id="team" well eyebrow="The team" title="Students, building the tool they needed." lede="SycaMore Live is a new build on the same problem, started at Cal Hacks 13.0. It shares no code with SycaMore.">
+      <Section id="team" well eyebrow="The team" title="Students, building the tool they needed." lede="A new build on the same problem. It shares no code with SycaMore.">
         <RevealGroup className={p.team} step={50}>
           {TEAM.map(([name, role]) => (
             <div key={name} className={p.person}>
@@ -96,22 +97,22 @@ export default function About() {
           <li>
             <b>Feb–Mar 2026</b>
             <strong>The paper pilot</strong>
-            <p className={ss.body}>Four planting events with Our City Forest, counted on paper.</p>
+            <p className={ss.body}>Four planting events, counted on paper.</p>
           </li>
           <li>
             <b>Oct 23, 2026</b>
             <strong>SycaMore Live starts</strong>
-            <p className={ss.body}>A new build at Cal Hacks 13.0: both sides of the sign-in table on one database.</p>
+            <p className={ss.body}>Begun at Cal Hacks 13.0.</p>
           </li>
           <li>
             <b>Oct 25, 2026</b>
             <strong>Demo day</strong>
-            <p className={ss.body}>One event, end to end: scan in, verify, share a record anyone can check.</p>
+            <p className={ss.body}>One event, scan-in to shared record.</p>
           </li>
         </ol>
       </Section>
 
-      <CtaBand />
+      <CtaBand text="Set-up takes about a minute. Volunteers never pay." />
     </>
   );
 }

@@ -1,0 +1,42 @@
+/* Additions to proof.module.css's bento for the home page. Token colours only. */
+.chips { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; }
+.chips li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ink);
+}
+.chips li::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 0 70% 0 70%; background: var(--sap); transform: rotate(-12deg); }
+
+.season { display: grid; gap: 8px; width: 100%; }
+.bars { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; align-items: end; height: 84px; }
+.bars span { display: flex; align-items: flex-end; height: 100%; }
+.bars i {
+  display: block;
+  width: 100%;
+  height: calc(var(--h) * 100%);
+  border-radius: 6px 6px 3px 3px;
+  background: color-mix(in srgb, var(--sap) 45%, transparent);
+  transform-origin: 50% 100%;
+}
+.bars .me i { background: var(--sap); }
+.days { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; font-size: 11px; color: var(--ink-3); text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* The bars grow as the card scrolls in (off the main thread); without
+   scroll timelines, or with reduced motion, they simply stand. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .bars i { animation: grow linear both; animation-timeline: view(); animation-range: entry 10% cover 40%; }
+    .bars span:nth-child(2) i { animation-range: entry 14% cover 42%; }
+    .bars span:nth-child(3) i { animation-range: entry 18% cover 44%; }
+    .bars span:nth-child(4) i { animation-range: entry 22% cover 46%; }
+    .bars span:nth-child(5) i { animation-range: entry 26% cover 48%; }
+    .bars span:nth-child(6) i { animation-range: entry 30% cover 50%; }
+  }
+}
+@keyframes grow { from { transform: scaleY(0.08); } }

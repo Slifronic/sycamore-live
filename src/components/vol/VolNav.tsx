@@ -21,7 +21,7 @@ export const VOL_TABS: Tab[] = [
   { href: '/me', label: 'Home', icon: 'home', match: (p) => p === '/me' || p.startsWith('/me/records') || p.startsWith('/checkin') },
   { href: '/discover', label: 'Discover', icon: 'compass', match: (p) => p.startsWith('/discover') },
   { href: '/me/messages', label: 'Messages', icon: 'message', match: (p) => p.startsWith('/me/messages') },
-  { href: '/me/account', label: 'Me', icon: 'user', match: (p) => p.startsWith('/me/account') || p.startsWith('/me/badges') || p.startsWith('/me/journey') },
+  { href: '/me/account', label: 'Me', icon: 'user', match: (p) => p.startsWith('/me/account') || p.startsWith('/me/badges') || p.startsWith('/me/journey') || p.startsWith('/me/transcript') },
 ];
 
 // The phone bar's title. Home shows the greeting. Every other page has its
@@ -34,6 +34,7 @@ function barTitle(p: string): string | null {
   if (p.startsWith('/me/records')) return 'Record';
   if (p.startsWith('/me/badges')) return 'Badges';
   if (p.startsWith('/me/journey')) return 'Journey';
+  if (p.startsWith('/me/transcript')) return 'Transcript';
   if (p.startsWith('/me/account')) return 'Account';
   if (p.startsWith('/me/messages')) return 'Messages';
   if (p.startsWith('/checkin')) return 'Check in';

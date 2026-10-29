@@ -130,9 +130,12 @@ export default async function LearnPage() {
         </span>
         <div className={s.teamText}>
           <h2>Bringing on another coordinator?</h2>
-          <p>Share your PIN. The same lessons are here for them, and the practice event stays out of your numbers.</p>
+          <p>
+            Add them in <Link href="/org/settings">Account and team</Link>: they sign in with Google. The same lessons are here for them, and the
+            practice event stays out of your numbers.
+          </p>
         </div>
-        <PinReveal pin={org.coordinator_pin} />
+        {org.pin_enabled && <PinReveal pin={org.coordinator_pin} />}
       </Card>
     </Stagger>
   );

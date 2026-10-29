@@ -1,0 +1,58 @@
+/* The hero's live record card. Token colours only. */
+.card {
+  position: relative;
+  display: grid;
+  gap: 20px;
+  padding: 26px 28px 20px;
+  border-radius: 28px;
+  background: var(--paper);
+  box-shadow: var(--shadow-hi), 0 50px 90px -46px color-mix(in srgb, var(--canopy) 34%, transparent);
+  min-width: 0;
+}
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding-right: 92px; }
+.banner { display: inline-flex; gap: 6px; align-items: center; padding: 7px 14px; border-radius: 999px; background: var(--verified-soft); color: var(--verified); font-size: 12.5px; font-weight: 400; }
+.banner strong { font-weight: 500; letter-spacing: 0.12em; }
+.demo { font-size: 12px; font-weight: 400; color: var(--ink-3); }
+.id { display: flex; justify-content: space-between; align-items: end; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--rule-soft); }
+.code { font-size: 11px; font-weight: 400; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+/* The volunteer's name is the card's one serif: Fraunces italic, like a signature. */
+.name { font-family: var(--font-display), Georgia, serif; font-style: italic; font-size: clamp(28px, 2.6vw, 36px); font-weight: 400; letter-spacing: -0.02em; color: var(--canopy); line-height: 1.1; margin-top: 6px; }
+.event { font-size: 14.5px; font-weight: 300; color: var(--ink-2); margin-top: 6px; }
+.hours { display: grid; justify-items: end; font-family: var(--font-site), system-ui, sans-serif; font-size: 64px; font-weight: 200; letter-spacing: -0.06em; line-height: 0.95; color: var(--canopy); font-variant-numeric: tabular-nums; }
+.hours small { font-size: 11px; font-weight: 400; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+
+.chain { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; position: relative; }
+.chain li { position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; padding-bottom: 14px; }
+.chain li:last-child { padding-bottom: 0; }
+.chain li:not(:last-child)::before { content: ''; position: absolute; left: 14px; top: 30px; bottom: 2px; width: 2px; border-radius: 2px; background: var(--line); }
+.dot { width: 30px; height: 30px; border-radius: 50% 50% 50% 14%; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); }
+.cTitle { font-size: 15px; font-weight: 400; color: var(--ink); line-height: 1.35; padding-top: 4px; }
+.cText { font-size: 14px; font-weight: 300; line-height: 1.55; color: var(--ink-2); }
+
+.foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; padding-top: 12px; border-top: 1px solid var(--rule-soft); }
+.open { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 400; font-size: 15px; color: var(--primary); text-decoration: none; }
+.open:hover { text-decoration: underline; text-underline-offset: 4px; }
+.open svg { transition: transform var(--dur-2) var(--ease-out); }
+.open:hover svg { transform: translate(2px, -2px); }
+.contact { font-size: 13px; font-weight: 300; color: var(--ink-3); }
+
+.seal { position: absolute; top: -26px; right: -14px; width: 104px; height: 104px; }
+/* The seal stamps once on load (CSS, from-only, so it rests stamped). */
+@media (prefers-reduced-motion: no-preference) {
+  .seal { animation: stamp 0.7s 0.75s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+}
+@keyframes stamp { from { opacity: 0; transform: scale(1.9) rotate(-40deg); } }
+
+@media (max-width: 520px) {
+  .card { padding: 18px 16px 14px; }
+  .banner { display: block; border-radius: 12px; }
+  .top { padding-right: 64px; }
+  .seal { width: 76px; height: 76px; top: -20px; right: -6px; }
+  .hours { font-size: 44px; }
+}
+
+/* The home page's annotations (data-note) light up the matching link in the chain. */
+.dot { transition: transform var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out); }
+:global(section:has([data-note='1']:hover)) .chain [data-chain='1'] .dot,
+:global(section:has([data-note='2']:hover)) .chain [data-chain='2'] .dot,
+:global(section:has([data-note='3']:hover)) .chain [data-chain='3'] .dot { transform: scale(1.14); background: var(--primary); color: var(--paper); }

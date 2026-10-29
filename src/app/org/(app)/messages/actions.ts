@@ -3,6 +3,8 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { requireOrg } from '@/lib/session';
+import { sql } from '@/lib/db';
+import { limitAi, RateLimitError } from '@/lib/rate-limit';
 import { loadOrgInsights } from '@/lib/insights';
 import { MessageError, markThreadRead, resolveAudience, runAutomations, saveAutomation, sendBroadcast, sendDirect, type AutomationKey } from '@/lib/messages';
 import { draftBroadcast, factsFor } from '@/lib/messages-ai';
@@ -50,8 +52,10 @@ export async function postEventChat(_: MsgState, form: FormData): Promise<MsgSta
 }
 
 export async function markEventChatRead(eventId: string) {
-  await requireOrg();
+  const org = await requireOrg();
   if (!UUID.test(eventId)) return;
+  const [own] = await sql`select 1 from event where id = ${eventId} and org_id = ${org.id}`;
+  if (!own) return;
   await markChatRead(eventId, 'org');
   revalidatePath('/org', 'layout');
 }
@@ -77,6 +81,12 @@ export async function draftBroadcastAction(_: DraftState, form: FormData): Promi
   const ins = await loadOrgInsights(org.id);
   const eventId = String(form.get('event_id') ?? '');
   const event = UUID.test(eventId) ? ins.events.find((e) => e.id === eventId) : undefined;
+  try {
+    await limitAi(`org:${org.id}`);
+  } catch (e) {
+    if (e instanceof RateLimitError) return { error: e.message };
+    throw e;
+  }
   const r = await guard(async () => {
     const { label } = await resolveAudience(org.id, String(form.get('audience') ?? 'all'), ins);
     return draftBroadcast(factsFor(org, label, event), String(form.get('note') ?? ''));

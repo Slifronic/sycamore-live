@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { limitAi, rateLimited } from '@/lib/rate-limit';
 import { currentOrg } from '@/lib/session';
 import { getEvent } from '@/lib/org-data';
 import {
@@ -21,6 +22,13 @@ export async function POST(_req: Request, { params }: RouteContext<'/api/org/eve
   const { org, event } = ctx;
   const [notes, clips] = await Promise.all([getNotes(event.id), getClips(event.id)]);
   if (!notes.length && !clips.length) return NextResponse.json({ error: 'Record a voice note or add a video first.' }, { status: 400 });
+  try {
+    await limitAi(`org:${org.id}`);
+  } catch (e) {
+    const r = rateLimited(e);
+    if (r) return r;
+    throw e;
+  }
   const facts = await storyFacts(org, event);
   try {
     const draft = await composeCampaign(facts, notes, clips);

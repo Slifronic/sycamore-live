@@ -6,7 +6,7 @@ import s from './drawings.module.css';
 // value cards, in the app's own wording and tokens. Names are made up.
 
 /** A QR-like pattern (not a scannable code), seeded so it never changes. */
-function QrPattern() {
+export function QrPattern({ className }: { className?: string } = {}) {
   const cells: boolean[] = [];
   let x = 7;
   for (let i = 0; i < 17 * 17; i++) {
@@ -18,7 +18,7 @@ function QrPattern() {
     return box(0, 0) || box(0, 12) || box(12, 0);
   };
   return (
-    <svg viewBox="0 0 17 17" className={s.qr} shapeRendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 17 17" className={className ?? s.qr} shapeRendering="crispEdges" aria-hidden="true">
       {cells.map((on, i) => {
         const r = Math.floor(i / 17);
         const c = i % 17;
@@ -213,6 +213,71 @@ export function RosterMock() {
             </li>
           ))}
         </ul>
+      </div>
+    </div>
+  );
+}
+
+/** Verify's pre-flight: who didn't scan out, and the flags, each one tap. */
+export function FillInMock() {
+  return (
+    <div className={s.frame} data-frame="" aria-hidden="true">
+      <div className={s.fill}>
+        <p className={s.eyebrow}>Before you verify</p>
+        <div className={s.fillRow}>
+          <Icon name="hourglass" size={16} />
+          <span>
+            <b>4 didn’t scan out</b>
+            <small>Counted to the end, 12:00 PM. The reason prints on their record.</small>
+          </span>
+          <span className={s.btn}>Fill in 4</span>
+        </div>
+        <div className={s.fillRow}>
+          <Icon name="alert" size={16} />
+          <span>
+            <b>1 shift over 8 hours</b>
+            <small>Flagged for a second look.</small>
+          </span>
+          <span className={`chip chip-amber ${s.chip}`}>Check</span>
+        </div>
+        <div className={s.bar}>
+          <span>
+            <b>58</b> volunteers · 171 h
+          </span>
+          <span className={s.btn}>Verify &amp; close</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The funder report: observed facts, no score. Demo numbers. */
+export function FunderMock() {
+  const cells: [string, string][] = [
+    ['435', 'verified hours'],
+    ['105', 'unique volunteers'],
+    ['3', 'events verified'],
+    ['$18,161', 'value of volunteer time'],
+  ];
+  return (
+    <div className={s.frame} data-frame="" aria-hidden="true">
+      <div className={s.report}>
+        <p className={s.reportHead}>
+          <span>Funder report · Fall 2026</span>
+          <span className={s.reportActions}>
+            <span className={s.ghost}>PDF</span>
+            <span className={s.ghost}>CSV</span>
+          </span>
+        </p>
+        <dl className={s.reportGrid}>
+          {cells.map(([v, k]) => (
+            <div key={k}>
+              <dd>{v}</dd>
+              <dt>{k}</dt>
+            </div>
+          ))}
+        </dl>
+        <p className={s.reportNote}>At Independent Sector’s 2025 preliminary California rate, $41.75 an hour.</p>
       </div>
     </div>
   );

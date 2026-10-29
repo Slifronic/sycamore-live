@@ -19,7 +19,9 @@ export type RecordView = {
   code: string | null;
   status: 'active' | 'revoked';
   volunteer_name: string;
-  org: { name: string; contact_phone: string; contact_email: string };
+  // reviewed: SycaMore checked the organization is real. verified_domain: the email domain of the
+  // owner's Google-confirmed account, when the org has one (personal mail like gmail.com is left out).
+  org: { name: string; contact_phone: string; contact_email: string; reviewed: boolean; verified_domain: string | null };
   event: { title: string; location: string | null; date: string };
   role: Role;
   hours_total: number;
@@ -37,6 +39,8 @@ export type Org = {
   contact_email: string;
   coordinator_name: string;
   coordinator_pin: string;
+  pin_enabled: boolean;
+  reviewed_at: Date | null;
   kind: 'nonprofit' | 'school';
   city: string | null;
   course: Record<string, string>;

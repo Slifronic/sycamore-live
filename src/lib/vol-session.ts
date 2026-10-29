@@ -1,19 +1,17 @@
 import 'server-only';
-import { cookies } from 'next/headers';
+import { endSession, readSession, startSession } from './auth-session';
 
-// Demo-grade volunteer identity from the contract: the httpOnly `vid` cookie
-// holds the volunteer id. Real auth (magic links) is out of scope this weekend.
-const UUID = /^[0-9a-f-]{36}$/;
+// Volunteer sign-in: a server-side session (see auth-session.ts) that names
+// the volunteer. Callers only ever see the volunteer id.
 
 export async function currentVolunteerId(): Promise<string | null> {
-  const vid = (await cookies()).get('vid')?.value;
-  return vid && UUID.test(vid) ? vid : null;
+  return (await readSession('vol'))?.volunteer_id ?? null;
 }
 
 export async function setVolunteerCookie(volunteerId: string) {
-  (await cookies()).set('vid', volunteerId, { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 365 });
+  await startSession('vol', { volunteer_id: volunteerId });
 }
 
 export async function clearVolunteerCookie() {
-  (await cookies()).delete('vid');
+  await endSession('vol');
 }

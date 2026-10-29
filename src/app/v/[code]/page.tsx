@@ -51,7 +51,9 @@ export default async function VerifyPage({ params }: PageProps<'/v/[code]'>) {
         <section className={`${s.banner} ${ok ? s.ok : s.bad}`} role="status">
           <span className={s.bannerDot} aria-hidden />
           <span>
-            <strong>{ok ? `Verified · issued by ${r.org.name}` : `Revoked · ${r.org.name} has withdrawn this record`}</strong>
+            <strong>
+              {!ok ? `Revoked · ${r.org.name} has withdrawn this record` : r.org.reviewed ? `Verified · issued by ${r.org.name}` : `Attested by ${r.org.name}`}
+            </strong>
             <span>{ok ? `Confirmed when the organization closed the event on ${pacificDay(r.attested_at)}.` : 'It no longer counts as a record of service. Contact the organization for details.'}</span>
           </span>
         </section>
@@ -106,6 +108,12 @@ export default async function VerifyPage({ params }: PageProps<'/v/[code]'>) {
               {r.org.name}
             </h2>
             <p className={s.fine}>The organization is the one making this statement. Call or write to it to confirm any detail.</p>
+            <p className={s.fine}>
+              {r.org.reviewed
+                ? 'SycaMore has reviewed this organization and confirmed it is real.'
+                : 'SycaMore hasn’t reviewed this organization yet, so confirm it directly before relying on this record.'}
+              {r.org.verified_domain && <> Its coordinator signs in with a Google-confirmed <strong>@{r.org.verified_domain}</strong> address.</>}
+            </p>
             <div className={s.contact}>
               <a className="btn btn-sm" href={`tel:${tel}`}>
                 Call {r.org.contact_phone}

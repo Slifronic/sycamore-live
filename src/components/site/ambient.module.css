@@ -1,0 +1,116 @@
+/* Ambient pieces: the rays backdrop and the fact marquee. Token colours,
+   transform-only motion, still under reduced motion. */
+
+/* ── Mist and sun-dapple (was the animated-rays port) ───────
+   Two oversized layers, both drifting by transform only:
+   ::before  banks of pale mist (--site-bloom) with a little fog at the edges
+   ::after   soft slanted light through leaves, with a few warm flecks
+             (--site-accent), masked into one corner like light through a gap
+   The mist is lighter than the page, so text on it only gains contrast. */
+.rays {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.rays::before,
+.rays::after {
+  content: '';
+  position: absolute;
+  inset: -25% -30%;
+  pointer-events: none;
+}
+.rays::before {
+  background:
+    radial-gradient(38% 30% at 22% 26%, color-mix(in srgb, var(--site-bloom) 95%, transparent), transparent 70%),
+    radial-gradient(30% 26% at 70% 18%, color-mix(in srgb, var(--site-bloom) 85%, transparent), transparent 72%),
+    radial-gradient(46% 34% at 58% 70%, color-mix(in srgb, var(--site-bloom) 70%, transparent), transparent 70%),
+    radial-gradient(40% 40% at 92% 46%, color-mix(in srgb, var(--site-fog) 34%, transparent), transparent 70%),
+    radial-gradient(36% 36% at 6% 70%, color-mix(in srgb, var(--site-fog) 28%, transparent), transparent 70%);
+  filter: blur(18px);
+}
+.rays::after {
+  background:
+    radial-gradient(3% 3% at 64% 30%, color-mix(in srgb, var(--site-accent) 30%, transparent), transparent),
+    radial-gradient(2.4% 2.4% at 74% 44%, color-mix(in srgb, var(--site-accent) 24%, transparent), transparent),
+    radial-gradient(4% 4% at 82% 26%, color-mix(in srgb, var(--site-bloom) 90%, transparent), transparent),
+    radial-gradient(2% 2% at 56% 52%, color-mix(in srgb, var(--site-accent) 20%, transparent), transparent),
+    repeating-linear-gradient(
+      112deg,
+      transparent 0 6%,
+      color-mix(in srgb, var(--site-bloom) 70%, transparent) 8%,
+      transparent 11%,
+      transparent 15%,
+      color-mix(in srgb, var(--site-accent) 10%, transparent) 17%,
+      transparent 20%
+    );
+  filter: blur(14px);
+  opacity: 0.85;
+  -webkit-mask-image: radial-gradient(ellipse 55% 60% at 82% 6%, black 10%, transparent 70%);
+  mask-image: radial-gradient(ellipse 55% 60% at 82% 6%, black 10%, transparent 70%);
+}
+.raysCenter::after {
+  -webkit-mask-image: radial-gradient(ellipse 60% 80% at 50% 0%, black 10%, transparent 70%);
+  mask-image: radial-gradient(ellipse 60% 80% at 50% 0%, black 10%, transparent 70%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rays::before { animation: mist 38s var(--ease-inout) infinite alternate; }
+  .rays::after { animation: dapple 26s var(--ease-inout) infinite alternate; }
+}
+@keyframes mist {
+  from { transform: translate3d(-4%, 0, 0) scale(1); }
+  to { transform: translate3d(4%, -2%, 0) scale(1.04); }
+}
+@keyframes dapple {
+  from { transform: translate3d(-3%, -1%, 0); opacity: 0.7; }
+  to { transform: translate3d(3%, 1%, 0); opacity: 0.95; }
+}
+@media print { .rays { display: none; } }
+
+/* ── Marquee (text-marquee port) ─────────────────────────── */
+.marquee { position: relative; display: flex; align-items: center; }
+.marquee::before, .marquee::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--line-2) 18%, var(--line-2) 82%, transparent); }
+.marquee::before { top: 0; }
+.marquee::after { bottom: 0; }
+.mask { flex: 1; min-width: 0; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent); mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent); }
+.track { display: flex; width: max-content; padding-block: 20px; animation: marquee var(--marquee-dur, 70s) linear infinite; }
+.marquee:hover .track, .paused .track { animation-play-state: paused; }
+.track > span { position: relative; white-space: nowrap; padding-inline: 28px; font-family: var(--font-site), system-ui, sans-serif; font-size: 16px; font-weight: 300; letter-spacing: -0.005em; color: var(--ink-2); }
+/* A small leaf between items: a rounded square with two opposite corners
+   pulled to points. */
+.track > span::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 0 70% 0 70%;
+  background: var(--sap);
+  opacity: 0.7;
+  transform: rotate(-12deg);
+}
+@keyframes marquee { to { transform: translateX(-50%); } }
+.pause {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-inline: 4px 8px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.pause:hover { background: var(--wash); color: var(--ink); }
+.pause svg { width: 16px; height: 16px; fill: currentColor; }
+@media (prefers-reduced-motion: reduce) {
+  .track { animation: none; width: auto; flex-wrap: wrap; justify-content: center; row-gap: 4px; }
+  .track > [data-dup] { display: none; }
+  .mask { -webkit-mask-image: none; mask-image: none; }
+  .pause { display: none; }
+}

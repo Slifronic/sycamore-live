@@ -50,6 +50,7 @@ export function WalkinFlow(props: {
   const [error, setError] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [dob, setDob] = useState('');
+  const [checkedInOnly, setCheckedInOnly] = useState<string | null>(null); // an existing account, checked in but not signed in
 
   const submit = useCallback(
     async (body: Record<string, unknown>) => {
@@ -71,6 +72,10 @@ export function WalkinFlow(props: {
           return;
         }
         setGoogleCred(null);
+        if (data.signed_in === false) {
+          setCheckedInOnly(data.volunteer.name);
+          return;
+        }
         setWho({ name: data.volunteer.name, is_minor: data.is_minor, is_new: data.is_new });
         setAtt(data.attendance);
       } catch {
@@ -81,6 +86,21 @@ export function WalkinFlow(props: {
     },
     [props.token],
   );
+
+  if (checkedInOnly) {
+    return (
+      <section className="card card-pad stack" role="status">
+        <h2>You’re checked in, {checkedInOnly.split(' ')[0]}.</h2>
+        <p className="muted">
+          {props.orgName} has your time from now. Your email already has a SycaMore account, so to scan out on this phone or see your hours, sign in
+          with Google or an emailed code. If you don’t, the coordinator records your finish time.
+        </p>
+        <a className="btn btn-primary btn-big" href="/signin?next=/me">
+          Sign in
+        </a>
+      </section>
+    );
+  }
 
   // Checked in already: the live session screen.
   if (att && who) return <SessionCard att={att} name={who.name} isMinor={who.is_minor} isNew={who.is_new} orgName={props.orgName} onChange={setAtt} />;

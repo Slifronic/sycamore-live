@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { currentVolunteerId } from '@/lib/vol-session';
 import { sql } from '@/lib/db';
 import { MessageError } from '@/lib/messages';
 import { MINOR_CHAT_OFF, isMinor } from '@/lib/minors';
@@ -14,8 +14,8 @@ import { chatForVolunteer, chatMembers, isMember, markChatRead, postAsVolunteer,
 const UUID = /^[0-9a-f-]{36}$/;
 
 async function who(id: string) {
-  const vid = (await cookies()).get('vid')?.value;
-  if (!vid || !UUID.test(vid)) return { error: NextResponse.json({ error: 'Join first.' }, { status: 401 }) };
+  const vid = await currentVolunteerId();
+  if (!vid) return { error: NextResponse.json({ error: 'Join first.' }, { status: 401 }) };
   if (await isMinor(vid)) return { error: NextResponse.json({ error: MINOR_CHAT_OFF, minor: true }, { status: 403 }) };
   if (!UUID.test(id) || !(await isMember(id, vid))) return { error: NextResponse.json({ error: 'Only people who came to this event can see its chat.' }, { status: 403 }) };
   return { vid };

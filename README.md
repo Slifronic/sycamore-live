@@ -102,18 +102,20 @@ DATABASE_URL=postgres://localhost:5432/sycamore_live
 NEXT_PUBLIC_APP_URL=http://localhost:3311
 ANTHROPIC_API_KEY=...        # for "Import paper sheet", "Event story" and the volunteer blurb
 OPENAI_API_KEY=...           # optional: the blurb uses OpenAI instead of Claude when set
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=...apps.googleusercontent.com   # optional: "Continue with Google" for walk-ins
+GOOGLE_CLIENT_ID=...apps.googleusercontent.com   # "Continue with Google" for coordinators and volunteers
+GOOGLE_CLIENT_SECRET=...     # with the ID above; without both, Google buttons hide and the PIN / email code remain
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=...apps.googleusercontent.com   # optional: one-tap Google on the walk-in page
+RESEND_API_KEY=...           # emailed sign-in codes and supervisor/guardian emails (in dev without it, emails print to the server log)
 SYCAMORE_DEMO=1              # optional: keep the "Demo data · made-up names" ribbon on in a production build
 ```
+
+**Going to production:** read [docs/PRODUCTION.md](docs/PRODUCTION.md) (the Google OAuth client, Resend, the two migrations, demo PINs, organization review). What the competitor research found and what was built from it is in [docs/COMPETITIVE-ANALYSIS-2026-10-28.md](docs/COMPETITIVE-ANALYSIS-2026-10-28.md).
 
 **Already have a database from before the redesign?** `npm run db:reset` rebuilds it from `db/schema.sql`, which now has the account columns on `volunteer`: `terms_accepted_at` and `guardian_ack_at` (the join and walk-in consent boxes), `marketing_opt_in` (default false) and `marketing_opt_in_at` (the announcements opt-in), plus an attendance trigger that lets a deleted volunteer's attested rows be unlinked as "Former volunteer" without changing their hours. To keep your data instead, add those columns by hand and run `psql "$DATABASE_URL" -f db/migrations-redesign-r2.sql` (idempotent: it backfills `guardian_ack_at` and adds the second and third demo organizations to Ana's folders).
 
 Org and volunteer pages show a slim "Demo data · made-up names" ribbon whenever `SYCAMORE_DEMO=1` or `NODE_ENV` isn't `production` (`src/lib/demo.ts`).
 
-**Google sign-in for walk-ins (optional).** Without a client ID the walk-in page shows only the short form, which works on its own. To turn Google on:
-1. Google Cloud Console → APIs & Services → Credentials → Create credentials → OAuth client ID → **Web application**.
-2. Under **Authorized JavaScript origins**, add every origin the app runs on, for example `http://localhost:3311` and the Vercel URL. No redirect URI is needed; there is no client secret to store.
-3. Put the client ID in `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (locally and in Vercel) and restart the server.
+**Sign-in.** Coordinators and volunteers sign in at `/signin`: Google for both, an emailed 6-digit code for volunteers, and the organization PIN for the demo org and orgs set up before Google. Sessions are server-side (`auth_session`, only a hash of the token is stored). Google needs an OAuth **Web application** client whose redirect URI is `<NEXT_PUBLIC_APP_URL>/api/auth/google/callback`; see [docs/PRODUCTION.md](docs/PRODUCTION.md).
 
 Demo coordinator PIN: **246810** (Riverside Restoration Crew, made-up names). The seed mirrors the shape of the team's real pilot: four planting events with 45/48/52/58 attendances at 3 hours each. Phase 2 is left unverified on purpose, with 4 of its 58 people who never scanned out (so verify shows "Fill in 4 who didn't scan out"): verifying it on stage adds its hours to the record and makes new badges ready. Today's walk-in event, Guadalupe River Cleanup, runs 9:00 AM to 1:00 PM Pacific on the day you seed; seeded later than that, it shows as ended but its walk-in QR keeps working for 4 hours.
 

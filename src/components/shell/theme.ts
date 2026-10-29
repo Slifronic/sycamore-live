@@ -1,10 +1,45 @@
-// Light / dark theme. The choice lives per browser in localStorage; with no
-// choice stored, the system setting decides (the no-flash script in
-// shell/ThemeScript.tsx applies it before first paint). Everything visual hangs off
-// `data-theme` on <html>, so a theme change is one attribute write.
+// Light / dark theme and the nature palette. Both live per browser in
+// localStorage. Light is the default whatever the system setting says: dark is
+// only ever an explicit choice from the app's account menu. The palette
+// (app/palettes.css) defaults to Morning Grove. The no-flash script in
+// shell/ThemeScript.tsx applies both before first paint; everything visual
+// hangs off `data-theme` and `data-palette` on <html>.
 
 export type Theme = 'light' | 'dark';
 export const THEME_KEY = 'sycamore-theme';
+export const PALETTE_KEY = 'sycamore-palette';
+
+export const PALETTES = [
+  { id: 'grove', name: 'Morning Grove', note: 'Sage mist and moss', swatch: ['#eef0e6', '#4a6b34', '#c9b46a'] },
+  { id: 'bark', name: 'Sycamore Bark', note: 'Cream, olive and bark tan', swatch: ['#f4efe4', '#596a2c', '#b98a4b'] },
+  { id: 'meadow', name: 'Meadow Light', note: 'Bright leaf and wildflower', swatch: ['#f6f8f1', '#2f7a3f', '#e3b93c'] },
+  { id: 'autumn', name: 'Autumn Canopy', note: 'Evergreen and ochre', swatch: ['#f6efe3', '#2f5d3a', '#c8862f'] },
+] as const;
+
+export type Palette = (typeof PALETTES)[number]['id'];
+
+export function currentPalette(): Palette {
+  if (typeof document === 'undefined') return 'grove';
+  const p = document.documentElement.dataset.palette;
+  return PALETTES.some((x) => x.id === p) ? (p as Palette) : 'grove';
+}
+
+export function setPalette(p: Palette) {
+  document.documentElement.dataset.palette = p;
+  try {
+    localStorage.setItem(PALETTE_KEY, p);
+  } catch {
+    // Blocked storage: the palette still changes for this page.
+  }
+  window.dispatchEvent(new Event('sycamore-palette'));
+}
+
+/** Subscribe to palette changes (for useSyncExternalStore). */
+export function subscribePalette(cb: () => void) {
+  const mo = new MutationObserver(cb);
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-palette'] });
+  return () => mo.disconnect();
+}
 
 export function currentTheme(): Theme {
   if (typeof document === 'undefined') return 'light';

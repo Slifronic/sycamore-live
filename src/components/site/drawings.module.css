@@ -1,11 +1,13 @@
 /* Step and split-card drawings. Token colours only, so both themes work. */
 
+/* The drawings are screens of the app, so they keep the app's type. */
+.frame, .mini { font-family: var(--font-sans), system-ui, sans-serif; font-weight: 400; }
 .frame {
   height: 100%;
   display: grid;
   align-content: center;
   padding: 18px;
-  border-radius: 12px;
+  border-radius: 20px;
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--rule-soft);
 }
@@ -39,13 +41,13 @@
   gap: 6px;
   padding: 10px 10px 8px;
   border-radius: 10px;
-  background: #ffffff;
-  color: #0f261b;
+  background: var(--paper);
+  color: var(--ink);
   box-shadow: var(--shadow);
 }
-.qr { width: 76px; height: 76px; display: block; fill: currentColor; color: #0f261b; }
-.code { font-size: 10.5px; color: #55665b; }
-.code b { letter-spacing: 0.14em; color: #0f261b; }
+.qr { width: 76px; height: 76px; display: block; fill: currentColor; color: var(--ink); }
+.code { font-size: 10.5px; color: var(--ink-3); }
+.code b { letter-spacing: 0.14em; color: var(--ink); }
 .session {
   display: grid;
   gap: 6px;
@@ -118,7 +120,7 @@
 }
 
 /* Split cards */
-.mini { display: grid; gap: 8px; justify-items: start; padding: 18px; border-radius: 12px; background: var(--paper); box-shadow: var(--shadow); }
+.mini { display: grid; gap: 8px; justify-items: start; padding: 18px; border-radius: 18px; background: var(--paper); box-shadow: var(--shadow); }
 .miniTitle { font-weight: 700; font-size: 16px; color: var(--ink); }
 .miniSub { font-size: 13.5px; color: var(--ink-2); margin-bottom: 4px; }
 .bigNum { display: flex; align-items: baseline; gap: 10px; font-family: var(--font-display), Georgia, serif; font-size: 48px; font-weight: 600; letter-spacing: -0.03em; color: var(--canopy); line-height: 1; }
@@ -145,3 +147,22 @@
 .rosterName { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-weight: 650; color: var(--ink); }
 .rosterName :global(.chip) { height: 20px; font-size: 10.5px; padding: 0 7px; }
 .rosterTime { color: var(--ink-3); font-variant-numeric: tabular-nums; font-size: 12.5px; white-space: nowrap; }
+
+/* Fill in / flags */
+.fill { display: grid; gap: 8px; }
+.fillRow { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--paper); box-shadow: var(--shadow); font-size: 13px; }
+.fillRow > svg { color: var(--amber); }
+.fillRow b { display: block; color: var(--ink); font-weight: 650; }
+.fillRow small { display: block; font-size: 11.5px; color: var(--ink-3); line-height: 1.35; }
+
+/* Funder report */
+.report { display: grid; gap: 12px; padding: 14px; border-radius: 12px; background: var(--paper); box-shadow: var(--shadow); }
+.reportHead { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.reportActions { display: flex; gap: 6px; }
+.reportGrid { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--rule-soft); border-radius: 10px; overflow: hidden; }
+.reportGrid > div { display: grid; gap: 2px; padding: 10px 12px; background: var(--paper); }
+.reportGrid dd { margin: 0; font-family: var(--font-display), Georgia, serif; font-size: 24px; font-weight: 600; color: var(--canopy); letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.reportGrid dt { font-size: 11.5px; color: var(--ink-3); font-weight: 600; }
+.reportNote { font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
+.fill .bar { font-size: 12.5px; }
+.fill .bar > span:first-child { white-space: nowrap; }

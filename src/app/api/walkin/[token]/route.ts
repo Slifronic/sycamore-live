@@ -3,6 +3,7 @@ import { GoogleError, verifyGoogleCredential } from '@/lib/google';
 import { currentVolunteerId, setVolunteerCookie } from '@/lib/vol-session';
 import { ageOn, walkInCheckIn, WalkinError, type WalkinWho } from '@/lib/walkin';
 import { acceptTerms, priorConsent } from '../../vol/_account';
+import { limitByIp, RateLimitError } from '@/lib/rate-limit';
 
 // Org addition: walk-in sign-up. One call signs up (or recognizes) the person
 // and checks them in to the event the link belongs to, then sets the contract's
@@ -23,6 +24,7 @@ export async function POST(req: Request, { params }: RouteContext<'/api/walkin/[
   const body = await req.json().catch(() => null);
   const mode = String(body?.mode ?? '');
   try {
+    await limitByIp('walkin', 20, 600);
     let who: WalkinWho;
     if (mode === 'returning') {
       const vid = await currentVolunteerId();
@@ -54,7 +56,7 @@ export async function POST(req: Request, { params }: RouteContext<'/api/walkin/[
 
     const r = await walkInCheckIn(token, who);
     if (consent.needed) await acceptTerms(r.volunteer.id, { guardian: consent.guardian && r.is_minor });
-    await setVolunteerCookie(r.volunteer.id);
+    if (r.sign_in) await setVolunteerCookie(r.volunteer.id);
     return NextResponse.json(
       {
         attendance: r.attendance,
@@ -62,12 +64,14 @@ export async function POST(req: Request, { params }: RouteContext<'/api/walkin/[
         is_minor: r.is_minor,
         is_new: r.is_new,
         already: r.already,
+        signed_in: r.sign_in,
         event: { title: r.event.title },
         org: { name: r.org.name },
       },
       { status: r.already ? 200 : 201 },
     );
   } catch (e) {
+    if (e instanceof RateLimitError) return NextResponse.json({ error: e.message }, { status: 429 });
     if (e instanceof GoogleError) return NextResponse.json({ error: e.message }, { status: 401 });
     if (e instanceof WalkinError) return NextResponse.json({ error: e.message, ...(e.need ? { need: e.need } : {}) }, { status: e.status });
     throw e;

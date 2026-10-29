@@ -1,0 +1,103 @@
+/* Frosted-glass pills for the hero's three ways in (a port of the asset
+   library's snippets/liquid-glass.css, light and token-only). The blur and
+   saturation sell "seen through glass"; the bright inset hairline along the
+   top is the specular edge. Without backdrop-filter they turn opaque, so the
+   text stays readable over the scene either way. */
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 60px;
+  padding: 8px 8px 8px 22px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--paper) 75%, transparent);
+  background: color-mix(in srgb, var(--paper) 74%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--paper) 95%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--canopy) 6%, transparent),
+    0 12px 32px -14px color-mix(in srgb, var(--canopy) 38%, transparent);
+  color: var(--ink);
+  font-family: var(--font-site), system-ui, sans-serif;
+  text-decoration: none;
+  text-align: left;
+  transition: transform 0.35s var(--out), background-color var(--dur-2) var(--ease-out);
+}
+.pill:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--paper) 86%, transparent); }
+.pill:active { transform: translateY(0) scale(0.985); }
+.pill:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+
+.text { display: grid; gap: 2px; line-height: 1.2; font-size: 16px; font-weight: 400; letter-spacing: -0.01em; }
+.text small { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); opacity: 0.86; }
+
+.knob {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  color: var(--canopy);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--canopy) 8%, transparent), 0 4px 12px -6px color-mix(in srgb, var(--canopy) 40%, transparent);
+}
+.knob svg { transition: transform var(--dur-3) var(--ease-out); }
+.pill:hover .knob svg { transform: translateX(3px); }
+
+/* The coordinators' pill: deep canopy glass with paper text. */
+.primary {
+  border-color: color-mix(in srgb, var(--paper) 22%, transparent);
+  background: color-mix(in srgb, var(--canopy) 86%, transparent);
+  color: var(--paper);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--paper) 28%, transparent),
+    0 14px 34px -14px color-mix(in srgb, var(--canopy) 60%, transparent);
+}
+.primary:hover { background: color-mix(in srgb, var(--canopy) 94%, transparent); }
+.primary .text small { color: var(--paper); opacity: 0.86; }
+.primary .knob { background: color-mix(in srgb, var(--paper) 16%, transparent); color: var(--paper); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--paper) 26%, transparent); }
+
+/* The reviewers' way in: quieter, a text pill with no knob. */
+.quiet { min-height: 60px; padding-right: 20px; background: color-mix(in srgb, var(--paper) 66%, transparent); }
+
+/* The line under the pills: a sample record anyone can open. */
+.aside {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 560px;
+  padding: 10px 16px 10px 12px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--paper) 90%, transparent);
+  font-family: var(--font-site), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.aside > svg { flex: none; margin-top: 2px; color: var(--primary); }
+.aside b { font-weight: 500; }
+.aside a { color: var(--canopy); font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--canopy) 40%, transparent); text-underline-offset: 3px; }
+.aside a:hover { text-decoration-color: currentColor; }
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .pill, .quiet, .aside { background: var(--paper); }
+  .primary { background: var(--canopy); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill, .knob svg { transition: none; }
+  .pill:hover { transform: none; }
+}
+@media (max-width: 560px) {
+  .actions { display: grid; width: 100%; }
+  .pill { width: 100%; }
+}

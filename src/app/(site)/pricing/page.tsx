@@ -1,6 +1,8 @@
-import { CtaBand, PageHero, Section } from '@/components/site/Blocks';
-import { CardGrid, MiniCard } from '@/components/site/Feature';
+import { CtaBand, PageHero, Section, TextLink, siteStyles as ss } from '@/components/site/Blocks';
+import { Chips } from '@/components/site/Chips';
+import { FAQ, FaqList } from '@/components/site/Faq';
 import { PricingTable } from '@/components/site/PricingTable';
+import { Reveal } from '@/components/site/Reveal';
 import { pageMeta } from '@/components/site/meta';
 import p from '../pages.module.css';
 
@@ -10,30 +12,49 @@ export const metadata = pageMeta(
   '/pricing',
 );
 
+const PRICING_QS = ['free', 'signup', 'company'];
+
 export default function Pricing() {
   return (
     <>
-      <PageHero eyebrow="Pricing" title={['Free to start.', <em key="e">Always free for volunteers.</em>]} lede="Organizations pay for more events and more coordinators. Volunteers never pay." />
+      <PageHero
+        eyebrow="Pricing"
+        title={['Free to start.', <em key="e">Always free for volunteers.</em>]}
+        lede="Organizations pay for more events and coordinators. Nobody pays to check a record."
+        motif="seed"
+      />
       <section className={p.plans} aria-label="Plans">
         <div className={p.plansWrap}>
           <PricingTable />
-          <p className={p.planNote}>Planned pricing. SycaMore Live is a student demo: nothing is charged and there’s no checkout.</p>
+          <p className={p.planNote}>Planned pricing. A student demo: nothing is charged, no checkout.</p>
         </div>
       </section>
-      <Section id="included" eyebrow="On every plan" title="Trust isn’t a paid feature.">
-        <CardGrid cols={3}>
-          <MiniCard icon="users" title="Volunteers are free">
-            <p>Check-in, hours, share links, badges and Discover, on every plan.</p>
-          </MiniCard>
-          <MiniCard icon="check" title="Records outlive the plan">
-            <p>A verified record stays checkable at its link, whatever plan the organization is on.</p>
-          </MiniCard>
-          <MiniCard icon="shield" title="The same rules everywhere">
-            <p>Reasons for every change, read-only after verifying, and the protections for minors.</p>
-          </MiniCard>
-        </CardGrid>
+
+      <Section id="volunteers" well label="What volunteers pay">
+        <Reveal className={p.zero}>
+          <p className={p.zeroNum}>
+            $0<small>for volunteers and reviewers, on every plan</small>
+          </p>
+          <div className={p.zeroText}>
+            <h2 className={ss.h3}>Trust isn’t a paid feature.</h2>
+            <p className={ss.body}>Free gets the same record and the same rules as Multi-site.</p>
+            <Chips items={['Scanned hours', 'Reasons for every change', 'Locked once verified', 'Revocable links', 'Protections for minors', 'Your data, exportable']} />
+          </div>
+        </Reveal>
       </Section>
-      <CtaBand title="Start on Free. Upgrade when the calendar fills up." />
+
+      <Section id="questions" label="Pricing questions">
+        <div className={p.pricingFaq}>
+          <Reveal className={ss.headText}>
+            <p className={ss.eyebrow}>Questions</p>
+            <h2 className={ss.h2}>About cost.</h2>
+            <TextLink href="/faq">All questions</TextLink>
+          </Reveal>
+          <FaqList items={FAQ.filter((q) => PRICING_QS.includes(q.id))} openFirst={false} />
+        </div>
+      </Section>
+
+      <CtaBand title="Start on Free. Upgrade when the calendar fills up." text="No card, no trial clock." />
     </>
   );
 }

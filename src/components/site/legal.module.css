@@ -1,9 +1,12 @@
 /* Legal pages: readable prose, a sticky contents list, token colours only. */
 
-.page { padding: clamp(40px, 6vw, 80px) 0 clamp(64px, 8vw, 104px); }
-.head { display: grid; gap: 14px; justify-items: start; margin-bottom: clamp(32px, 5vw, 56px); }
-.title { font-size: clamp(36px, 4.6vw, 60px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 500; }
-.updated { font-size: 13.5px; color: var(--ink-3); font-weight: 600; }
+.page { position: relative; isolation: isolate; padding: clamp(56px, 7vw, 96px) 0 clamp(64px, 8vw, 104px); }
+/* A misty header band with a hanging pair of seeds; it fades into the page. */
+.mist { position: absolute; z-index: -1; left: 0; right: 0; top: 0; height: 420px; overflow: hidden; pointer-events: none; -webkit-mask-image: linear-gradient(180deg, black 55%, transparent); mask-image: linear-gradient(180deg, black 55%, transparent); }
+.mist > div { z-index: 0; }
+.head { position: relative; display: grid; gap: 16px; justify-items: start; margin-bottom: clamp(40px, 5vw, 64px); }
+.title { font-family: var(--font-site), system-ui, sans-serif; font-size: clamp(40px, 5.2vw, 68px); line-height: 1.02; letter-spacing: -0.045em; font-weight: 200; color: var(--canopy); }
+.updated { font-size: 13.5px; color: var(--ink-3); font-weight: 400; }
 
 .grid { display: grid; grid-template-columns: 220px minmax(0, 720px); gap: 40px 72px; align-items: start; }
 
@@ -15,54 +18,57 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 32px;
+  min-height: 34px;
   color: var(--ink-2);
+  font-weight: 300;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: 8px;
 }
-.toc ol a::before { content: counter(toc, decimal-leading-zero); font-size: 11.5px; font-weight: 700; color: var(--field); font-variant-numeric: tabular-nums; }
-.toc a:hover { color: var(--ink); }
-.tocTitle { font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--field); }
+.toc ol a::before { content: counter(toc, decimal-leading-zero); font-size: 11.5px; font-weight: 400; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.toc a:hover { color: var(--canopy); }
+.tocTitle { font-size: 11.5px; font-weight: 400; letter-spacing: 0.16em; text-transform: uppercase; color: var(--primary); }
 
 .body { display: grid; gap: 8px; min-width: 0; }
 
-.summary { padding: 22px 24px; border-radius: 16px; background: var(--primary-soft); margin-bottom: 24px; }
-.summaryTitle { font-family: var(--font-sans), system-ui, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--primary); margin-bottom: 12px; }
-.summary ul { margin: 0; padding: 0 0 0 18px; display: grid; gap: 8px; font-size: 16px; line-height: 1.55; color: var(--ink); }
+.summary { padding: 26px 28px; border-radius: 26px; background: var(--paper); box-shadow: var(--shadow); margin-bottom: 28px; }
+.summaryTitle { font-family: var(--font-site), system-ui, sans-serif; font-size: 12px; font-weight: 400; letter-spacing: 0.16em; text-transform: uppercase; color: var(--primary); margin-bottom: 14px; }
+.summary ul { margin: 0; padding: 0 0 0 18px; display: grid; gap: 10px; font-size: 16.5px; font-weight: 300; line-height: 1.6; color: var(--ink); }
 .summary li::marker { color: var(--sap); }
 
-.section { padding: 28px 0 8px; border-top: 1px solid var(--line); scroll-margin-top: 96px; }
+.section { padding: 32px 0 10px; border-top: 1px solid var(--line-2); scroll-margin-top: 96px; }
 .h2 {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  font-size: clamp(22px, 2.2vw, 27px);
+  gap: 14px;
+  font-family: var(--font-site), system-ui, sans-serif;
+  font-size: clamp(24px, 2.4vw, 30px);
   line-height: 1.2;
-  letter-spacing: -0.02em;
-  font-weight: 500;
-  margin-bottom: 14px;
+  letter-spacing: -0.03em;
+  font-weight: 300;
+  color: var(--canopy);
+  margin-bottom: 16px;
 }
-.num { font-family: var(--font-sans), system-ui, sans-serif; font-size: 12px; font-weight: 700; color: var(--field); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.num { font-size: 12px; font-weight: 400; color: var(--ink-3); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
 
-.prose { display: grid; gap: 14px; font-size: 16px; line-height: 1.65; color: var(--ink-2); }
-.prose strong, .prose b { color: var(--ink); font-weight: 650; }
-.prose a { color: var(--primary); font-weight: 650; text-underline-offset: 3px; }
+.prose { display: grid; gap: 14px; font-size: 16.5px; line-height: 1.7; font-weight: 300; color: var(--ink-2); }
+.prose strong, .prose b { color: var(--ink); font-weight: 500; }
+.prose a { color: var(--primary); font-weight: 400; text-underline-offset: 3px; }
 .prose ul, .prose ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
-.prose li::marker { color: var(--field); }
-.prose h3 { font-size: 16px; margin-top: 6px; }
+.prose li::marker { color: var(--sap); }
+.prose h3 { font-size: 17px; font-weight: 400; color: var(--canopy); margin-top: 6px; }
 .prose code { font-size: 0.9em; padding: 1px 6px; border-radius: 6px; background: var(--chip-neutral); color: var(--ink); }
 
-.tableWrap { overflow-x: auto; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); }
+.tableWrap { overflow-x: auto; border-radius: 18px; background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); }
 .table { width: 100%; border-collapse: collapse; font-size: 14.5px; line-height: 1.5; }
 .table th, .table td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }
 .table tr:last-child th, .table tr:last-child td { border-bottom: 0; }
-.table thead th { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--field); background: var(--surface-2); }
-.table tbody th { font-weight: 650; color: var(--ink); width: 34%; }
+.table thead th { font-size: 11.5px; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); background: var(--surface-2); }
+.table tbody th { font-weight: 400; color: var(--ink); width: 34%; }
 .table td { color: var(--ink-2); }
 
 @media (max-width: 960px) {
   .grid { grid-template-columns: minmax(0, 1fr); }
-  .toc { position: static; padding: 16px 18px; border-radius: 14px; background: var(--surface-2); }
+  .toc { position: static; padding: 18px 20px; border-radius: 22px; background: var(--surface-2); }
   .toc ul, .toc .tocTitle:nth-of-type(2) { display: none; }
   .toc ol { margin: 0; }
 }

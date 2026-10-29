@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { siteStyles as ss } from './Blocks';
+import { Botanicals } from './Botanicals';
+import { Rays } from './Rays';
 import l from './legal.module.css';
 
 // One layout for the legal pages: a short plain-language summary first, then
@@ -46,6 +48,15 @@ export function LegalPage({
 }) {
   return (
     <article className={l.page} aria-labelledby="page-title">
+      <div className={l.mist} aria-hidden="true">
+        <Rays />
+        <Botanicals
+          items={[
+            { kind: 'seed', right: 'max(16px, calc((100vw - 1240px) / 2 + 20px))', top: '48px', size: 170, rotate: 10, tone: 'soft' },
+            { kind: 'leaf', right: 'max(140px, calc((100vw - 1240px) / 2 + 220px))', top: '170px', size: 70, rotate: -28, tone: 'soft', wide: true },
+          ]}
+        />
+      </div>
       <header className={`${ss.wrap} ${l.head}`}>
         <p className={ss.eyebrow}>{eyebrow}</p>
         <h1 className={l.title} id="page-title">

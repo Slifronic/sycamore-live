@@ -34,7 +34,7 @@ export const FOOTER_GROUPS = [
     title: 'Get going',
     links: [
       { href: '/org/start', label: 'Set up your organization' },
-      { href: '/org/login', label: 'Coordinator sign in' },
+      { href: '/signin', label: 'Sign in' },
       { href: '/join', label: 'Join as a volunteer' },
       { href: '/checkin', label: 'Check in at an event' },
     ],

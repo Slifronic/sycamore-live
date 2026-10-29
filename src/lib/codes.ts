@@ -26,3 +26,11 @@ export function badgeCode(): string {
 }
 
 export const BADGE_CODE = /^BDG-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
+
+// Transcript codes: TRN-XXXX-XXXX-XXXX, a third group (about 2^60) because a
+// transcript gathers every record a person has.
+export function transcriptCode(): string {
+  return `TRN-${shareCode().slice(4)}-${shareCode().slice(4, 8)}`;
+}
+
+export const TRANSCRIPT_CODE = /^TRN-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;

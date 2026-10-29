@@ -2,7 +2,7 @@ import 'server-only';
 import { sql } from './db';
 import { BADGES, addAttendance, badgeByKey, emptyStats, type BadgeDef, type BadgeKey, type VolunteerStats } from './badges';
 import { hoursTotal } from './hours';
-import { getVolunteer, appUrl, VolError } from './vol-data';
+import { getVolunteer, appUrl, VolError, guardianApproved } from './vol-data';
 import { badgeCode, BADGE_CODE } from './codes';
 import { isUuid } from './ids';
 import type { Activity, Role } from './types';
@@ -111,7 +111,9 @@ export async function shareBadge(volunteerId: string, awardId: string): Promise<
   if (!row) throw new VolError('No badge with that id.', 404);
   if (row.volunteer_id !== volunteerId) throw new VolError('That badge isn’t yours to share.', 403);
   // Checked on the server, so the rule doesn't depend on the button being hidden.
-  if (vol.is_minor) throw new VolError('Sharing needs a guardian’s OK. That’s coming after the hackathon.', 403);
+  if (vol.is_minor && !(await guardianApproved(volunteerId))) {
+    throw new VolError('Sharing needs a parent or guardian’s OK first. Ask for it on your Transcript page.', 403);
+  }
 
   let code = row.code;
   for (let i = 0; !code && i < 5; i++) {

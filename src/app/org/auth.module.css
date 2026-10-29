@@ -26,3 +26,17 @@
   .split { grid-template-columns: minmax(0, 1fr); max-width: 520px; }
   .art { display: none; }
 }
+
+/* Sign-in: Google's button (its brand rules: white, the full-colour G, "Continue with Google"), the "or" rule, and the side switch. */
+.google { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 52px; padding: 0 18px; border: 1px solid #dadce0; border-radius: 12px; background: #fff; color: #1f1f1f; font: 600 16px/1 var(--font-body, system-ui), system-ui, sans-serif; text-decoration: none; transition: background-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.google:hover { background: #f8faff; box-shadow: 0 1px 3px rgba(60, 64, 67, 0.25); }
+.google:active { transform: translateY(1px); }
+.google:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: 13px; }
+.or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.sides { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface-2); }
+.side { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: 9px; font-weight: 600; font-size: 14px; color: var(--ink-3); text-decoration: none; transition: background-color 0.15s, color 0.15s; }
+.side[aria-current='page'] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+.more { border-top: 1px solid var(--line); padding-top: 12px; }
+.more > summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-3); min-height: 44px; display: flex; align-items: center; }
+.more[open] > summary { color: var(--ink); }

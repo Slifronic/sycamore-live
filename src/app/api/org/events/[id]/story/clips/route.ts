@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { limitAi, rateLimited } from '@/lib/rate-limit';
 import { sql } from '@/lib/db';
 import { currentOrg } from '@/lib/session';
 import { getEvent } from '@/lib/org-data';
@@ -13,6 +14,13 @@ const MAX_VIDEO = 300 * 1024 * 1024;
 export async function POST(req: Request, { params }: RouteContext<'/api/org/events/[id]/story/clips'>) {
   const org = await currentOrg();
   if (!org) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+  try {
+    await limitAi(`org:${org.id}`);
+  } catch (e) {
+    const r = rateLimited(e);
+    if (r) return r;
+    throw e;
+  }
   const { id } = await params;
   const event = await getEvent(org.id, id);
   if (!event) return NextResponse.json({ error: 'Event not found.' }, { status: 404 });

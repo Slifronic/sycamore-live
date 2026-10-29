@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Consent, isTeen } from '@/components/vol/Consent';
 
-export function JoinForm({ next }: { next: string }) {
+export function JoinForm({ next, google }: { next: string; google: { name: string; email: string } | null }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [signin, setSignin] = useState(false);
   const [dob, setDob] = useState('');
   const [agreed, setAgreed] = useState(false);
 
@@ -29,6 +30,7 @@ export function JoinForm({ next }: { next: string }) {
           const data = await res.json().catch(() => ({}));
           if (!res.ok) {
             setError(data.error ?? 'That didn’t go through. Try again.');
+            setSignin(!!data.signin);
             setBusy(false);
             return;
           }
@@ -42,11 +44,20 @@ export function JoinForm({ next }: { next: string }) {
     >
       <div className="field">
         <label htmlFor="join-name">Your name</label>
-        <input id="join-name" className="input" name="name" autoComplete="name" required minLength={2} maxLength={80} placeholder="As you want it on your record" />
+        <input id="join-name" className="input" name="name" autoComplete="name" required minLength={2} maxLength={80} placeholder="As you want it on your record" defaultValue={google?.name} />
       </div>
       <div className="field">
         <label htmlFor="join-email">Email</label>
-        <input id="join-email" className="input" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" required maxLength={200} />
+        {google ? (
+          <input id="join-email" className="input" value={google.email} readOnly aria-describedby="join-email-hint" />
+        ) : (
+          <input id="join-email" className="input" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" required maxLength={200} />
+        )}
+        {google && (
+          <span className="hint" id="join-email-hint">
+            Confirmed by Google.
+          </span>
+        )}
       </div>
       <div className="field">
         <label htmlFor="join-dob">Date of birth</label>
@@ -57,6 +68,12 @@ export function JoinForm({ next }: { next: string }) {
       {error && (
         <p className="notice notice-red" role="alert">
           {error}
+          {signin && (
+            <>
+              {' '}
+              <a href={next !== '/me' ? `/signin?next=${encodeURIComponent(next)}` : '/signin'}>Sign in</a>
+            </>
+          )}
         </p>
       )}
       <button className="btn btn-primary btn-big" disabled={busy}>
