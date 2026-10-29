@@ -1,0 +1,157 @@
+/* Nature palettes (Oct 29, 2026). Four light themes over the same tokens as
+   globals.css, so the whole product (site, coordinator app, volunteer app)
+   changes together. Morning Grove is the default; the others are picked with
+   data-palette on <html> (the theme picker in the site footer, remembered per
+   browser). Green = verified, amber = needs you, red = problem stays true in
+   every palette, so those tokens aren't touched here.
+
+   --site-* tokens are for the marketing site and the 3D hero:
+     --site-sky / --site-ground   the hero's mist gradient, top to bottom
+     --site-fog                   the scene's fog colour (matches the sky's middle)
+     --site-moss / --site-bloom   foliage and flower colours the scene reads
+     --site-accent                pollen, highlights, the one warm note */
+
+/* Morning Grove: sage mist and moss, the default. */
+:root:not([data-theme='dark']) {
+  --parchment: #eef0e6;
+  --paper: #fbfbf7;
+  --ink: #1d2a20;
+  --ink-2: #48554a;
+  --ink-3: #616b5c;
+  --field: #66705f;
+  --line: #dde1d3;
+  --line-2: #cfd4c3;
+  --rule-soft: #e7eadf;
+  --canopy: #2c3f2a;
+  --primary: #4a6b34;
+  --sap: #6b8f45;
+  --primary-soft: #e5ecda;
+  --surface-2: #e6e9dc;
+  --hover: #f6f7f0;
+  --wash: rgba(29, 42, 32, 0.045);
+  --chip-neutral: #e8ebe0;
+  --glass: rgba(238, 240, 230, 0.82);
+  --ink-panel: #2c3f2a;
+  --skel: #e2e5d8;
+  --band: linear-gradient(150deg, #4a6b34, #2c3f2a);
+  --fill: linear-gradient(90deg, #a7bf82, #4a6b34);
+  --shadow: 0 1px 1px rgba(29, 42, 32, 0.03), 0 10px 24px -14px rgba(44, 63, 42, 0.18), 0 0 0 1px rgba(29, 42, 32, 0.055);
+  --shadow-hi: 0 1px 1px rgba(29, 42, 32, 0.03), 0 30px 60px -24px rgba(44, 63, 42, 0.28), 0 0 0 1px rgba(29, 42, 32, 0.07);
+  --bg-glow-a: rgba(107, 143, 69, 0.1);
+  --bg-glow-b: rgba(214, 200, 150, 0.12);
+  --site-sky: #d5d9c6;
+  --site-ground: #8e9a76;
+  --site-fog: #c3c9b0;
+  --site-moss: #56723a;
+  --site-bloom: #f4f2e6;
+  --site-accent: #c9b46a;
+  color-scheme: light;
+}
+
+/* Sycamore Bark: the tree's peeling bark, cream, olive and warm tan. */
+:root[data-palette='bark']:not([data-theme='dark']) {
+  --parchment: #f4efe4;
+  --paper: #fffdf8;
+  --ink: #2a261e;
+  --ink-2: #57503f;
+  --ink-3: #6b6350;
+  --field: #6f6754;
+  --line: #e4dccb;
+  --line-2: #d6ccb6;
+  --rule-soft: #ece5d6;
+  --canopy: #3b3a24;
+  --primary: #596a2c;
+  --sap: #7c8a3e;
+  --primary-soft: #ece9d5;
+  --surface-2: #ebe4d4;
+  --hover: #faf6ee;
+  --wash: rgba(42, 38, 30, 0.045);
+  --chip-neutral: #efe9db;
+  --glass: rgba(244, 239, 228, 0.82);
+  --ink-panel: #3b3a24;
+  --skel: #e9e1d0;
+  --band: linear-gradient(150deg, #596a2c, #3b3a24);
+  --fill: linear-gradient(90deg, #c5c08a, #596a2c);
+  --shadow: 0 1px 1px rgba(42, 38, 30, 0.03), 0 10px 24px -14px rgba(59, 52, 30, 0.2), 0 0 0 1px rgba(42, 38, 30, 0.06);
+  --shadow-hi: 0 1px 1px rgba(42, 38, 30, 0.03), 0 30px 60px -24px rgba(59, 52, 30, 0.3), 0 0 0 1px rgba(42, 38, 30, 0.07);
+  --bg-glow-a: rgba(124, 138, 62, 0.09);
+  --bg-glow-b: rgba(201, 160, 98, 0.12);
+  --site-sky: #ebe3d3;
+  --site-ground: #a99c7e;
+  --site-fog: #ddd2bc;
+  --site-moss: #5f6f32;
+  --site-bloom: #fbf6ea;
+  --site-accent: #b98a4b;
+}
+
+/* Meadow Light: bright paper, fresh leaf green, a butter-yellow wildflower. */
+:root[data-palette='meadow']:not([data-theme='dark']) {
+  --parchment: #f6f8f1;
+  --paper: #ffffff;
+  --ink: #15291b;
+  --ink-2: #43554a;
+  --ink-3: #5c6b60;
+  --field: #5e6d62;
+  --line: #e1e7da;
+  --line-2: #d2dbca;
+  --rule-soft: #ebf0e5;
+  --canopy: #1f4a2c;
+  --primary: #2f7a3f;
+  --sap: #45a05a;
+  --primary-soft: #e6f3e6;
+  --surface-2: #ebf1e4;
+  --hover: #f9fbf6;
+  --wash: rgba(21, 41, 27, 0.04);
+  --chip-neutral: #ebf0e6;
+  --glass: rgba(246, 248, 241, 0.82);
+  --ink-panel: #1f4a2c;
+  --skel: #e4eadc;
+  --band: linear-gradient(150deg, #2f7a3f, #1f4a2c);
+  --fill: linear-gradient(90deg, #9fd4a4, #2f7a3f);
+  --shadow: 0 1px 1px rgba(21, 41, 27, 0.03), 0 10px 24px -14px rgba(31, 74, 44, 0.16), 0 0 0 1px rgba(21, 41, 27, 0.05);
+  --shadow-hi: 0 1px 1px rgba(21, 41, 27, 0.03), 0 30px 60px -24px rgba(31, 74, 44, 0.26), 0 0 0 1px rgba(21, 41, 27, 0.07);
+  --bg-glow-a: rgba(69, 160, 90, 0.08);
+  --bg-glow-b: rgba(227, 185, 60, 0.1);
+  --site-sky: #dcece6;
+  --site-ground: #9cc49a;
+  --site-fog: #d0e4d8;
+  --site-moss: #3f8a4a;
+  --site-bloom: #fffbe8;
+  --site-accent: #e3b93c;
+}
+
+/* Autumn Canopy: parchment, deep evergreen and sycamore-leaf ochre. */
+:root[data-palette='autumn']:not([data-theme='dark']) {
+  --parchment: #f6efe3;
+  --paper: #fffcf6;
+  --ink: #2a1f16;
+  --ink-2: #5a4a3a;
+  --ink-3: #6f5e4c;
+  --field: #74624f;
+  --line: #e8dccb;
+  --line-2: #dccbb3;
+  --rule-soft: #efe5d6;
+  --canopy: #2e4a2f;
+  --primary: #2f5d3a;
+  --sap: #4f7d4c;
+  --primary-soft: #e8efe2;
+  --surface-2: #efe5d4;
+  --hover: #fbf6ee;
+  --wash: rgba(42, 31, 22, 0.045);
+  --chip-neutral: #f0e8db;
+  --glass: rgba(246, 239, 227, 0.82);
+  --ink-panel: #2e4a2f;
+  --skel: #ece2d2;
+  --band: linear-gradient(150deg, #2f5d3a, #2a1f16);
+  --fill: linear-gradient(90deg, #e0b56a, #2f5d3a);
+  --shadow: 0 1px 1px rgba(42, 31, 22, 0.03), 0 10px 24px -14px rgba(74, 52, 30, 0.2), 0 0 0 1px rgba(42, 31, 22, 0.06);
+  --shadow-hi: 0 1px 1px rgba(42, 31, 22, 0.03), 0 30px 60px -24px rgba(74, 52, 30, 0.3), 0 0 0 1px rgba(42, 31, 22, 0.07);
+  --bg-glow-a: rgba(200, 134, 47, 0.1);
+  --bg-glow-b: rgba(79, 125, 76, 0.08);
+  --site-sky: #eee2cc;
+  --site-ground: #b48a55;
+  --site-fog: #e3d3b6;
+  --site-moss: #4d6b38;
+  --site-bloom: #fff5e3;
+  --site-accent: #c8862f;
+}

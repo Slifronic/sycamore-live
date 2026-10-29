@@ -9,18 +9,8 @@ import s from './proof.module.css';
 
 /* ── Evidence from the day vs a signature after the fact ──── */
 
-const AFTER = [
-  'Hours typed in later, from memory.',
-  'A supervisor’s name and email, supplied by the student.',
-  'A signature or an emailed “yes”, days or weeks later.',
-  'Nothing ties the number to the day itself.',
-];
-const DAY = [
-  'Scanned in and out at the event, timed on the server.',
-  'The organization confirms the whole event in about two minutes.',
-  'Every changed hour needs a reason. Verified rows lock.',
-  'A link anyone can open, which says VERIFIED or REVOKED.',
-];
+const AFTER = ['Typed up later, from memory.', 'Signed days or weeks after.', 'Easy to forge, slow to check.'];
+const DAY = ['Scanned in and out, timed on the server.', 'Confirmed by the organization that day.', 'A link that says VERIFIED or REVOKED.'];
 
 export function EvidenceCompare() {
   return (
@@ -35,7 +25,6 @@ export function EvidenceCompare() {
             </li>
           ))}
         </ul>
-        <p className={s.sideFoot}>A signature or an email can be forged, and checking one means chasing a person down.</p>
       </Reveal>
       <span className={s.arrow} aria-hidden="true">
         <Icon name="arrow-right" size={20} />
@@ -50,7 +39,6 @@ export function EvidenceCompare() {
             </li>
           ))}
         </ul>
-        <p className={s.sideFoot}>The proof is made while the volunteer is standing there, and the organization signs off on it the same day.</p>
       </Reveal>
     </div>
   );
@@ -86,72 +74,90 @@ function LockRing() {
   );
 }
 
-export function TrustBento() {
+export type TrustCard = 'attest' | 'reason' | 'locked' | 'revoked' | 'minors' | 'ai' | 'location';
+
+/** The record's rules as a bento. `only` picks a subset (default: all seven). */
+export function TrustBento({ only }: { only?: TrustCard[] } = {}) {
+  const on = (k: TrustCard) => !only || only.includes(k);
   return (
     <SpotlightGroup className={s.bento}>
-      <Card span={2} title="The organization attests, never the volunteer" art={<span className={s.ring} aria-hidden="true"><b>RR</b></span>}>
-        <p>The coordinator confirms each event. Volunteers can’t type or edit hours, and the record names the organization and who to contact.</p>
-      </Card>
-      <Card
-        span={2}
-        title="Every changed hour needs a reason"
-        art={
-          <div className={s.adjust} aria-hidden="true">
-            <span>
-              <s>3</s> 2.5 <small>h</small>
-            </span>
-            <i>“Left at 11:30 for a work shift.”</i>
-          </div>
-        }
-      >
-        <p>The record shows the captured hours next to the adjusted ones, with the reason printed. Nothing is quietly rounded.</p>
-      </Card>
-      <Card span={2} title="Locked once verified" art={<LockRing />}>
-        <p>Verify &amp; close makes the rows read-only. A database rule enforces it, not a setting someone can switch off.</p>
-      </Card>
-      <Card
-        span={3}
-        wide
-        title="Revocable, and the link says so"
-        art={
-          <div className={s.status} aria-hidden="true">
-            <p className={s.ok}>
-              <Icon name="check" size={16} /> <b>VERIFIED</b> · Riverside Restoration Crew
-            </p>
-            <p className={s.bad}>
-              <Icon name="x" size={16} /> <b>REVOKED</b> · withdrawn by the organization
-            </p>
-          </div>
-        }
-      >
-        <p>If an organization withdraws a record, its link shows REVOKED. Verified hours are never edited in place.</p>
-      </Card>
-      <Card
-        span={3}
-        wide
-        title="Built for minors"
-        art={
-          <ol className={s.ages} aria-hidden="true">
-            <li>
-              <b>Under 13</b> Can’t join. Nothing stored.
-            </li>
-            <li>
-              <b>13 to 17</b> Sharing needs a guardian’s OK. Announcements only.
-            </li>
-            <li>
-              <b>18+</b> Shares their own records.
-            </li>
-          </ol>
-        }
-      >
-        <p>The rules are enforced on the server, not just hidden in the interface.</p>
-      </Card>
-      <Card span={3} icon="clipboard" title="AI drafts, a person decides">
-        <p>Claude can draft rows from a photo of a paper sheet. Nothing saves until a coordinator confirms each row, and it never invents a time.</p>
-      </Card>
-      <Card span={3} icon="pin" title="No location stored">
-        <p>The leave-the-area check is off by default. When it’s on, only the time someone left is kept, never coordinates.</p>
-      </Card>
+      {on('attest') && (
+        <Card span={2} title="The organization attests, never the volunteer" art={<span className={s.ring} aria-hidden="true"><b>RR</b></span>}>
+          <p>Volunteers can’t type or edit hours. The record names who to contact.</p>
+        </Card>
+      )}
+      {on('reason') && (
+        <Card
+          span={2}
+          title="Every changed hour needs a reason"
+          art={
+            <div className={s.adjust} aria-hidden="true">
+              <span>
+                <s>3</s> 2.5 <small>h</small>
+              </span>
+              <i>“Left at 11:30 for a work shift.”</i>
+            </div>
+          }
+        >
+          <p>Captured and adjusted hours sit side by side, reason printed.</p>
+        </Card>
+      )}
+      {on('locked') && (
+        <Card span={2} title="Locked once verified" art={<LockRing />}>
+          <p>A database rule makes verified rows read-only. No switch turns it off.</p>
+        </Card>
+      )}
+      {on('revoked') && (
+        <Card
+          span={3}
+          wide
+          title="Revocable, and the link says so"
+          art={
+            <div className={s.status} aria-hidden="true">
+              <p className={s.ok}>
+                <Icon name="check" size={16} /> <b>VERIFIED</b> · Riverside Restoration Crew
+              </p>
+              <p className={s.bad}>
+                <Icon name="x" size={16} /> <b>REVOKED</b> · withdrawn by the organization
+              </p>
+            </div>
+          }
+        >
+          <p>A withdrawn record shows REVOKED at the same link. Never edited in place.</p>
+        </Card>
+      )}
+      {on('minors') && (
+        <Card
+          span={3}
+          wide
+          title="Built for minors"
+          art={
+            <ol className={s.ages} aria-hidden="true">
+              <li>
+                <b>Under 13</b> Can’t join. Nothing stored.
+              </li>
+              <li>
+                <b>13 to 17</b> Sharing needs a guardian’s OK. Announcements only.
+              </li>
+              <li>
+                <b>18+</b> Shares their own records.
+              </li>
+            </ol>
+          }
+        >
+          <p>Enforced on the server, not just hidden in the interface.</p>
+        </Card>
+      )}
+      {on('ai') && (
+        <Card span={3} icon="clipboard" title="AI drafts, a person decides">
+          <p>Claude drafts rows from a paper sheet. A coordinator confirms each one.</p>
+        </Card>
+      )}
+      {on('location') && (
+        <Card span={3} icon="pin" title="No location stored">
+          <p>The leave-the-area check is off by default, and never keeps coordinates.</p>
+        </Card>
+      )}
     </SpotlightGroup>
   );
 }

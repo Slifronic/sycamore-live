@@ -1,0 +1,85 @@
+/* Botanical line drawings, organic dividers and the falling samaras. Token
+   colours only (every palette), and only transform and opacity ever move. */
+
+/* ── Drawings ─────────────────────────────────────────────── */
+.drawing { display: block; width: 100%; height: auto; overflow: visible; }
+.outline, .vein, .nut {
+  fill: none;
+  stroke: var(--sap);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.outline { stroke-width: 1.4; }
+.vein { stroke-width: 0.9; opacity: 0.75; }
+.nut { stroke-width: 1.2; fill: color-mix(in srgb, var(--sap) 10%, transparent); }
+.fern .vein { opacity: 0.9; }
+
+/* ── A layer of sprigs behind a section ───────────────────── */
+.layer { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.sprig {
+  position: absolute;
+  display: block;
+  opacity: 0.34;
+  transform: rotate(var(--r, 0deg));
+}
+.soft { opacity: 0.22; }
+.ink { opacity: 0.46; }
+/* The sway: a few degrees either side of the resting angle, pivoting at the
+   stem (the drawings' stems sit at the bottom centre). */
+.sprig > svg { transform-origin: 50% 96%; }
+@media (prefers-reduced-motion: no-preference) {
+  .sprig > svg { animation: sway 11s var(--ease-inout) var(--sway-delay, 0s) infinite alternate; }
+  .sprig:nth-child(3n + 2) > svg { animation-duration: 13.5s; }
+  .sprig:nth-child(3n) > svg { animation-duration: 9.5s; }
+}
+@keyframes sway {
+  from { transform: rotate(-2.6deg); }
+  to { transform: rotate(2.6deg); }
+}
+@media (max-width: 640px) {
+  .wide { display: none; }
+}
+@media print { .layer { display: none; } }
+
+/* ── Organic dividers ─────────────────────────────────────── */
+/* A full-width shape that sits on a section's edge and is filled with that
+   section's own surface, so the band's top or bottom reads as a soft wave or
+   a canopy line instead of a ruler-straight edge. */
+.divider {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: clamp(28px, 4.4vw, 64px);
+  pointer-events: none;
+  display: block;
+}
+.divider path { fill: var(--div-fill, var(--surface-2)); }
+.top { bottom: calc(100% - 1px); }
+.bottom { top: calc(100% - 1px); transform: scale(-1, -1); }
+.tall { height: clamp(40px, 6vw, 92px); }
+@media print { .divider { display: none; } }
+
+/* ── Samaras falling (the CTA's seed spin) ────────────────── */
+/* Each seed drifts down a short way while it spins about its nutlet, then
+   fades: a few seconds of motion inside a longer, quiet cycle. At rest
+   (reduced motion, print) they are simply drawn, still, where they hang. */
+.fall { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.faller { position: absolute; top: 0; width: 34px; opacity: 0.55; }
+.faller > span { display: block; transform: rotate(var(--r, 18deg)); }
+.faller svg { display: block; }
+.faller .outline { stroke-width: 1.3; }
+@media (prefers-reduced-motion: no-preference) {
+  .faller { animation: drift var(--dur, 12s) linear var(--delay, 0s) infinite; opacity: 0; }
+  .faller > span { animation: spin 0.9s linear infinite; transform-origin: 34% 14%; }
+}
+@keyframes drift {
+  0% { opacity: 0; transform: translate3d(0, -30px, 0); }
+  6% { opacity: 0.55; }
+  40% { opacity: 0.5; transform: translate3d(var(--dx, 24px), 150px, 0); }
+  48%, 100% { opacity: 0; transform: translate3d(var(--dx, 24px), 190px, 0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@media print { .fall { display: none; } }

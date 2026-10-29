@@ -1,21 +1,21 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteShell } from '@/components/site/SiteShell';
-import { CtaBand, RiseTitle, Section, TextLink, siteStyles as ss } from '@/components/site/Blocks';
-import { FAQ, FaqList } from '@/components/site/Faq';
+import { CtaBand, Section, TextLink, siteStyles as ss } from '@/components/site/Blocks';
+import { FAQ, FaqList, type QA } from '@/components/site/Faq';
 import { Attestation } from '@/components/site/Attestation';
-import { CoordinatorPath } from '@/components/site/CoordinatorPath';
+import { Botanicals } from '@/components/site/Botanicals';
+import { GroveHero } from '@/components/site/GroveHero';
+import { HomeTrust } from '@/components/site/HomeTrust';
 import { Journey } from '@/components/site/Journey';
-import { Marquee } from '@/components/site/Marquee';
-import { EvidenceCompare, Statement, TrustBento } from '@/components/site/Proof';
-import { Rays } from '@/components/site/Rays';
 import { Reveal } from '@/components/site/Reveal';
 import { SpotlightGroup } from '@/components/site/Spotlight';
 import { MyHoursMock, NeedsYouMock } from '@/components/site/Drawings';
 import { featuredRecord } from '@/components/site/featured-record';
 import { journeyFacts } from '@/components/site/journey-data';
 import { CountUp } from '@/components/motion/CountUp';
-import { Icon } from '@/components/shell/icons';
+import { Icon, type IconName } from '@/components/shell/icons';
+import g from '@/components/site/glass.module.css';
 import s from './landing.module.css';
 
 const TITLE = 'SycaMore Live · Volunteer hours a school can actually check';
@@ -28,17 +28,23 @@ export const metadata: Metadata = {
   openGraph: { title: TITLE, description: DESCRIPTION, url: '/', type: 'website', siteName: 'SycaMore Live', locale: 'en_US' },
 };
 
-const FACTS = [
-  'Scanned in and out at the event',
-  'Timed on the server, never typed',
-  'Every changed hour needs a reason',
-  'Read-only once verified',
-  'A public link, no account needed',
-  'VERIFIED or REVOKED, always current',
-  'Under 13 can’t join',
-  'No coordinates stored',
-  'Volunteers never pay',
+/** "Evidence from the day" as three notes on the record. Each icon matches a link in the card's chain. */
+const NOTES: { icon: IconName; title: string; sub: string }[] = [
+  { icon: 'scan', title: 'Scanned in and out on the day', sub: 'Not typed in later.' },
+  { icon: 'check', title: 'Attested by the organization', sub: 'Never by the volunteer.' },
+  { icon: 'eye', title: 'Revocable, and the page shows it', sub: 'Withdrawn records say REVOKED.' },
 ];
+
+/** Product rules, not customer numbers (there are none yet). */
+const STATS: { value: number; prefix?: string; suffix?: string; label: string }[] = [
+  { value: 2, prefix: '~', suffix: ' min', label: 'to verify a whole event' },
+  { value: 0, label: 'hours typed by volunteers' },
+  { value: 1, suffix: ' link', label: 'to check a record, no account needed' },
+  { value: 2, suffix: ' h', label: 'check-in window either side of an event' },
+];
+
+const HOME_QS = ['app', 'forgot', 'schools', 'signup', 'company'];
+const homeFaq = HOME_QS.map((id) => FAQ.find((q) => q.id === id)).filter((q): q is QA => q !== undefined);
 
 export default async function Home() {
   const record = await featuredRecord();
@@ -46,81 +52,134 @@ export default async function Home() {
 
   return (
     <SiteShell>
-      {/* 1 · Hero: the outcome, three ways in, and a live record as the proof. */}
-      <section className={s.hero} aria-labelledby="hero-title">
-        <Rays />
-        <div className={`${ss.wrap} ${s.heroGrid}`}>
-          <div className={s.heroText}>
-            <p className={`${ss.eyebrow} ${ss.fade}`}>Volunteer hours, verified at the event</p>
-            <RiseTitle id="hero-title" className={s.heroTitle} lines={['Volunteer hours', 'a school can', <em key="c">actually check.</em>]} />
-            <p className={`${s.heroLede} ${ss.fade}`} style={{ ['--d' as string]: '0.3s' }}>
-              Volunteers scan in and out at the event. The organization confirms the hours in about two minutes. Every record gets a link anyone can
-              open.
-            </p>
-            <div className={`${s.paths} ${ss.fade}`} style={{ ['--d' as string]: '0.42s' }}>
-              <Link href="/org/start" className={`btn btn-primary btn-big ${s.path}`}>
-                <span className={s.pathText}>
-                  <small>For coordinators</small>
-                  Start free
-                </span>
-                <Icon name="arrow-right" size={20} />
-              </Link>
-              <Link href="/join" className={`btn btn-big ${s.path}`}>
-                <span className={s.pathText}>
-                  <small>For volunteers</small>
-                  Join as a volunteer
-                </span>
-                <Icon name="arrow-right" size={20} />
-              </Link>
-            </div>
-            <p className={`${s.reviewer} ${ss.fade}`} style={{ ['--d' as string]: '0.52s' }}>
-              <Icon name="eye" size={16} />
-              <span>
-                <b>Checking a record?</b> Anyone can open a SycaMore Live link, no account needed.{' '}
-                <Link href={f.href}>See a sample record</Link>
+      {/* 1 · Hero: the grove, the outcome, and three ways in. */}
+      <GroveHero
+        eyebrow="Evidence, not signatures"
+        title={
+          <>
+            Volunteer hours a school can <em>actually check.</em>
+          </>
+        }
+        lede="Volunteers scan in and out. The organization confirms. Anyone can check the link."
+        actions={
+          <>
+            <Link href="/org/start" className={`${g.pill} ${g.primary}`}>
+              <span className={g.text}>
+                <small>For coordinators</small>
+                Start free
               </span>
-            </p>
-          </div>
-          <div className={`${s.heroArt} ${ss.fade}`} style={{ ['--d' as string]: '0.18s' }}>
+              <span className={g.knob} aria-hidden="true">
+                <Icon name="arrow-right" size={18} />
+              </span>
+            </Link>
+            <Link href="/join" className={g.pill}>
+              <span className={g.text}>
+                <small>For volunteers</small>
+                Join free
+              </span>
+              <span className={g.knob} aria-hidden="true">
+                <Icon name="arrow-right" size={18} />
+              </span>
+            </Link>
+            <a href="#record" className={`${g.pill} ${g.quiet}`}>
+              <span className={g.text}>
+                <small>For reviewers</small>
+                Check a record
+              </span>
+            </a>
+          </>
+        }
+      />
+
+      {/* 2 · The proof: a real record, annotated with why it holds up. */}
+      <section id="record" className={s.record} aria-labelledby="record-title">
+        <Botanicals
+          items={[
+            { kind: 'leaf', right: 'max(-40px, calc((100vw - 1240px) / 2 - 90px))', top: '-10px', size: 300, rotate: 18, tone: 'soft' },
+            { kind: 'seed', left: 'max(12px, calc((100vw - 1240px) / 2 - 40px))', bottom: '8%', size: 120, rotate: -14, wide: true },
+          ]}
+        />
+        <div className={`${ss.wrap} ${s.recordGrid}`}>
+          <Reveal className={s.recordText}>
+            <p className={ss.eyebrow}>Live sample record</p>
+            <h2 className={ss.h2} id="record-title">
+              What a school sees <em>at the link.</em>
+            </h2>
+            <ol className={s.notes}>
+              {NOTES.map((n, i) => (
+                <li key={n.title} data-note={i + 1}>
+                  <span className={s.noteDot} aria-hidden="true">
+                    <Icon name={n.icon} size={16} />
+                  </span>
+                  <span className={s.noteText}>
+                    <b>{n.title}</b>
+                    <small>{n.sub}</small>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <TextLink href="/trust">How the record holds up</TextLink>
+          </Reveal>
+          <Reveal className={s.recordCard} delay={80}>
             <Attestation r={record} f={f} />
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* 2 · The facts, moving. */}
-      <Marquee items={FACTS} label="How a SycaMore Live record is made" />
+      {/* 3 · The numbers: product rules, each one checkable. */}
+      <section className={s.stats} aria-labelledby="stats-title">
+        <div className={ss.wrap}>
+          <h2 className="sr-only" id="stats-title">
+            In numbers
+          </h2>
+          <dl className={s.statRow}>
+            {STATS.map((st) => (
+              <div key={st.label} className={s.stat}>
+                <dt>{st.label}</dt>
+                <dd>
+                  <CountUp value={st.value} prefix={st.prefix} suffix={st.suffix} duration={0.9} />
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
 
-      {/* 3 · The difference. */}
-      <Section
-        id="evidence"
-        eyebrow="Why it holds up"
-        title="Evidence from the day, not a signature after the fact."
-        lede="Most service hours are typed in later and signed off by email. SycaMore Live records them while the volunteer is still there."
-      >
-        <EvidenceCompare />
-      </Section>
+      {/* 4 · The volunteer journey: the signature, pinned and scrubbed by scroll. */}
+      <section id="journey" className={s.journey} aria-labelledby="journey-title">
+        <Botanicals items={[{ kind: 'seed', right: 'max(8px, calc((100vw - 1240px) / 2 + 20px))', top: '40px', size: 140, rotate: 8, wide: true, tone: 'soft' }]} />
+        <div className={ss.wrap}>
+          <Reveal className={s.journeyHead}>
+            <p className={ss.eyebrow}>The volunteer path</p>
+            <h2 className={ss.h2} id="journey-title">
+              {f.first}’s three hours, <em>start to finish.</em>
+            </h2>
+          </Reveal>
+        </div>
+        <Journey facts={f} skipTo={{ href: '#paths', label: 'Skip ahead' }} />
+      </section>
 
-      {/* 4 · The fork: two audiences, each into its own journey. */}
-      <section className={s.forkSection} aria-labelledby="fork-title">
+      {/* 5 · The fork: each side to the page that owns it. */}
+      <section id="paths" className={s.forkSection} aria-labelledby="fork-title">
         <div className={ss.wrap}>
           <h2 className="sr-only" id="fork-title">
-            Choose your side of the sign-in table
+            Two sides of the sign-in table
           </h2>
           <SpotlightGroup className={s.fork}>
             <Reveal as="article" className={`${s.forkCard} ${ss.spot}`}>
               <div data-spot="" className={s.forkInner}>
                 <div className={s.forkArt}>
-                  <MyHoursMock />
+                  <NeedsYouMock />
                 </div>
-                <p className={ss.eyebrow}>I volunteer</p>
-                <h3 className={s.forkTitle}>Hours that are yours, and that anyone can check.</h3>
-                <p className={ss.body}>Follow {f.first} from the QR code at the sign-in table to a scholarship application.</p>
+                <p className={ss.eyebrow}>I run volunteers</p>
+                <h3 className={s.forkTitle}>Run the day. Verify it in two minutes.</h3>
+                <p className={ss.body}>Set-up, sign-in table, verify, funder report.</p>
                 <div className={s.forkActions}>
-                  <a href="#journey" className={s.forkMain}>
-                    Walk the volunteer path <Icon name="arrow-right" size={16} />
-                  </a>
-                  <Link href="/join" className="btn">
-                    Join as a volunteer
+                  <Link href="/org/start" className="btn btn-primary">
+                    Start free
+                  </Link>
+                  <Link href="/organizations" className={`${s.forkMain} ${s.away}`}>
+                    For organizations <Icon name="arrow-right" size={16} />
                   </Link>
                 </div>
               </div>
@@ -128,17 +187,17 @@ export default async function Home() {
             <Reveal as="article" className={`${s.forkCard} ${ss.spot}`} delay={70}>
               <div data-spot="" className={s.forkInner}>
                 <div className={s.forkArt}>
-                  <NeedsYouMock />
+                  <MyHoursMock />
                 </div>
-                <p className={ss.eyebrow}>I run volunteers</p>
-                <h3 className={s.forkTitle}>Run the day, then verify it in about two minutes.</h3>
-                <p className={ss.body}>Follow {f.coordinator}, the coordinator, from set-up to the funder report.</p>
+                <p className={ss.eyebrow}>I volunteer</p>
+                <h3 className={s.forkTitle}>Hours that are yours, always free.</h3>
+                <p className={ss.body}>Every confirmed hour in one place, one link each.</p>
                 <div className={s.forkActions}>
-                  <a href="#coordinators" className={s.forkMain}>
-                    Walk the coordinator path <Icon name="arrow-right" size={16} />
-                  </a>
-                  <Link href="/org/start" className="btn btn-primary">
-                    Start free
+                  <Link href="/join" className="btn">
+                    Join free
+                  </Link>
+                  <Link href="/volunteers" className={`${s.forkMain} ${s.away}`}>
+                    For volunteers <Icon name="arrow-right" size={16} />
                   </Link>
                 </div>
               </div>
@@ -147,139 +206,39 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 5 · The volunteer journey: the signature, pinned and scrubbed by scroll. */}
-      <section id="journey" className={s.journey} aria-labelledby="journey-title">
-        <div className={ss.wrap}>
-          <Reveal className={s.journeyHead}>
-            <p className={ss.eyebrow}>The volunteer path</p>
-            <h2 className={ss.h2} id="journey-title">
-              {f.first}’s three hours, from a QR code to a scholarship application.
-            </h2>
-            <p className={ss.lede}>One real record from the demo, made-up names, followed step by step.</p>
-          </Reveal>
-        </div>
-        <Journey facts={f} skipTo={{ href: '#coordinators', label: 'Skip to the coordinator’s side' }} />
-      </section>
-
-      {/* 6 · The coordinator path, shorter. */}
-      <Section
-        id="coordinators"
-        well
-        eyebrow="The coordinator path"
-        title={`${f.coordinator}’s side of the same morning.`}
-        action={<TextLink href="/organizations">For organizations</TextLink>}
-      >
-        <CoordinatorPath />
-      </Section>
-
-      {/* 7 · Trust: what makes the record worth reading. */}
+      {/* 6 · Trust: what makes the record worth reading. */}
       <Section
         id="trust"
+        well
         eyebrow="Trust and safety"
-        title="Careful by default, because many volunteers are teenagers."
-        action={<TextLink href="/trust">How the record works</TextLink>}
+        title="Careful by default. Many volunteers are teens."
+        action={<TextLink href="/trust">All the rules</TextLink>}
+        sprigs={[{ kind: 'leaf', left: 'max(-30px, calc((100vw - 1240px) / 2 - 120px))', top: '20px', size: 180, rotate: -20, wide: true, tone: 'soft' }]}
       >
-        <TrustBento />
+        <HomeTrust f={f} />
       </Section>
 
-      {/* 8 · Sustained service, and where this started. */}
-      <section className={s.season} aria-labelledby="season-title">
-        <div className={ss.wrap}>
-          <h2 className="sr-only" id="season-title">
-            Sustained service
-          </h2>
-          <Statement
-            cite={
-              <>
-                Harvard’s Making Caring Common project, in its 2016 report{' '}
-                <a href="https://mcc.gse.harvard.edu/reports/turning-the-tide-college-admissions" rel="noopener noreferrer" target="_blank">
-                  Turning the Tide
-                </a>
-                , asks colleges to value meaningful, sustained service and the quality of activities over their number.
-              </>
-            }
-          >
-            Admissions is asked to look for months of showing up, not one big total. SycaMore Live keeps every shift as its own dated, checkable
-            record.
-          </Statement>
-          <div className={s.proofGrid}>
-            <div className={s.proofHead}>
-              <p className={ss.eyebrow}>Where this started</p>
-              <p className={s.proofTitle}>One pilot, counted by hand.</p>
-            </div>
-            <dl className={s.proofStats}>
-              <div>
-                <dt>events</dt>
-                <dd>
-                  <CountUp value={4} duration={0.8} />
-                </dd>
-              </div>
-              <div>
-                <dt>sign-ins</dt>
-                <dd>
-                  <CountUp value={203} duration={1.1} />
-                </dd>
-              </div>
-              <div>
-                <dt>hours</dt>
-                <dd>
-                  <CountUp value={609} duration={1.2} />
-                </dd>
-              </div>
-            </dl>
-            <p className={s.proofNote}>
-              On paper, Feb–Mar 2026: the SycaMore team’s planting pilot with Our City Forest, before this app existed. 203 counts sign-ins across four
-              events, not different people. There are no customers to show yet.
-            </p>
-          </div>
+      {/* 7 · Questions, closed until asked. */}
+      <section id="questions" className={s.questions} aria-labelledby="faq-title">
+        <div className={`${ss.wrap} ${s.closing}`}>
+          <Reveal className={s.faqHead}>
+            <p className={ss.eyebrow}>Questions</p>
+            <h2 className={ss.h2} id="faq-title">
+              Asked <em>often.</em>
+            </h2>
+            <TextLink href="/faq">All questions</TextLink>
+          </Reveal>
+          <Reveal className={s.faq} delay={60}>
+            <FaqList items={homeFaq} openFirst={false} />
+          </Reveal>
         </div>
       </section>
 
-      {/* 9 · Pricing teaser and FAQ. */}
-      <Section id="questions" label="Pricing and questions">
-        <div className={s.closing}>
-          <Reveal className={s.pricing}>
-            <p className={ss.eyebrow}>Pricing</p>
-            <h2 className={ss.h2} id="pricing-title">
-              Free to start. Always free for volunteers.
-            </h2>
-            <dl className={s.plans}>
-              <div>
-                <dt>Free</dt>
-                <dd>
-                  $0 <span>3 events a month</span>
-                </dd>
-              </div>
-              <div>
-                <dt>Core</dt>
-                <dd>
-                  $49 <span>a month, unlimited events</span>
-                </dd>
-              </div>
-              <div>
-                <dt>Program</dt>
-                <dd>
-                  $129 <span>a month, funder reports</span>
-                </dd>
-              </div>
-            </dl>
-            <p className={s.planNote}>Planned prices. Nothing is charged during the demo, and a verified record stays checkable whatever the plan.</p>
-            <TextLink href="/pricing">Compare plans</TextLink>
-          </Reveal>
-          <Reveal className={s.faq} delay={60}>
-            <p className={ss.eyebrow}>Questions</p>
-            <h2 className={`${ss.h2} ${s.faqTitle}`} id="faq-title">
-              Asked often.
-            </h2>
-            <FaqList items={FAQ.filter((q) => q.home)} />
-            <TextLink href="/faq">All questions</TextLink>
-          </Reveal>
-        </div>
-      </Section>
-
+      {/* 8 · The close, with the one pricing line. */}
       <CtaBand
         title="Put your next event on the record."
-        text="Set-up takes about a minute, then a practice event teaches the rest. Volunteers join free, and anyone can check a record."
+        text="Free for volunteers. Free to start for organizations."
+        note="Nothing is charged during the demo."
       />
     </SiteShell>
   );

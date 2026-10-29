@@ -68,6 +68,8 @@ export type JourneyStep = {
   short: string;
   title: string;
   text: (f: JourneyFacts) => string;
+  /** The home page's one-line version (8 words or fewer), shown under `short`. */
+  caption: (f: JourneyFacts) => string;
   note?: (f: JourneyFacts) => string;
   device: 'phone' | 'window';
 };
@@ -78,6 +80,7 @@ export const JOURNEY: JourneyStep[] = [
     short: 'Find',
     title: 'She finds an event.',
     text: (f) => `${f.first} finds ${f.event} on Discover, or gets the link in a group chat, and adds it to her calendar. No app to install.`,
+    caption: () => 'Found on Discover. No app to install.',
     device: 'phone',
   },
   {
@@ -86,6 +89,7 @@ export const JOURNEY: JourneyStep[] = [
     title: 'She scans in at the table.',
     text: () => 'Her phone camera reads the event’s QR code. First time here? She joins in one step and lands straight back on check-in.',
     note: () => 'Check-in opens 2 hours before the start and closes 2 hours after the end.',
+    caption: () => 'Her phone camera reads the table’s QR code.',
     device: 'phone',
   },
   {
@@ -93,6 +97,7 @@ export const JOURNEY: JourneyStep[] = [
     short: 'Serve',
     title: 'She works the shift.',
     text: () => 'Her phone shows a running timer. Nothing to write down: the server times it from her own scans.',
+    caption: () => 'The server times it. Nothing to type.',
     device: 'phone',
   },
   {
@@ -100,6 +105,7 @@ export const JOURNEY: JourneyStep[] = [
     short: 'Scan out',
     title: 'She scans out.',
     text: (f) => `Until ${f.org} confirms, the event shows as waiting, with no number. Forgot to scan out? The coordinator fills it in, and the reason is printed.`,
+    caption: () => 'Hours wait, with no number, until confirmed.',
     device: 'phone',
   },
   {
@@ -108,6 +114,7 @@ export const JOURNEY: JourneyStep[] = [
     title: 'The coordinator verifies.',
     text: (f) => `${f.coordinator}, the coordinator, closes the event. Hours arrive pre-filled from the scans, every changed hour needs a reason, and Verify & close locks the rows.`,
     note: () => 'About two minutes for a whole event.',
+    caption: (f) => `${f.coordinator} confirms. Changes need reasons. Rows lock.`,
     device: 'window',
   },
   {
@@ -116,6 +123,7 @@ export const JOURNEY: JourneyStep[] = [
     title: 'Her record appears.',
     text: () => 'It has its own link. Anyone who opens it sees VERIFIED, who vouches for it, and how the hours were captured. No account needed.',
     note: () => 'Under 18? Sharing waits for a guardian’s OK.',
+    caption: () => 'Its own link, VERIFIED. No account to check.',
     device: 'phone',
   },
   {
@@ -124,6 +132,7 @@ export const JOURNEY: JourneyStep[] = [
     title: 'It goes on the application.',
     text: () =>
       'One record is a morning. A season of them is months of showing up, each one checkable. She pastes the links into a scholarship application, and the committee opens them itself.',
+    caption: () => 'She pastes the links into a scholarship application.',
     device: 'window',
   },
 ];

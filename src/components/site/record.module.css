@@ -1,13 +1,12 @@
 .card {
   background: var(--paper);
-  border-radius: 20px;
-  padding: 18px 20px 20px;
+  border-radius: 26px;
+  padding: 20px 22px 22px;
   display: grid;
   gap: 14px;
-  box-shadow:
-    0 1px 1px rgba(15, 38, 27, 0.04),
-    0 24px 50px -22px rgba(15, 38, 27, 0.35),
-    0 0 0 1px rgba(15, 38, 27, 0.06);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 400;
+  box-shadow: var(--shadow-hi), 0 40px 80px -44px color-mix(in srgb, var(--canopy) 30%, transparent);
   text-align: left;
   color: var(--ink);
 }

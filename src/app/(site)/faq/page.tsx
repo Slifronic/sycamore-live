@@ -12,7 +12,7 @@ export const metadata = pageMeta(
 export default function Faq() {
   return (
     <>
-      <PageHero eyebrow="FAQ" title={['Questions,', <em key="e">answered plainly.</em>]} lede="Short answers. The long ones live in How it works and Trust." />
+      <PageHero motif="fern" eyebrow="FAQ" title={['Questions,', <em key="e">answered plainly.</em>]} lede="Tap a question. Every answer is short." />
       <section className={p.faqSection} aria-label="Questions and answers">
         <div className={`${ss.wrap} ${p.faqGrid}`}>
           <aside className={p.faqAside}>
@@ -21,10 +21,10 @@ export default function Faq() {
             <TextLink href="/trust">How the record works</TextLink>
             <TextLink href="/privacy">Privacy</TextLink>
           </aside>
-          <FaqList items={FAQ} />
+          <FaqList items={FAQ} openFirst={false} />
         </div>
       </section>
-      <CtaBand />
+      <CtaBand text="Set-up takes about a minute. Volunteers never pay." />
     </>
   );
 }

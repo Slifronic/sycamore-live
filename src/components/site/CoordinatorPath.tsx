@@ -14,26 +14,26 @@ import s from './path.module.css';
 const STEPS = [
   {
     when: 'Before',
-    title: 'Set up in a minute',
-    text: 'Four boxes, then a practice event. Paste a message, link or calendar invite and the event form fills itself; anything unsure is amber.',
+    title: 'Set up',
+    text: 'Paste an invite. The event form fills itself.',
     art: <PasteMock />,
   },
   {
     when: 'Event day',
-    title: 'One QR code, a roster that fills itself',
-    text: 'Show the code full-screen or print the sign. Walk-ins sign up from the same card, and a name box covers anyone without a phone.',
+    title: 'Run the day',
+    text: 'One QR code. The roster fills itself.',
     art: <RosterMock />,
   },
   {
     when: 'After',
-    title: 'Verify in about two minutes',
-    text: 'Hours arrive pre-filled from the scans. One tap fills in who didn’t scan out, with the reason printed. Every change needs a reason.',
+    title: 'Verify',
+    text: 'Hours arrive pre-filled. Every change needs a reason.',
     art: <FillInMock />,
   },
   {
     when: 'Reporting',
-    title: 'A funder report from the record',
-    text: 'Verified hours, unique volunteers and the value of volunteer time, as a PDF or CSV. Observed facts, no score. Hour letters too.',
+    title: 'Report',
+    text: 'Hour letters and a funder report, PDF or CSV.',
     art: <FunderMock />,
   },
 ];

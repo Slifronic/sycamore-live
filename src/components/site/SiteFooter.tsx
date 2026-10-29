@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { FOOTER_GROUPS } from './nav';
 import { BrandMark } from './BrandMark';
-import { ThemeToggle } from '../shell/ThemeToggle';
+import { Botanicals } from './Botanicals';
+import { Divider } from './Divider';
+import { ThemePicker } from './ThemePicker';
 import s from './footer.module.css';
 
 const LEGAL = [
@@ -11,13 +13,22 @@ const LEGAL = [
   { href: '/licenses', label: 'Licenses' },
 ] as const;
 
-// vengeance-ui footer/five's shape on the site's one dark panel: the brand and
-// the two ways in over a rule, the link groups (legal is a fourth group), then
-// a quiet bottom bar with the cookie line and the theme switch.
+// vengeance-ui footer/one and footer/five, on the forest floor: the page ends
+// in a canopy silhouette, then the brand and the two ways in over a rule, the
+// link groups (legal is a fourth group), and a quiet bottom bar with the
+// cookie line and the palette picker. Light in every palette.
 
 export function SiteFooter() {
   return (
     <footer className={s.footer}>
+      <Divider edge="top" shape="canopy" />
+      <Botanicals
+        items={[
+          { kind: 'fern', right: '3%', bottom: '-30px', size: 220, rotate: -8, tone: 'soft', wide: true },
+          { kind: 'leaf', right: '18%', top: '30px', size: 120, rotate: 20, tone: 'soft', wide: true },
+          { kind: 'seed', left: '46%', top: '60px', size: 70, rotate: -16, tone: 'soft', wide: true },
+        ]}
+      />
       <div className={s.inner}>
         <div className={s.top}>
           <div className={s.about}>
@@ -68,7 +79,12 @@ export function SiteFooter() {
 
         <div className={s.bottom}>
           <p className={s.cookies}>Essential cookies only, to keep you signed in. No tracking or ads.</p>
-          <ThemeToggle variant="inline" className={s.theme} />
+          <div className={s.theme}>
+            <span className={s.themeLabel} aria-hidden="true">
+              Theme
+            </span>
+            <ThemePicker />
+          </div>
         </div>
       </div>
     </footer>

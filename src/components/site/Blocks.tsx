@@ -3,6 +3,8 @@ import { illo, type IlloName } from './media';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { Icon } from '../shell/icons';
+import { Botanicals, SamaraFall, type BotanicalKind, type Sprig } from './Botanicals';
+import { Divider } from './Divider';
 import { Rays } from './Rays';
 import { Reveal } from './Reveal';
 import s from './site.module.css';
@@ -29,19 +31,30 @@ export function PageHero({
   lede,
   children,
   art,
-  ambient,
+  motif = 'leaf',
 }: {
   eyebrow: string;
   title: ReactNode[];
   lede?: ReactNode;
   children?: ReactNode;
   art?: ReactNode;
-  /** The drifting rays backdrop (animated-rays port). */
+  /** The small botanical drawing that sways beside the title. */
+  motif?: BotanicalKind;
+  /** Kept for older call sites: every page hero is misty now. */
   ambient?: boolean;
 }) {
   return (
-    <section className={`${s.pageHero} ${ambient ? s.ambient : ''}`} aria-labelledby="page-title">
-      {ambient && <Rays />}
+    <section className={s.pageHero} aria-labelledby="page-title">
+      <Rays />
+      <span className={s.heroFade} aria-hidden="true" />
+      <Botanicals
+        items={[
+          art
+            ? { kind: motif, left: 'max(8px, calc((100vw - 1240px) / 2 - 70px))', bottom: '4%', size: 150, rotate: motif === 'fern' ? -18 : -24, wide: true, tone: 'soft' }
+            : { kind: motif, right: 'max(8px, calc((100vw - 1240px) / 2))', top: '14%', size: motif === 'fern' ? 210 : 280, rotate: motif === 'seed' ? 12 : 8, tone: 'soft' },
+          { kind: motif === 'seed' ? 'leaf' : 'seed', right: art ? '46%' : 'max(24px, calc((100vw - 1240px) / 2 + 260px))', top: art ? '6%' : '8%', size: 64, rotate: -30, wide: true, tone: 'soft' },
+        ]}
+      />
       <div className={`${s.wrap} ${art ? s.pageHeroGrid : ''}`}>
         <div className={s.pageHeroText}>
           <p className={`${s.eyebrow} ${s.fade}`}>{eyebrow}</p>
@@ -104,6 +117,7 @@ export function Section({
   well,
   children,
   label,
+  sprigs,
 }: {
   id: string;
   eyebrow?: string;
@@ -113,6 +127,8 @@ export function Section({
   well?: boolean;
   children: ReactNode;
   label?: string;
+  /** A few botanical drawings behind the section (see Botanicals). */
+  sprigs?: Sprig[];
 }) {
   const titled = eyebrow && title;
   return (
@@ -123,6 +139,9 @@ export function Section({
       aria-label={titled ? undefined : label}
       id={id}
     >
+      {well && <Divider edge="top" />}
+      {well && <Divider edge="bottom" />}
+      {sprigs && <Botanicals items={sprigs} />}
       <div className={s.wrap}>
         {titled && <SectionHead eyebrow={eyebrow} title={title} lede={lede} id={`${id}-title`} action={action} />}
         {children}
@@ -154,7 +173,8 @@ export function Facts({ items }: { items: ReactNode[] }) {
 }
 
 /** The closing call to action (vengeance-ui call-to-action/one: centred
-    title, one line, two buttons), on a paper card with the rays backdrop. */
+    title, one line, two buttons), on a paper card in the mist, with a few
+    sycamore seeds spinning down past it now and then. */
 export function CtaBand({
   title = 'Put your next event on the record.',
   text = 'Set-up takes about a minute, then a practice event teaches the rest. Volunteers never pay.',
@@ -173,6 +193,13 @@ export function CtaBand({
       <div className={s.wrap}>
         <Reveal className={s.ctaCard}>
           <Rays corner="center" />
+          <Botanicals
+            items={[
+              { kind: 'leaf', left: '-30px', bottom: '-36px', size: 200, rotate: 24, tone: 'soft' },
+              { kind: 'fern', right: '-10px', top: '-30px', size: 150, rotate: 200, wide: true, tone: 'soft' },
+            ]}
+          />
+          <SamaraFall />
           <h2 className={s.ctaTitle} id="cta-title">
             {title}
           </h2>

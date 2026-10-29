@@ -58,7 +58,7 @@ const windowWeight = (pos: number) => clamp01(1 - (Math.min(...WINDOW_STEPS.map(
 
 export function Journey({ facts, skipTo }: { facts: JourneyFacts; skipTo: { href: string; label: string } }) {
   const pinned = useMedia(PIN);
-  return pinned ? <Pinned f={facts} skipTo={skipTo} /> : <JourneyFlow facts={facts} className={s.flowWrap} />;
+  return pinned ? <Pinned f={facts} skipTo={skipTo} /> : <JourneyFlow facts={facts} className={s.flowWrap} compact />;
 }
 
 /* ── Pinned stage ─────────────────────────────────────────── */
@@ -169,13 +169,14 @@ function Segment({ i, pos, label, on, onGo }: { i: number; pos: MotionValue<numb
 
 function StepCopy({ i, pos, f }: { i: number; pos: MotionValue<number>; f: JourneyFacts }) {
   const st = JOURNEY[i];
-  const opacity = useTransform(pos, (p) => vis(p, i));
-  const y = useTransform(pos, (p) => `${Math.max(-1, Math.min(1, (i - p) / 0.7)) * 1.6}rem`);
+  // A sequential swap, not a crossfade: the outgoing label is gone by the
+  // midpoint, so two big labels never overlap.
+  const opacity = useTransform(pos, (p) => clamp01(1 - (Math.abs(p - i) - 0.3) / 0.2));
+  const y = useTransform(pos, (p) => `${Math.max(-1, Math.min(1, (i - p) / 0.5)) * 2.4}rem`);
   return (
     <motion.div className={s.copy} style={{ opacity, y }}>
-      <h3 className={s.copyTitle}>{st.title}</h3>
-      <p className={s.copyText}>{st.text(f)}</p>
-      {st.note && <p className={s.copyNote}>{st.note(f)}</p>}
+      <h3 className={s.copyTitle}>{st.short}</h3>
+      <p className={s.copyText}>{st.caption(f)}</p>
     </motion.div>
   );
 }
@@ -226,16 +227,16 @@ function Ledger({ pos, f }: { pos: MotionValue<number>; f: JourneyFacts }) {
   return (
     <div className={s.ledger} aria-hidden="true">
       <p className={s.lHead}>
-        <span>{f.first}’s record, as it’s made</span>
+        <span>Record</span>
         <span className={s.lCode}>{f.code}</span>
       </p>
       <dl className={s.lRows}>
-        <Row pos={pos} at={0} label="Event" value={`${f.event} · ${f.day}`} />
-        <Row pos={pos} at={1} label="Checked in" value="9:00 AM, her own scan" />
-        <Row pos={pos} at={3} label="Checked out" value="12:00 PM, her own scan" />
-        <Row pos={pos} at={4} label="Hours" value={`${f.hours}, confirmed by ${f.org} · locked`} wait={{ at: 3, text: 'Waiting to confirm, no number yet' }} />
-        <Row pos={pos} at={5} label="Public link" value={`/v/${f.code}`} />
-        <Row pos={pos} at={6} label="Used for" value="A scholarship application" />
+        <Row pos={pos} at={0} label="Event" value={f.day} />
+        <Row pos={pos} at={1} label="In" value="9:00 AM" />
+        <Row pos={pos} at={3} label="Out" value="12:00 PM" />
+        <Row pos={pos} at={4} label="Hours" value={`${f.hours} · locked`} wait={{ at: 3, text: 'Waiting' }} />
+        <Row pos={pos} at={5} label="Link" value={`/v/${f.code}`} />
+        <Row pos={pos} at={6} label="Used for" value="Scholarship" />
       </dl>
       <Seal org={f.org} className={s.lSeal} style={{ opacity: sealO, scale: sealS, rotate: sealR }} />
     </div>
@@ -244,18 +245,19 @@ function Ledger({ pos, f }: { pos: MotionValue<number>; f: JourneyFacts }) {
 
 /* ── Flow: the same seven steps as a list ─────────────────── */
 
-export function JourneyFlow({ facts, ids, className }: { facts: JourneyFacts; ids?: boolean; className?: string }) {
+/** `compact` shows each step as its label and one-line caption (the home page). */
+export function JourneyFlow({ facts, ids, className, compact }: { facts: JourneyFacts; ids?: boolean; className?: string; compact?: boolean }) {
   const live = useMedia(MOTION);
   return (
-    <ol className={`${s.flow} ${className ?? ''}`}>
+    <ol className={`${s.flow} ${compact ? s.flowCompact : ''} ${className ?? ''}`}>
       {JOURNEY.map((st, i) => (
-        <FlowStep key={st.id} i={i} f={facts} live={live} id={ids ? `step-${st.id}` : undefined} />
+        <FlowStep key={st.id} i={i} f={facts} live={live} id={ids ? `step-${st.id}` : undefined} compact={compact} />
       ))}
     </ol>
   );
 }
 
-function FlowStep({ i, f, live, id }: { i: number; f: JourneyFacts; live: boolean; id?: string }) {
+function FlowStep({ i, f, live, id, compact }: { i: number; f: JourneyFacts; live: boolean; id?: string; compact?: boolean }) {
   const st = JOURNEY[i];
   const ref = useRef<HTMLLIElement>(null);
   const l = useMotionValue(1);
@@ -273,12 +275,24 @@ function FlowStep({ i, f, live, id }: { i: number; f: JourneyFacts; live: boolea
   return (
     <li ref={ref} className={`${s.flowStep} ${i % 2 ? s.flowFlip : ''}`} id={id}>
       <div className={s.flowText}>
-        <p className={s.flowNum}>
-          <span>{String(i + 1).padStart(2, '0')}</span> {st.short}
-        </p>
-        <h3 className={s.copyTitle}>{st.title}</h3>
-        <p className={s.copyText}>{st.text(f)}</p>
-        {st.note && <p className={s.copyNote}>{st.note(f)}</p>}
+        {compact ? (
+          <>
+            <p className={s.flowNum}>
+              <span>{String(i + 1).padStart(2, '0')}</span>
+            </p>
+            <h3 className={s.copyTitle}>{st.short}</h3>
+            <p className={s.copyText}>{st.caption(f)}</p>
+          </>
+        ) : (
+          <>
+            <p className={s.flowNum}>
+              <span>{String(i + 1).padStart(2, '0')}</span> {st.short}
+            </p>
+            <h3 className={s.copyTitle}>{st.title}</h3>
+            <p className={s.copyText}>{st.text(f)}</p>
+            {st.note && <p className={s.copyNote}>{st.note(f)}</p>}
+          </>
+        )}
       </div>
       <div className={s.flowArt} aria-hidden="true">
         {st.device === 'phone' ? (

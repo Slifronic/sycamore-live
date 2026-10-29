@@ -1,7 +1,7 @@
 .photo {
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 24px;
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--rule-soft);
 }
@@ -11,29 +11,29 @@
 .shot {
   margin: 0;
   width: 100%;
-  border-radius: 14px;
+  border-radius: 22px;
   overflow: hidden;
   background: var(--paper);
-  box-shadow: var(--shadow-hi);
+  box-shadow: var(--shadow-hi), 0 40px 80px -44px color-mix(in srgb, var(--canopy) 30%, transparent);
 }
 .bar {
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 34px;
-  padding: 0 12px;
-  background: var(--surface-2);
+  height: 38px;
+  padding: 0 14px;
+  background: var(--paper);
   border-bottom: 1px solid var(--line);
 }
 .dots { display: flex; gap: 6px; }
 .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line-2); }
-.url { margin-inline: auto; transform: translateX(-24px); font-size: 11.5px; color: var(--ink-3); padding: 2px 12px; border-radius: 999px; background: var(--paper); box-shadow: 0 0 0 1px var(--line); }
+.url { margin-inline: auto; transform: translateX(-24px); font-family: var(--font-sans), system-ui, sans-serif; font-size: 11.5px; font-weight: 400; color: var(--ink-3); padding: 3px 14px; border-radius: 999px; background: var(--surface-2); }
 .view {
   position: relative;
   overflow: hidden;
-  background: #f7f6f1;
-  -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent);
-  mask-image: linear-gradient(180deg, #000 72%, transparent);
+  background: var(--paper);
+  -webkit-mask-image: linear-gradient(180deg, black 72%, transparent);
+  mask-image: linear-gradient(180deg, black 72%, transparent);
 }
 .shotImg { display: block; width: 100%; height: auto; }
 
@@ -43,18 +43,20 @@
   width: 100%;
   max-width: 300px;
   padding: 3.6%;
-  border-radius: 46px;
-  background: linear-gradient(160deg, #26332c, #0f1813);
+  border-radius: 48px;
+  background: linear-gradient(160deg, var(--paper), color-mix(in srgb, var(--surface-2) 70%, var(--paper)));
   box-shadow:
-    inset 0 0 0 1.5px rgba(255, 255, 255, 0.1),
-    0 40px 60px -30px rgba(0, 0, 0, 0.45);
+    inset 0 0 0 1px var(--line-2),
+    var(--shadow-hi),
+    0 40px 60px -30px color-mix(in srgb, var(--canopy) 30%, transparent);
 }
 .phoneScreen {
   position: relative;
   aspect-ratio: 9 / 19.5;
   overflow: hidden;
-  border-radius: 36px;
-  background: #f7f6f1;
+  border-radius: 38px;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 .island {
   position: absolute;
@@ -65,5 +67,5 @@
   height: 3.6%;
   transform: translateX(-50%);
   border-radius: 999px;
-  background: #0b120e;
+  background: color-mix(in srgb, var(--ink) 88%, transparent);
 }

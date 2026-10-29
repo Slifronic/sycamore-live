@@ -13,7 +13,7 @@ export const FAQ: QA[] = [
     id: 'free',
     home: true,
     q: 'Is it free for volunteers?',
-    a: <p>Yes, always. Checking in, your hours, share links, badges and Discover cost volunteers nothing. Nothing is charged to anyone during the demo.</p>,
+    a: <p>Yes, always. Check-in, hours, share links, badges and Discover cost volunteers nothing. Nobody is charged during the demo.</p>,
   },
   {
     id: 'app',
@@ -25,23 +25,13 @@ export const FAQ: QA[] = [
     id: 'forgot',
     home: true,
     q: 'What if someone forgets to check out?',
-    a: (
-      <p>
-        At verify, one tap fills in everyone who didn’t scan out, counted to the end of the event. Their record prints the reason, so nobody mistakes it
-        for a scanned time.
-      </p>
-    ),
+    a: <p>At verify, one tap counts them to the end of the event. Their record prints the reason, so nobody mistakes it for a scanned time.</p>,
   },
   {
     id: 'inflate',
     home: true,
     q: 'Can a coordinator inflate hours?',
-    a: (
-      <p>
-        Every change needs a reason, and the record shows the captured hours next to the adjusted ones. Shifts over 8 hours are flagged. After verifying,
-        the rows are read-only.
-      </p>
-    ),
+    a: <p>Every change needs a reason, and the record shows captured hours next to adjusted ones. Shifts over 8 hours are flagged. Verified rows are read-only.</p>,
   },
   {
     id: 'schools',
@@ -49,24 +39,23 @@ export const FAQ: QA[] = [
     q: 'What does a school see?',
     a: (
       <p>
-        A public page at the share link: VERIFIED or REVOKED, the organization’s statement, the captured and adjusted hours, and who to contact. No login
-        needed, and search engines are asked not to index it. <Link href="/trust">How to read a record</Link>
+        A public page: VERIFIED or REVOKED, the organization’s statement, captured and adjusted hours, and who to contact. No login, and search engines
+        are asked not to index it. <Link href="/trust">How to read a record</Link>
       </p>
     ),
   },
   {
     id: 'edit',
     q: 'Can a volunteer edit their own hours?',
-    a: <p>No. Hours come from the check-in and check-out scans and the coordinator’s verification. The volunteer’s browser never sends an hour number.</p>,
+    a: <p>No. Hours come from the scans and the coordinator’s verification. The volunteer’s browser never sends an hour number.</p>,
   },
   {
     id: 'minors',
     q: 'What about minors?',
     a: (
       <p>
-        Under 13 can’t join, and nothing is stored. Ages 13 to 17 confirm a parent or guardian knows when they join, keep their hours, and need a
-        guardian’s OK to share a record. Under 18 gets announcements only: no event chats and no direct messages.{' '}
-        <Link href="/privacy#minors">Privacy for minors</Link>
+        Under 13 can’t join, and nothing is stored. Ages 13 to 17 confirm a guardian knows, keep their hours, and need a guardian’s OK to share. Under
+        18 gets announcements only. <Link href="/privacy#minors">Privacy for minors</Link>
       </p>
     ),
   },
@@ -75,48 +64,33 @@ export const FAQ: QA[] = [
     q: 'Does the AI decide anything?',
     a: (
       <p>
-        No. Claude drafts rows from a photo of a paper sheet, fills event forms and drafts wording. Nothing from a sheet saves until a coordinator
-        confirms each row, it never invents a check-out time, and only a coordinator can verify hours.
+        No. Claude drafts sheet rows, event forms and wording. Nothing from a sheet saves until a coordinator confirms each row, it never invents a
+        check-out time, and only a coordinator verifies hours.
       </p>
     ),
   },
   {
     id: 'after',
     q: 'What happens after an event is verified?',
-    a: (
-      <p>
-        The rows become read-only and each volunteer’s hours move from “waiting” to their record. If something was wrong, the organization can revoke a
-        record; its link then says REVOKED. It is never quietly edited.
-      </p>
-    ),
+    a: <p>The rows lock and each volunteer’s hours move from “waiting” to their record. If something was wrong, the organization revokes it, and its link says REVOKED.</p>,
   },
   {
     id: 'location',
     q: 'Does it track where volunteers are?',
-    a: (
-      <p>
-        Only if both sides opt in, and even then no coordinates are stored: only when someone left the area and roughly how far. Verifying the event
-        wipes it.
-      </p>
-    ),
+    a: <p>Only if both sides opt in. Even then no coordinates are stored: only when someone left the area and roughly how far. Verifying the event wipes it.</p>,
   },
   {
     id: 'messages',
     q: 'Will organizations send me marketing?',
-    a: (
-      <p>
-        Only if you opt in. Announcements are off until you turn them on in Account. Event-day notes to the people at an event you’re at, like where
-        to meet, still reach you. SycaMore Live itself sends no marketing email.
-      </p>
-    ),
+    a: <p>Only if you opt in: announcements stay off until you turn them on in Account. Event-day notes, like where to meet, still reach you. SycaMore Live sends no marketing email.</p>,
   },
   {
     id: 'data',
     q: 'Can I download or delete my data?',
     a: (
       <p>
-        Yes, from Account. Download gives you a file of everything we hold about you. Delete removes your account; organizations keep their verified
-        totals with no name attached. <Link href="/data">Your data</Link>
+        Yes, from Account. Download gives you a file of everything held about you. Delete removes your account; organizations keep verified totals with
+        no name attached. <Link href="/data">Your data</Link>
       </p>
     ),
   },
@@ -128,19 +102,14 @@ export const FAQ: QA[] = [
   {
     id: 'paper',
     q: 'Can we bring in old paper sheets?',
-    a: (
-      <p>
-        Yes. Photograph the sheet and Claude drafts the rows, with unsure rows in amber. Nothing is saved until you confirm each one. On synthetic test
-        sheets it got 19 of 19 rows right; a test on real handwriting is still pending.
-      </p>
-    ),
+    a: <p>Yes. Photograph the sheet; Claude drafts the rows and marks unsure ones amber. Nothing saves until you confirm each row. Synthetic test sheets: 19 of 19 rows right. Real handwriting is untested.</p>,
   },
   {
     id: 'company',
     q: 'Is this a real company?',
     a: (
       <p>
-        No, it’s a student project started at Cal Hacks 13.0 in October 2026, and it’s running as a demo. <Link href="/about">About the team</Link>
+        No, it’s a student project started at Cal Hacks 13.0 in October 2026, running as a demo. <Link href="/about">About the team</Link>
       </p>
     ),
   },

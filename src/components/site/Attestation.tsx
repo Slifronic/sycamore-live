@@ -17,17 +17,17 @@ export function Attestation({ r, f }: { r: RecordView | null; f: JourneyFacts })
     {
       icon: 'scan',
       title: 'Captured at the event',
-      text: `Check-in and check-out, timed on the server: ${r ? fmtHours(r.hours_captured) : f.hours} h captured.${adjusted ? ` Adjusted to ${fmtHours(r!.hours_adjusted!)} h with a printed reason.` : ' No adjustment.'}`,
+      text: `${r ? fmtHours(r.hours_captured) : f.hours} h, server-timed${adjusted ? ` · adjusted to ${fmtHours(r!.hours_adjusted!)} h, reason printed` : ' · no adjustment'}`,
     },
     {
       icon: 'check',
       title: `Attested by ${f.org}`,
-      text: `Confirmed ${f.attested}, when the organization closed the event. The rows are now read-only.`,
+      text: `${f.attested} · rows locked`,
     },
     {
       icon: 'eye',
       title: r?.status === 'revoked' ? 'Status: revoked' : 'Status: active',
-      text: 'Anyone with the link can check it, with no account. If it is ever withdrawn, the same page says REVOKED.',
+      text: 'Open to anyone with the link',
     },
   ];
   return (
@@ -54,8 +54,8 @@ export function Attestation({ r, f }: { r: RecordView | null; f: JourneyFacts })
         </p>
       </div>
       <ol className={s.chain}>
-        {chain.map((c) => (
-          <li key={c.title}>
+        {chain.map((c, i) => (
+          <li key={c.title} data-chain={i + 1}>
             <span className={s.dot}>
               <Icon name={c.icon} size={16} />
             </span>
@@ -70,7 +70,7 @@ export function Attestation({ r, f }: { r: RecordView | null; f: JourneyFacts })
         <Link href={f.href} className={s.open}>
           Open the live record <Icon name="arrow-up-right" size={16} />
         </Link>
-        <span className={s.contact}>Questions go to the organization: {f.phone}</span>
+        <span className={s.contact}>Questions: {f.phone}</span>
       </div>
       <Seal org={f.org} className={s.seal} />
     </article>

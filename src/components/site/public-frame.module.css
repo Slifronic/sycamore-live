@@ -1,23 +1,57 @@
-.frame { min-height: 100dvh; display: flex; flex-direction: column; }
+/* The frame around shared-link pages. Only the bar and footer are styled here
+   (the pages bring their own content styles); the mist is a fixed layer behind
+   everything. Token colours only. */
+.frame { position: relative; min-height: 100dvh; display: flex; flex-direction: column; }
+.frame::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 36% at 50% -6%, color-mix(in srgb, var(--site-bloom) 80%, transparent), transparent 70%),
+    radial-gradient(40% 30% at 100% 10%, color-mix(in srgb, var(--site-fog) 26%, transparent), transparent 70%),
+    radial-gradient(40% 30% at 0% 18%, color-mix(in srgb, var(--site-fog) 18%, transparent), transparent 70%);
+}
 .frame :global(.skip) { min-height: 44px; }
 .bar {
-  width: min(100% - 32px, var(--frame-w, 760px));
-  margin-inline: auto;
-  height: 64px;
+  position: relative;
+  z-index: 1;
+  width: min(100% - 24px, calc(var(--frame-w, 760px) + 24px));
+  margin: 10px auto 0;
+  height: 56px;
+  padding: 0 8px 0 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--glass) 70%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 80%, transparent), 0 8px 24px -16px color-mix(in srgb, var(--canopy) 30%, transparent);
+  font-family: var(--font-site), system-ui, sans-serif;
 }
 .brand {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   font-size: 18px;
+  color: var(--canopy);
   text-decoration: none;
 }
-.what { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 650; color: var(--ink-2); text-decoration: none; }
-.what:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.what {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.what:hover { color: var(--canopy); background: var(--wash); }
 .main { flex: 1; }
 .main:focus { outline: none; }
 .foot {
@@ -28,27 +62,19 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px 20px;
-  padding: 18px 0 28px;
+  padding: 20px 0 28px;
   border-top: 1px solid var(--line);
-  font-size: 13px;
+  font-family: var(--font-site), system-ui, sans-serif;
+  font-size: 13.5px;
+  font-weight: 300;
   color: var(--ink-3);
 }
 .legal { display: flex; align-items: center; gap: 4px 16px; flex-wrap: wrap; }
-.legal a { display: inline-flex; align-items: center; min-height: 40px; color: var(--ink-2); font-weight: 600; text-decoration: none; }
-.legal a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
-.theme {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--line-2);
-  color: var(--ink-2);
-  font: 600 13px var(--font-sans), system-ui, sans-serif;
+.legal a { display: inline-flex; align-items: center; min-height: 40px; color: var(--ink-2); font-weight: 400; text-decoration: none; }
+.legal a:hover { color: var(--canopy); text-decoration: underline; text-underline-offset: 4px; }
+.theme { display: inline-flex; align-items: center; gap: 8px; }
+.themeLabel { font-size: 11px; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+@media (pointer: coarse) { .legal a { min-height: 44px; } }
+@media (max-width: 480px) {
+  .bar { width: calc(100% - 16px); margin-top: 8px; }
 }
-.theme:hover { background: var(--wash); color: var(--ink); }
-@media (pointer: coarse) { .theme, .legal a { min-height: 44px; } }

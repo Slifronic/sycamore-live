@@ -20,10 +20,10 @@
 .left { display: grid; gap: 26px; align-content: center; min-width: 0; }
 
 .progress { display: grid; gap: 14px; }
-.counter { display: flex; align-items: baseline; gap: 4px; font-family: var(--font-display), Georgia, serif; color: var(--canopy); }
-.counterNum { display: inline-grid; overflow: hidden; font-size: 44px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.counter { display: flex; align-items: baseline; gap: 6px; font-family: var(--font-site), system-ui, sans-serif; color: var(--canopy); }
+.counterNum { display: inline-grid; overflow: hidden; font-size: 52px; font-weight: 200; letter-spacing: -0.05em; line-height: 1.05; font-variant-numeric: tabular-nums; }
 .counterNum > span { grid-area: 1 / 1; }
-.counterOf { font-size: 18px; color: var(--field); font-variant-numeric: tabular-nums; }
+.counterOf { font-size: 17px; font-weight: 300; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 
 .segs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .seg {
@@ -36,13 +36,13 @@
   background: none;
   cursor: pointer;
   text-align: left;
-  border-radius: 6px;
-  color: var(--field);
-  font: 700 11px var(--font-sans), system-ui, sans-serif;
-  letter-spacing: 0.06em;
+  border-radius: 8px;
+  color: var(--ink-3);
+  font: 400 11px var(--font-site), system-ui, sans-serif;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-.segTrack { display: block; height: 3px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.segTrack { display: block; height: 3px; border-radius: 3px; background: var(--line-2); overflow: hidden; }
 .segTrack i { display: block; height: 100%; background: var(--primary); transform-origin: 0 50%; transform: scaleX(0); }
 .segLabel { transition: color var(--dur-2) var(--ease-out); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .seg:hover .segLabel { color: var(--ink); }
@@ -52,23 +52,23 @@
 .copyStack > .copy { grid-area: 1 / 1; }
 .copy { display: grid; gap: 12px; align-content: start; }
 .copyTitle {
-  font-family: var(--font-display), Georgia, serif;
-  font-size: clamp(28px, 2.8vw, 40px);
+  font-family: var(--font-site), system-ui, sans-serif;
+  font-size: clamp(30px, 3vw, 44px);
   line-height: 1.06;
-  letter-spacing: -0.03em;
-  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-weight: 300;
   color: var(--canopy);
   text-wrap: balance;
 }
-.copyText { font-size: 16.5px; line-height: 1.6; color: var(--ink-2); max-width: 46ch; text-wrap: pretty; }
-.copyNote { font-size: 13.5px; color: var(--ink-3); }
+.copyText { font-size: 17px; line-height: 1.65; font-weight: 300; color: var(--ink-2); max-width: 46ch; text-wrap: pretty; }
+.copyNote { font-size: 14px; font-weight: 400; color: var(--ink-3); }
 
 /* The record as it's made */
 .ledger {
   position: relative;
-  padding: 18px 20px 12px;
-  border-radius: 16px;
-  background: var(--paper);
+  padding: 20px 22px 12px;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
   box-shadow: var(--shadow);
   font-size: 14px;
 }
@@ -79,22 +79,22 @@
   padding-bottom: 10px;
   border-bottom: 1px solid var(--rule-soft);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 400;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-3);
   padding-right: 64px;
 }
-.lCode { color: var(--field); font-variant-numeric: tabular-nums; }
+.lCode { color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .lRows { margin: 0; display: grid; }
 .lRow { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--rule-soft); }
 .lRow:last-child { border-bottom: 0; }
-.lRow dt { color: var(--ink-3); font-weight: 600; }
+.lRow dt { color: var(--ink-3); font-weight: 400; }
 .lRow dd { margin: 0; display: grid; min-width: 0; }
 .lRow dd > span { grid-area: 1 / 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lDash { color: var(--field); }
-.lVal { color: var(--ink); font-weight: 650; }
-.lWait { color: var(--amber); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.lDash { color: var(--ink-3); }
+.lVal { color: var(--ink); font-weight: 400; }
+.lWait { color: var(--amber); font-weight: 400; display: inline-flex; align-items: center; gap: 6px; }
 .lWait svg { flex: none; }
 .lSeal { position: absolute; top: -36px; right: -22px; width: 84px; height: 84px; }
 
@@ -104,8 +104,8 @@
   align-items: center;
   gap: 6px;
   min-height: 44px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 14.5px;
+  font-weight: 400;
   color: var(--ink-3);
   text-decoration: none;
 }
@@ -125,31 +125,39 @@
 .devPhone, .devWindow { will-change: transform, opacity; }
 
 /* ── Devices ──────────────────────────────────────────────── */
+/* The devices are drawn light: a pale ceramic phone and a paper browser
+   window, both in the app's own type (Jakarta and Fraunces), so they read as
+   screens on the site rather than part of its copy. */
+.phone, .window { font-family: var(--font-sans), system-ui, sans-serif; font-weight: 400; }
 .phone {
   position: relative;
   width: 21em;
   padding: 0.55em;
-  border-radius: 2.7em;
-  background: var(--ink-panel);
-  box-shadow: 0 0 0 1px var(--line-2), var(--shadow-hi), 0 40px 80px -40px color-mix(in srgb, var(--canopy) 40%, transparent);
+  border-radius: 2.9em;
+  background: linear-gradient(160deg, var(--paper), color-mix(in srgb, var(--surface-2) 70%, var(--paper)));
+  box-shadow:
+    inset 0 0 0 1px var(--line-2),
+    inset 0 0.12em 0 color-mix(in srgb, var(--paper) 90%, transparent),
+    var(--shadow-hi),
+    0 40px 80px -40px color-mix(in srgb, var(--canopy) 32%, transparent);
 }
-.island { position: absolute; z-index: 4; top: 1.2em; left: 50%; width: 5.6em; height: 1.5em; margin-left: -2.8em; border-radius: 1em; background: var(--ink-panel); }
-.screen { position: relative; height: 41em; border-radius: 2.15em; background: var(--parchment); overflow: hidden; display: grid; isolation: isolate; }
+.island { position: absolute; z-index: 4; top: 1.2em; left: 50%; width: 5.6em; height: 1.5em; margin-left: -2.8em; border-radius: 1em; background: color-mix(in srgb, var(--ink) 88%, transparent); }
+.screen { position: relative; height: 41em; border-radius: 2.35em; background: var(--parchment); overflow: hidden; display: grid; isolation: isolate; box-shadow: inset 0 0 0 1px var(--line); }
 .layer { grid-area: 1 / 1; position: relative; min-height: 0; min-width: 0; display: grid; }
 
 .window {
   width: 40em;
   max-width: 100%;
-  border-radius: 1.1em;
+  border-radius: 1.4em;
   background: var(--parchment);
   overflow: hidden;
   isolation: isolate;
-  box-shadow: var(--shadow-hi), 0 40px 80px -40px color-mix(in srgb, var(--canopy) 35%, transparent);
+  box-shadow: var(--shadow-hi), 0 40px 80px -40px color-mix(in srgb, var(--canopy) 30%, transparent);
 }
-.chrome { display: flex; align-items: center; gap: 1em; height: 2.6em; padding: 0 1em; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.chrome { display: flex; align-items: center; gap: 1em; height: 2.6em; padding: 0 1em; background: var(--paper); border-bottom: 1px solid var(--line); }
 .dots { display: flex; gap: 0.45em; }
 .dots i { width: 0.75em; height: 0.75em; border-radius: 50%; background: var(--line-2); }
-.url { margin-inline: auto; padding: 0.25em 1.2em; border-radius: 999px; background: var(--paper); font-size: 0.82em; color: var(--ink-3); box-shadow: 0 0 0 1px var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
+.url { margin-inline: auto; padding: 0.25em 1.2em; border-radius: 999px; background: var(--surface-2); font-size: 0.82em; color: var(--ink-3); box-shadow: 0 0 0 1px var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
 .winBody { display: grid; height: 27.5em; }
 
 /* ── Shared scene parts ───────────────────────────────────── */
@@ -179,7 +187,7 @@
 .eventCard { position: relative; display: grid; gap: 0.3em; padding: 0.9em; border-radius: 1em; background: var(--paper); box-shadow: var(--shadow); min-width: 0; }
 .eventDim { opacity: 0.7; }
 .ring { position: absolute; inset: -0.2em; border-radius: 1.15em; box-shadow: 0 0 0 0.15em var(--sap); pointer-events: none; }
-.cover { height: 4.6em; border-radius: 0.7em; margin-bottom: 0.4em; display: grid; place-items: center; background: var(--band); color: #e8efe9; }
+.cover { height: 4.6em; border-radius: 0.7em; margin-bottom: 0.4em; display: grid; place-items: center; background: var(--band); color: var(--paper); }
 .cover svg { width: 2em; height: 2em; }
 .evTitle { font-weight: 700; font-size: 1em; line-height: 1.25; color: var(--ink); }
 .evMeta { display: flex; align-items: center; gap: 0.3em; font-size: 0.8em; color: var(--ink-2); }
@@ -207,19 +215,29 @@
 .toast svg { width: 1.3em; height: 1.3em; color: var(--sap); }
 
 /* 2 · Scan in */
-.camera { position: relative; display: grid; place-items: center; height: 100%; overflow: hidden; background: radial-gradient(120% 80% at 50% 40%, #1d3a2b, #07110c); }
-.camHint { position: absolute; top: 3.6em; left: 0; right: 0; text-align: center; font-size: 0.78em; font-weight: 700; color: rgba(232, 239, 233, 0.82); letter-spacing: 0.02em; }
-.qrCard { display: grid; justify-items: center; gap: 0.5em; padding: 1em 1em 0.8em; border-radius: 0.9em; background: var(--paper); box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.6); transform: rotate(-3deg); }
+.camera {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 40% at 50% 46%, var(--site-bloom), transparent 70%),
+    radial-gradient(130% 90% at 50% 40%, var(--site-fog), var(--site-ground));
+}
+.camHint { position: absolute; top: 3.6em; left: 0; right: 0; text-align: center; font-size: 0.78em; font-weight: 700; color: var(--ink); letter-spacing: 0.02em; }
+.camHint { margin-inline: auto; width: max-content; max-width: 90%; padding: 0.3em 0.9em; border-radius: 999px; background: color-mix(in srgb, var(--paper) 70%, transparent); }
+.qrCard { display: grid; justify-items: center; gap: 0.5em; padding: 1em 1em 0.8em; border-radius: 0.9em; background: var(--paper); box-shadow: 0 20px 40px -20px color-mix(in srgb, var(--canopy) 55%, transparent); transform: rotate(-3deg); }
 .qrCard p { font-size: 0.62em; font-weight: 700; color: var(--ink-2); }
 .qrSvg { display: block; width: 9em; height: 9em; fill: var(--ink); color: var(--ink); }
 .brackets { position: absolute; left: 50%; top: 50%; width: 13.5em; height: 13.5em; margin: -6.75em 0 0 -6.75em; }
-.brackets i { position: absolute; width: 2.2em; height: 2.2em; border: 0.28em solid #e8efe9; }
+.brackets i { position: absolute; width: 2.2em; height: 2.2em; border: 0.28em solid var(--paper); }
 .brackets i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 0.8em; }
 .brackets i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 0.8em; }
 .brackets i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 0.8em; }
 .brackets i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 0.8em; }
-.scanLine { position: absolute; left: 50%; top: 50%; width: 12em; height: 0.2em; margin-left: -6em; border-radius: 1em; background: #6fcf97; box-shadow: 0 0 1.2em 0.2em rgba(111, 207, 151, 0.6); }
-.flash { position: absolute; inset: 0; background: #fff; pointer-events: none; }
+.scanLine { position: absolute; left: 50%; top: 50%; width: 12em; height: 0.2em; margin-left: -6em; border-radius: 1em; background: var(--sap); box-shadow: 0 0 1.2em 0.2em color-mix(in srgb, var(--sap) 55%, transparent); }
+.flash { position: absolute; inset: 0; background: var(--paper); pointer-events: none; }
 .sheet {
   position: absolute;
   left: 0;
@@ -232,7 +250,7 @@
   border-radius: 1.6em 1.6em 0 0;
   background: var(--parchment);
   text-align: center;
-  box-shadow: 0 -10px 30px -10px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 -10px 30px -10px color-mix(in srgb, var(--canopy) 35%, transparent);
 }
 .okDot { width: 3em; height: 3em; border-radius: 50%; display: grid; place-items: center; background: var(--verified-soft); color: var(--verified); margin-bottom: 0.3em; }
 .okDot svg { width: 1.6em; height: 1.6em; }
@@ -357,16 +375,18 @@
 .flowStep { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 28px 64px; align-items: center; scroll-margin-top: 140px; }
 .flowFlip .flowText { order: 2; }
 .flowText { display: grid; gap: 12px; align-content: start; }
-.flowNum { display: inline-flex; align-items: baseline; gap: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--primary); }
-.flowNum span { font-family: var(--font-display), Georgia, serif; font-size: 28px; letter-spacing: -0.02em; color: var(--canopy); font-weight: 500; }
+.flowNum { display: inline-flex; align-items: baseline; gap: 12px; font-size: 12px; font-weight: 400; letter-spacing: 0.16em; text-transform: uppercase; color: var(--primary); }
+.flowNum span { font-family: var(--font-site), system-ui, sans-serif; font-size: 34px; letter-spacing: -0.04em; color: var(--canopy); font-weight: 200; }
 .flowArt {
   container-type: inline-size;
   min-width: 0;
   display: grid;
   place-items: center;
   padding: clamp(20px, 4vw, 44px) clamp(12px, 3vw, 40px);
-  border-radius: 20px;
-  background: var(--surface-2);
+  border-radius: 28px;
+  background:
+    radial-gradient(70% 60% at 30% 10%, color-mix(in srgb, var(--site-bloom) 85%, transparent), transparent 70%),
+    linear-gradient(170deg, var(--surface-2), color-mix(in srgb, var(--site-fog) 40%, var(--surface-2)));
   box-shadow: inset 0 0 0 1px var(--rule-soft);
   overflow: hidden;
 }
@@ -384,3 +404,10 @@
 @media print {
   .flowArt { display: none; }
 }
+
+/* Compact (home): a big label and one line, so the screens carry the story. */
+.flowCompact .copyTitle { font-size: clamp(34px, 4vw, 52px); }
+.flowCompact .flowStep { gap: 20px 64px; }
+.copyStack .copyTitle { font-size: clamp(40px, 4.4vw, 64px); letter-spacing: -0.05em; }
+/* The next label rises out of the stack's bottom edge instead of sliding over the ledger. */
+.copyStack { clip-path: inset(-6rem -50vw 0 -50vw); }
