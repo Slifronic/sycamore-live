@@ -11,6 +11,8 @@ import { PrintButton } from '../../../reports/PrintButton';
 import s from './letter.module.css';
 import { Icon } from '@/components/shell/icons';
 import { letterMeta } from '@/lib/page-meta';
+import { computeMilestones, computeSkills, nextMilestones, reachedMilestones, type Attended } from '@/lib/milestones';
+import { MilestoneList, SkillList } from '@/components/milestones/Counted';
 
 export async function generateMetadata({ params }: PageProps<'/org/volunteers/[id]/letter'>) {
   return letterMeta((await params).id);
@@ -48,6 +50,15 @@ export default async function HourLetter({ params }: PageProps<'/org/volunteers/
     signed_at: Date;
   }[];
   const total = rows.reduce((n, r) => n + hoursTotal(r), 0);
+  // Milestones and skills practiced, counted from this organization's verified
+  // rows only (the query above is scoped to org.id, and so is the arithmetic).
+  // A coordinator never sees hours another organization verified.
+  const attended: Attended[] = rows.map((r) => ({
+    org_id: org.id, org_name: org.name, starts_at: r.starts_at, role: r.role, activity: r.activity, hours: hoursTotal(r), status: 'attested', is_practice: false,
+  }));
+  const milestones = computeMilestones(attended, { orgId: org.id });
+  const reached = reachedMilestones(milestones);
+  const skills = computeSkills(attended, { orgId: org.id });
   const today = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'long', day: 'numeric', year: 'numeric' });
 
   return (
@@ -132,6 +143,26 @@ export default async function HourLetter({ params }: PageProps<'/org/volunteers/
           </p>
         </footer>
       </article>
+
+      <section className={`card card-pad no-print ${s.counted}`} aria-labelledby="counted-title">
+        <div>
+          <h2 id="counted-title" className={s.countedTitle}>
+            Milestones and skills practiced at {org.name}
+          </h2>
+          <p className="small muted">
+            Counted from the events you verified for {vol.name}, and nothing from any other organization. Not signed, not part of the letter, and it changes if you correct an
+            hour. Skill areas can overlap, so they don’t add up to a total.
+          </p>
+        </div>
+        <div>
+          <h3 className="eyebrow">Milestones</h3>
+          <MilestoneList reached={reached} next={nextMilestones(milestones, 2, reached.length === 0)} empty="Every milestone is reached." />
+        </div>
+        <div>
+          <h3 className="eyebrow">Skills practiced</h3>
+          <SkillList lines={skills} byOrg={false} empty="No verified events yet." />
+        </div>
+      </section>
     </div>
   );
 }

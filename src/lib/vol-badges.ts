@@ -6,6 +6,7 @@ import { getVolunteer, appUrl, VolError, guardianApproved } from './vol-data';
 import { badgeCode, BADGE_CODE } from './codes';
 import { isUuid } from './ids';
 import type { Activity, Role } from './types';
+import type { Attended } from './milestones';
 
 // The volunteer's side of badges. A badge is earned only when an organization
 // signs it (a badge_award row); everything else is progress, computed here from
@@ -36,7 +37,10 @@ export type VolBadge = {
   best: OrgProgress | null; // the organization where the volunteer is furthest along
 };
 
-type AttRow = { org_id: string; org_name: string; coordinator_name: string; role: Role; activity: Activity; hours_captured: number; hours_adjusted: number | null };
+export type AttRow = {
+  org_id: string; org_name: string; coordinator_name: string; role: Role; activity: Activity; hours_captured: number; hours_adjusted: number | null;
+  record_id: string | null; starts_at: Date; revoked: boolean;
+};
 type AwardRow = {
   id: string; badge: BadgeKey; evidence_note: string | null; signed_by: string; signed_at: Date; code: string | null;
   org_id: string; org_name: string; contact_phone: string; contact_email: string;
@@ -56,12 +60,37 @@ const awardSelect = () => sql`
          o.id as org_id, o.name as org_name, o.contact_phone, o.contact_email
   from badge_award b join org o on o.id = b.org_id`;
 
-/** Attested, non-practice stats per organization, the same rollup the org dashboard uses. */
-async function statsByOrg(volunteerId: string) {
-  const rows = (await sql`
-    select e.org_id, o.name as org_name, o.coordinator_name, a.role, e.activity, a.hours_captured, a.hours_adjusted
+/**
+ * The volunteer's attested, non-practice attendance: the one read the badge
+ * rules, the milestones and the skills-practiced lines are all counted from.
+ */
+export async function attestedRows(volunteerId: string): Promise<AttRow[]> {
+  return (await sql`
+    select e.org_id, o.name as org_name, o.coordinator_name, a.role, e.activity, a.hours_captured, a.hours_adjusted,
+           r.id as record_id, e.starts_at, coalesce(r.status = 'revoked', false) as revoked
     from attendance a join event e on e.id = a.event_id join org o on o.id = e.org_id
-    where a.volunteer_id = ${volunteerId} and a.status = 'attested' and not e.is_practice`) as unknown as AttRow[];
+    left join record r on r.attendance_id = a.id
+    where a.volunteer_id = ${volunteerId} and a.status = 'attested' and not e.is_practice
+    order by e.starts_at`) as unknown as AttRow[];
+}
+
+/** Those rows in the shape the pure arithmetic in milestones.ts takes. */
+export const toAttended = (rows: AttRow[]): Attended[] =>
+  rows.map((r) => ({
+    org_id: r.org_id,
+    org_name: r.org_name,
+    starts_at: r.starts_at,
+    role: r.role,
+    activity: r.activity,
+    hours: hoursTotal(r),
+    status: 'attested',
+    is_practice: false,
+    revoked: r.revoked,
+    ref: r.record_id ?? undefined,
+  }));
+
+/** Attested, non-practice stats per organization, the same rollup the org dashboard uses. */
+function statsByOrg(rows: AttRow[]) {
   const byOrg = new Map<string, { org: OrgProgress['org']; stats: VolunteerStats }>();
   for (const r of rows) {
     if (!byOrg.has(r.org_id)) byOrg.set(r.org_id, { org: { id: r.org_id, name: r.org_name, coordinator_name: r.coordinator_name }, stats: emptyStats() });
@@ -80,9 +109,10 @@ function progressFor(def: BadgeDef, org: OrgProgress['org'], stats: VolunteerSta
   };
 }
 
-export async function volunteerBadges(volunteerId: string): Promise<VolBadge[]> {
+/** `rows`: pass attestedRows() when the page also counts milestones from it, so the attendance is read once. */
+export async function volunteerBadges(volunteerId: string, rows?: AttRow[] | Promise<AttRow[]>): Promise<VolBadge[]> {
   const [orgs, awards] = await Promise.all([
-    statsByOrg(volunteerId),
+    Promise.resolve(rows ?? attestedRows(volunteerId)).then(statsByOrg),
     sql`${awardSelect()} where b.volunteer_id = ${volunteerId} order by b.signed_at desc` as unknown as Promise<AwardRow[]>,
   ]);
   return BADGES.map((def) => {

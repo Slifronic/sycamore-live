@@ -22,6 +22,13 @@
 .goalForm :global(.input) { width: 96px; height: 36px; }
 .goalLabel { width: 100%; font-size: 13px; font-weight: 600; color: var(--ink-2); }
 
+/* The next milestone: one quiet line, counted from verified hours. */
+.milestone { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; justify-self: start; min-height: 44px; margin-top: 2px; font-size: 13px; color: var(--ink-2); text-decoration: none; }
+.milestone b { font-weight: 700; color: var(--ink); }
+.milestone svg { color: var(--primary); }
+.milestone:hover b { color: var(--primary); }
+.milestoneCount { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
 /* What's live right now. */
 .now { display: grid; gap: 10px; align-content: start; }
 

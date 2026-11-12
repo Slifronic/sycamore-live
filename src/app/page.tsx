@@ -196,6 +196,9 @@ export default async function Home() {
                   <Link href="/join" className="btn">
                     Join free
                   </Link>
+                  <Link href="/opportunities" className={`${s.forkMain} ${s.away}`}>
+                    Find a place to serve <Icon name="arrow-right" size={16} />
+                  </Link>
                   <Link href="/volunteers" className={`${s.forkMain} ${s.away}`}>
                     For volunteers <Icon name="arrow-right" size={16} />
                   </Link>

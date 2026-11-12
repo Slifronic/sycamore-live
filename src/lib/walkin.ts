@@ -1,6 +1,7 @@
 import 'server-only';
 import { randomBytes } from 'node:crypto';
 import { sql } from './db';
+import { endOtherVolunteerSessions } from './auth-session';
 import type { AttendanceRow, EventRow, Org } from './types';
 import type { GoogleIdentity } from './google';
 
@@ -119,7 +120,7 @@ export type WalkinResult = {
   sign_in: boolean;
 };
 
-type Vol = { id: string; name: string; date_of_birth: Date; google_sub: string | null };
+type Vol = { id: string; name: string; date_of_birth: Date; google_sub: string | null; email_verified_at?: Date | null };
 
 export async function walkInCheckIn(token: string, who: WalkinWho): Promise<WalkinResult & { event: EventRow; org: Org }> {
   const found = await eventByWalkinToken(token);
@@ -139,11 +140,19 @@ export async function walkInCheckIn(token: string, who: WalkinWho): Promise<Walk
     if (!EMAIL.test(email)) throw new WalkinError('That email doesn’t look right.', 400);
     if (who.kind === 'google') {
       [vol] = (await sql`
-        select id, name, date_of_birth, google_sub from volunteer
+        select id, name, date_of_birth, google_sub, email_verified_at from volunteer
         where google_sub = ${who.identity.sub} or email = ${email}
         order by (google_sub = ${who.identity.sub}) desc nulls last limit 1`) as unknown as Vol[];
+      // The same two rules as Google sign-in (accounts.ts, volunteerFromGoogle). An account
+      // already linked to a different Google id is not this person's to open.
+      if (vol?.google_sub && vol.google_sub !== who.identity.sub) {
+        throw new WalkinError('That email is linked to a different Google account. Sign up with the short form below.', 409);
+      }
       // Google has confirmed this email, so link it to the existing account.
       if (vol && !vol.google_sub) await sql`update volunteer set google_sub = ${who.identity.sub}, email_verified_at = coalesce(email_verified_at, now()) where id = ${vol.id}`;
+      // And the first proof of owning the address ends any session made with it before that
+      // proof: someone could have joined with this email, unverified, and kept the session.
+      if (vol && !vol.email_verified_at) await endOtherVolunteerSessions(vol.id);
     } else {
       // An existing email is checked in only with the birth date it signed up
       // with, and is never signed in here (see sign_in): opening the account
@@ -177,7 +186,12 @@ export async function walkInCheckIn(token: string, who: WalkinWho): Promise<Walk
     insert into attendance (event_id, volunteer_id, display_name, method, checked_in_at, status)
     values (${event.id}, ${vol!.id}, ${vol!.name}, 'walk_in', now(), 'checked_in')
     on conflict (event_id, volunteer_id) do nothing
-    returning id, status, checked_in_at, checked_out_at`) as unknown as WalkinResult['attendance'][];
+    returning id, status, checked_in_at, checked_out_at`.catch((e: { code?: string }) => {
+      // The coordinator verified the event while this sign-up was in flight
+      // (migrations-hardening.sql refuses the row): it is over, not an error.
+      if (e?.code === '23514') throw new WalkinError(STATE_MESSAGE.verified(org.coordinator_name), 410);
+      throw e;
+    })) as unknown as WalkinResult['attendance'][];
   const already = !att;
   if (!att) {
     [att] = (await sql`

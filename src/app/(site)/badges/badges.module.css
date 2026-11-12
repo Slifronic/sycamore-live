@@ -1,0 +1,28 @@
+/* The public library (/badges). Token colours only; matches the site's mini cards. */
+.badge { position: relative; isolation: isolate; overflow: hidden; display: grid; gap: 12px; align-content: start; min-width: 0; padding: 26px; border-radius: 24px; background: var(--paper); box-shadow: var(--shadow); }
+.badgeHead { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.badgeName { font-family: var(--font-site), system-ui, sans-serif; font-size: 22px; line-height: 1.2; letter-spacing: -0.02em; font-weight: 400; color: var(--canopy); overflow-wrap: anywhere; }
+.rule { font-size: 16.5px; line-height: 1.55; font-weight: 300; color: var(--ink); }
+.targets { list-style: none; margin: 0; padding: 12px 0 0; display: grid; gap: 8px; border-top: 1px solid var(--line-2); }
+.targets li { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; font-size: 15px; line-height: 1.5; font-weight: 300; color: var(--ink-2); }
+.targets b { font-weight: 500; color: var(--canopy); font-variant-numeric: tabular-nums; }
+.note { font-size: 14px; line-height: 1.55; font-weight: 300; color: var(--ink-3); }
+.after { margin-top: 28px; }
+
+.all { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 32px; }
+.all > div { display: grid; gap: 2px; min-width: 0; }
+.all dt { font-weight: 500; color: var(--canopy); }
+.all dd { margin: 0; }
+.moreNext { margin-top: 0; }
+
+.example { margin-top: 24px; font-family: var(--font-display), Georgia, serif; font-style: italic; font-size: 19px; line-height: 1.5; color: var(--canopy); max-width: 62ch; overflow-wrap: anywhere; }
+.example span { display: block; margin-bottom: 4px; font-family: var(--font-site), system-ui, sans-serif; font-style: normal; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--primary); }
+.example em { font-family: var(--font-site), system-ui, sans-serif; font-size: 13px; font-weight: 300; color: var(--ink-3); }
+
+.sideLabel { font-size: 13px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
+.limit { margin-top: 24px; font-size: 16.5px; line-height: 1.6; font-weight: 300; color: var(--ink-2); max-width: 62ch; }
+
+@media (max-width: 760px) {
+  .all { grid-template-columns: minmax(0, 1fr); }
+  .badge { padding: 22px; }
+}

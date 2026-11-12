@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import { googleClientId } from './google';
 import { walkinCount, walkinState, walkinWindow, type WalkinState } from './walkin';
 import type { EventRow } from './types';
+import { appUrl } from './app-url';
 
 // What the coordinator's event page needs to show the walk-in QR.
 export type WalkinPanel = {
@@ -16,7 +17,7 @@ export type WalkinPanel = {
 };
 
 export function walkinUrl(token: string) {
-  return `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/w/${token}`;
+  return `${appUrl()}/w/${token}`;
 }
 
 export async function walkinPanel(event: EventRow): Promise<WalkinPanel> {

@@ -153,7 +153,9 @@ export function CheckinForm({ initialCode, fromQr, ready }: { initialCode: strin
             });
             const data = await res.json().catch(() => ({}));
             // Checked in now, or already checked in here: show the session.
-            if (res.ok || (res.status === 409 && data.attendance)) {
+            // Still checked in at a different event is not that: say so, or the volunteer sees
+            // the other event's timer, believes they are checked in here, and gets no hours.
+            if (res.ok || (res.status === 409 && data.attendance && !data.elsewhere)) {
               router.replace('/checkin');
               router.refresh();
               return;

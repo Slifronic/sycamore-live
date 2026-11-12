@@ -19,3 +19,6 @@
 .crumbs a { color: var(--ink-2); text-decoration: none; font-weight: 600; }
 .crumbs a:hover { color: var(--ink); text-decoration: underline; }
 .crumbs span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.counted { display: grid; gap: 20px; }
+.counted > div { display: grid; gap: 10px; min-width: 0; }
+.countedTitle { font-size: 17px; }

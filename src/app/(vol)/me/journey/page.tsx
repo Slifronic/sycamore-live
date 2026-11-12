@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { pendingAttendance, requireVolunteer, volunteerRecords, type VolRecord } from '@/lib/vol-data';
+import { pendingAttendance, recordsToAttended, requireVolunteer, volunteerRecords, type VolRecord } from '@/lib/vol-data';
+import { computeMilestones } from '@/lib/milestones';
 import { volunteerBadges } from '@/lib/vol-badges';
 import { fmtHours } from '@/lib/hours';
 import { plural } from '@/lib/format';
@@ -13,7 +14,7 @@ import s from './journey.module.css';
 
 export const metadata = {
   title: 'My journey',
-  description: 'Every verified event, role and hour in order, with your firsts and the badges signed along the way.',
+  description: 'Every verified event, role and hour in order, with your firsts, the milestones reached and the badges signed along the way.',
 };
 
 // The first screenful arrives in a quick stagger; later items rise as they scroll in.
@@ -38,6 +39,11 @@ export default async function JourneyPage() {
 
   // Walk oldest to newest to note firsts and the running total, then show newest first.
   const items: Item[] = [];
+  // Milestones (lib/milestones.ts), noted on the event where the count first met the rule.
+  const reachedAt = new Map<string, string[]>();
+  for (const m of computeMilestones(recordsToAttended(active))) {
+    if (m.reached_ref) reachedAt.set(m.reached_ref, [...(reachedAt.get(m.reached_ref) ?? []), m.name]);
+  }
   const seenOrgs = new Set<string>();
   const seenRoles = new Set<Role>();
   let running = 0;
@@ -47,6 +53,7 @@ export default async function JourneyPage() {
     else if (!seenOrgs.has(r.org_id)) notes.push(`First event with ${r.org.name}.`);
     if (r.role !== 'general' && !seenRoles.has(r.role)) notes.push(`First time as ${ROLE_LABEL[r.role].toLowerCase()}.`);
     if (r.hours_adjusted != null) notes.push(`Hours adjusted by ${r.adjusted_by}: “${r.adjustment_reason}”`);
+    for (const name of reachedAt.get(r.id) ?? []) notes.push(`Milestone reached: ${name}.`);
     seenOrgs.add(r.org_id);
     seenRoles.add(r.role);
     running += r.hours_total;
@@ -60,7 +67,7 @@ export default async function JourneyPage() {
 
   return (
     <div className={s.page}>
-      <PageHeader eyebrow="Your service, over time" title="Journey" lede="Every attested event and role, and the badges signed along the way." />
+      <PageHeader eyebrow="Your service, over time" title="Journey" lede="Every attested event and role, the milestones reached and the badges signed." />
 
       {active.length > 0 && (
         <section className={s.summary} aria-label="Summary">

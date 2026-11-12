@@ -4,7 +4,7 @@ import { sql } from './db';
 import { randomToken, secureCookies, sha256, sixDigits, safeEqual } from './auth-tokens';
 import { endOtherVolunteerSessions, readSession, startSession, sweepExpired } from './auth-session';
 import { setVolunteerCookie } from './vol-session';
-import { sendEmail } from './mailer';
+import { MailError, sendEmail } from './mailer';
 import { limit, limitByIp } from './rate-limit';
 import type { GoogleIdentity } from './google';
 
@@ -146,15 +146,26 @@ export async function sendVolunteerCode(rawEmail: string) {
   // Same answer either way, so the form can't be used to test who has an account.
   if (!v) return;
   const code = sixDigits();
-  await sql`update email_code set used_at = now() where email = ${email} and used_at is null`;
-  await sql`
+  const [row] = (await sql`
     insert into email_code (email, code_hash, expires_at)
-    values (${email}, ${sha256(`${email}:${code}`)}, now() + make_interval(mins => ${CODE_TTL_MIN}))`;
-  await sendEmail({
-    to: email,
-    subject: `${code} is your SycaMore sign-in code`,
-    text: `Your SycaMore sign-in code is ${code}.\n\nIt works for ${CODE_TTL_MIN} minutes. If you didn’t ask for it, ignore this email: nobody can sign in without the code.`,
-  });
+    values (${email}, ${sha256(`${email}:${code}`)}, now() + make_interval(mins => ${CODE_TTL_MIN}))
+    returning id`) as unknown as { id: string }[];
+  try {
+    await sendEmail({
+      to: email,
+      subject: `${code} is your SycaMore sign-in code`,
+      text: `Your SycaMore sign-in code is ${code}.\n\nIt works for ${CODE_TTL_MIN} minutes. If you didn’t ask for it, ignore this email: nobody can sign in without the code.`,
+    });
+  } catch (e) {
+    // The new code never arrived, so it is withdrawn and the one already in their inbox keeps
+    // working. The failure is logged by sendEmail; the form answers as it does for an address
+    // with no account, so a mail outage cannot be used to tell the two apart.
+    await sql`update email_code set used_at = now() where id = ${row.id}`;
+    if (e instanceof MailError) return;
+    throw e;
+  }
+  // Only a code that was actually sent replaces the earlier ones.
+  await sql`update email_code set used_at = now() where email = ${email} and used_at is null and id <> ${row.id}`;
 }
 
 /** Checks a code and signs the volunteer in. Five wrong tries burn the code. */
@@ -167,9 +178,14 @@ export async function verifyVolunteerCode(rawEmail: string, rawCode: string): Pr
     where email = ${email} and used_at is null and expires_at > now()
     order by created_at desc limit 1`) as unknown as { id: string; code_hash: string; attempts: number }[];
   if (!c || c.attempts >= 5) throw new AuthError('That code expired. Send a new one.');
+  // Count the try before judging it, in one statement: read-then-write let parallel guesses
+  // all see the same count and take far more than five.
+  const [tried] = (await sql`
+    update email_code set attempts = attempts + 1 where id = ${c.id} and attempts < 5
+    returning attempts`) as unknown as { attempts: number }[];
+  if (!tried) throw new AuthError('Too many wrong codes. Send a new one.');
   if (code.length !== 6 || !safeEqual(sha256(`${email}:${code}`), c.code_hash)) {
-    await sql`update email_code set attempts = attempts + 1 where id = ${c.id}`;
-    throw new AuthError(c.attempts >= 4 ? 'Too many wrong codes. Send a new one.' : 'That code isn’t right. Check the email and try again.');
+    throw new AuthError(tried.attempts >= 5 ? 'Too many wrong codes. Send a new one.' : 'That code isn’t right. Check the email and try again.');
   }
   await sql`update email_code set used_at = now() where id = ${c.id}`;
   const [v] = (await sql`

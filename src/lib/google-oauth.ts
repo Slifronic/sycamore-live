@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { createHash } from 'node:crypto';
 import { randomToken, safeEqual, secureCookies } from './auth-tokens';
 import type { GoogleIdentity } from './google';
+import { appUrl } from './app-url';
 
 // "Continue with Google" for accounts: the OAuth 2.0 authorization-code flow
 // with PKCE, a state value and a nonce. The browser goes to Google and back to
@@ -26,7 +27,7 @@ const clientSecret = () => (process.env.GOOGLE_CLIENT_SECRET || '').trim();
 
 export const googleOAuthReady = () => !!clientId() && !!clientSecret();
 
-export const appOrigin = () => (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3311').replace(/\/$/, '');
+export const appOrigin = () => appUrl();
 
 const redirectUri = () => `${appOrigin()}/api/auth/google/callback`;
 
