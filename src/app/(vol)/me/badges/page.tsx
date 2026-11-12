@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { requireVolunteer } from '@/lib/vol-data';
-import { volunteerBadges, type VolBadge } from '@/lib/vol-badges';
+import { attestedRows, toAttended, volunteerBadges, type VolBadge } from '@/lib/vol-badges';
+import { computeMilestones, computeSkills, nextMilestones, reachedMilestones } from '@/lib/milestones';
+import { MilestoneList, SkillList } from '@/components/milestones/Counted';
 import { plural } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
 import { Stagger } from '@/components/motion/Stagger';
@@ -13,12 +15,16 @@ import s from './badges.module.css';
 
 export const metadata = {
   title: 'My badges',
-  description: 'Badges organizations have signed for you, and how close you are to the rest.',
+  description: 'Badges organizations have signed for you, how close you are to the rest, and the milestones and skills counted from your verified hours.',
 };
 
 // The badge gallery. Signed means an organization signed a badge_award row;
 // "in progress" and "ready" are computed from attested hours with the rules in
 // badges.ts and are never a credential on their own.
+//
+// Under the badges: milestones and skills practiced (lib/milestones.ts). Those
+// are arithmetic on the same attested rows, read once here for both. Nobody
+// signs them, nothing is stored, and they have no share link.
 
 const STATE_CHIP: Record<VolBadge['state'], [string, string]> = {
   signed: ['Signed', 'chip-green'],
@@ -46,7 +52,12 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
   const vol = await requireVolunteer('/me/badges');
   const raw = (await searchParams).show;
   const show = FILTERS.some((f) => f.key === raw) ? (raw as (typeof FILTERS)[number]['key']) : 'all';
-  const badges = await volunteerBadges(vol.id);
+  const rowsRead = attestedRows(vol.id); // one read of the attested attendance, shared by badges, milestones and skills
+  const [badges, rows] = await Promise.all([volunteerBadges(vol.id, rowsRead), rowsRead]);
+  const attended = toAttended(rows);
+  const milestones = computeMilestones(attended);
+  const reached = reachedMilestones(milestones);
+  const skills = computeSkills(attended);
   const signed = badges.filter((b) => b.state === 'signed').length;
   const inState = (b: VolBadge) => show === 'all' || (show === 'progress' ? b.state === 'progress' || b.state === 'ready' : b.state === show);
   const next = [...badges].filter((b) => b.state === 'ready' || b.state === 'progress').sort((a, b) => (b.best?.progress ?? 0) - (a.best?.progress ?? 0))[0];
@@ -132,6 +143,42 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
       )}
 
       <p className="small muted">Progress moves only when an organization verifies an event. A badge counts once they sign it.</p>
+
+      <section className={s.counted} id="milestones" aria-labelledby="milestones-title">
+        <div className={s.countedHead}>
+          <h2 id="milestones-title" className={s.h2}>
+            Milestones
+          </h2>
+          <span className="chip chip-ink">Counted, not signed</span>
+        </div>
+        <p className="small muted">
+          Counted from your verified hours each time you open this page. Nobody signs them and they have no share link. If an organization corrects your hours, these change with
+          them.
+        </p>
+        <div className="card card-pad">
+          <MilestoneList reached={reached} next={nextMilestones(milestones, 3, reached.length === 0)} empty="Every milestone is reached." />
+        </div>
+      </section>
+
+      <section className={s.counted} id="skills" aria-labelledby="skills-title">
+        <div className={s.countedHead}>
+          <h2 id="skills-title" className={s.h2}>
+            Skills practiced
+          </h2>
+          <span className="chip chip-ink">Counted, not signed</span>
+        </div>
+        <p className="small muted">
+          What your verified hours were spent doing, from the role and the kind of event each organization confirmed. It is not a rating. Areas can overlap, so they don’t add up
+          to a total.
+        </p>
+        <div className="card card-pad">
+          <SkillList lines={skills} empty="Nothing yet. Your first verified event puts a line here, with the hours behind it." />
+        </div>
+      </section>
+
+      <Link href="/badges" className={s.link}>
+        How badges, milestones and skills are counted
+      </Link>
     </Stagger>
   );
 }

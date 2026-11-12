@@ -4,12 +4,16 @@ export const NAV = [
   { href: '/how-it-works', label: 'How it works' },
   { href: '/organizations', label: 'Organizations' },
   { href: '/volunteers', label: 'Volunteers' },
+  { href: '/opportunities', label: 'Opportunities' },
   { href: '/trust', label: 'Trust' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/faq', label: 'FAQ' },
 ] as const;
 
-export const MORE = [{ href: '/about', label: 'About' }] as const;
+export const MORE = [
+  { href: '/badges', label: 'Badges' },
+  { href: '/about', label: 'About' },
+] as const;
 
 export const FOOTER_GROUPS = [
   {
@@ -26,6 +30,8 @@ export const FOOTER_GROUPS = [
     links: [
       { href: '/organizations', label: 'Organizations' },
       { href: '/volunteers', label: 'Volunteers' },
+      { href: '/opportunities', label: 'Volunteer opportunities' },
+      { href: '/badges', label: 'Badges and milestones' },
       { href: '/discover', label: 'Discover events' },
       { href: '/about', label: 'About the team' },
     ],

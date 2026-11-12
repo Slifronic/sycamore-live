@@ -232,7 +232,7 @@ export default async function VolunteersPage({ searchParams }: PageProps<'/org/v
                       compact
                       icon={q ? 'search' : tab === 'milestones' ? 'award' : 'users'}
                       title={q ? `Nobody matches “${q}”` : tab === 'milestones' ? 'No milestones this month' : 'Nobody in this list'}
-                      hint={q ? 'Check the spelling, or search by first name only.' : tab === 'milestones' ? 'When someone passes 10, 25, 50 or 100 verified hours, they show up here.' : 'Try another tab.'}
+                      hint={q ? 'Check the spelling, or search by first name only.' : tab === 'milestones' ? 'When someone passes 10, 25, 50, 100 or 250 verified hours, they show up here.' : 'Try another tab.'}
                       action={
                         <Link className="btn btn-sm" href="/org/volunteers">
                           Show everyone

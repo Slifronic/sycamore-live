@@ -194,7 +194,7 @@ export async function transcriptByCode(raw: string): Promise<(Transcript & { cod
   const code = String(raw ?? '').toUpperCase();
   if (!TRANSCRIPT_CODE.test(code)) return null;
   const [v] = (await sql`
-    select id, name, transcript_shared_at, date_of_birth > (current_date - interval '18 years') as minor, guardian_share_ok_at
+    select id, name, transcript_shared_at, date_of_birth > ((now() at time zone 'UTC')::date - interval '18 years')::date as minor, guardian_share_ok_at
     from volunteer where transcript_code = ${code}`) as unknown as { id: string; name: string; transcript_shared_at: Date; minor: boolean; guardian_share_ok_at: Date | null }[];
   // A guardian's approval can be withdrawn; the link stops working with it.
   if (!v || (v.minor && !v.guardian_share_ok_at)) return null;
@@ -261,6 +261,8 @@ export async function decideGuardian(token: string, approve: boolean) {
   if (!approve) {
     await sql`update volunteer set transcript_code = null, transcript_shared_at = null where id = ${r.volunteer_id}`;
     await sql`update record set code = null, shared_at = null where volunteer_id = ${r.volunteer_id}`;
+    // Badge links too: /v/b/<code> shows the same name, organization and hours.
+    await sql`update badge_award set code = null, shared_at = null where volunteer_id = ${r.volunteer_id}`;
   }
 }
 

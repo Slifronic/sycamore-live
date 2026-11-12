@@ -1,0 +1,11 @@
+/* "More places to serve" under Discover: three compact public listings. */
+.more { display: grid; gap: 10px; max-width: var(--page-max); margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.title { font-size: 19px; letter-spacing: -0.015em; }
+.all { font-size: 14px; font-weight: 700; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+.all:hover { text-decoration: underline; text-underline-offset: 3px; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.list li { display: grid; min-width: 0; }
+.item { display: grid; gap: 4px; align-content: start; padding: 16px; color: inherit; text-decoration: none; min-width: 0; overflow-wrap: anywhere; }
+.cat { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); }
+.name { font-family: var(--font-display), serif; font-size: 17px; font-weight: 600; line-height: 1.25; color: var(--canopy); }

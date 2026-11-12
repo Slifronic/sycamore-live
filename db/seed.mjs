@@ -6,6 +6,7 @@ import postgres from 'postgres';
 import { readFileSync } from 'node:fs';
 import { seedIntake } from './seed-intake.mjs';
 import { seedDiscover } from './seed-discover.mjs';
+import { seedOpportunities } from './seed-opportunities.mjs';
 
 const url = process.env.DATABASE_URL ?? 'postgres://localhost:5432/sycamore_live';
 const sql = postgres(url, { max: 1, onnotice: () => {} });
@@ -225,7 +226,7 @@ async function main() {
   // The 13 to 17s also confirmed a parent or guardian knows (guardian_ack_at).
   await sql`update volunteer set guardian_ack_at = terms_accepted_at where date_of_birth > current_date - interval '18 years'`;
   await sql`
-    update record r set code = 'SYC-RVR7-PLNT', shared_at = r.issued_at + interval '1 day'
+    update record r set code = 'SYC-RVR7-PLNT', featured = true, shared_at = r.issued_at + interval '1 day'
     from attendance a where a.id = r.attendance_id and a.event_id = ${plantings[2].id} and r.volunteer_id = ${ana.id}`;
 
   // One badge already signed, so the volunteer side has something to show.
@@ -331,6 +332,13 @@ async function main() {
   console.log(`Seeded 3 more organizations for Discover (PINs 135790, 864202, 975318): ${discoverEvents} upcoming public events.`);
   // Made-up demo organizations count as reviewed, so their records read "Verified" on stage.
   await sql`update org set reviewed_at = now()`;
+  // Real public listings for /opportunities (not demo data; the same file seeds production).
+  const opp = await seedOpportunities(sql);
+  console.log(`Loaded ${opp.inserted} public listings from db/opportunities.json.`);
+  // The hardening migration last: its trigger refuses a check-in to a verified event, and its
+  // indexes are the ones production has. (CONCURRENTLY cannot run inside this one message, and
+  // a fresh database has no traffic to keep out of the way.)
+  await sql.unsafe(readFileSync(new URL('./migrations-hardening.sql', import.meta.url), 'utf8').replaceAll(' concurrently ', ' '));
   await sql.end();
 }
 

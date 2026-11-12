@@ -7,7 +7,8 @@ import { SHARE_CODE, shareCode } from './codes';
 import { isUuid } from './ids';
 import { fmtDay, fmtTime } from './format';
 import { utcToPacific } from './tz';
-import type { RecordView, Role } from './types';
+import type { Activity, RecordView, Role } from './types';
+import type { Attended } from './milestones';
 
 // Volunteer side of the shared contract: joining, checking in, "My hours",
 // share links and the public record. Every hour number here comes from the
@@ -20,7 +21,8 @@ export class VolError extends Error {
   }
 }
 
-export const appUrl = () => (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+import { appUrl } from './app-url';
+export { appUrl }; // shareRecord below uses it too, so it has to be imported, not only re-exported
 
 // ---------- who is this ----------
 
@@ -205,7 +207,7 @@ export async function checkIn(volunteerId: string, rawCode: unknown, via: unknow
 
   const elsewhere = await activeSession(volunteerId);
   if (elsewhere && elsewhere.event.id !== e.id) {
-    throw new VolError(`You’re still checked in at ${elsewhere.event.title}. Check out there first.`, 409, { attendance: elsewhere });
+    throw new VolError(`You’re still checked in at ${elsewhere.event.title}. Check out there first.`, 409, { attendance: elsewhere, elsewhere: true });
   }
 
   const [vol] = (await sql`select name from volunteer where id = ${volunteerId}`) as unknown as { name: string }[];
@@ -213,10 +215,15 @@ export async function checkIn(volunteerId: string, rawCode: unknown, via: unknow
   const method = via === 'qr' ? 'qr' : 'code';
   const [att] = (await sql`
     insert into attendance (event_id, volunteer_id, display_name, method, checked_in_at, status)
-    values (${e.id}, ${volunteerId}, ${vol.name}, ${method}, now(), 'checked_in')
+    select ev.id, ${volunteerId}, ${vol.name}, ${method}, now(), 'checked_in'
+    from event ev where ev.id = ${e.id} and ev.attested_at is null
     on conflict (event_id, volunteer_id) do nothing
     returning id`) as unknown as { id: string }[];
   if (!att) {
+    // The event was verified between the check above and this insert: a row written now could
+    // never be verified, so the volunteer would see "checked in" and get no hours.
+    const [open] = (await sql`select 1 as ok from event where id = ${e.id} and attested_at is null`) as unknown as { ok: number }[];
+    if (!open) throw new VolError(`${e.title} is over and its hours are confirmed. If you were there and aren’t on the record, contact ${e.coordinator_name}.`, 410);
     const [prev] = (await sql`
       select status, checked_out_at from attendance where event_id = ${e.id} and volunteer_id = ${volunteerId}`) as unknown as {
       status: string; checked_out_at: Date | null;
@@ -241,6 +248,7 @@ export async function checkIn(volunteerId: string, rawCode: unknown, via: unknow
 
 export type VolRecord = RecordView & {
   event_id: string;
+  activity: Activity; // the event's activity, for milestones and skills practiced; not part of the public record
   starts_at: string;
   shared_at: string | null;
   org_id: string;
@@ -250,7 +258,7 @@ type RecordRow = {
   id: string; code: string | null; status: 'active' | 'revoked'; shared_at: Date | null; volunteer_name: string;
   org_id: string; org_name: string; contact_phone: string; contact_email: string; coordinator_name: string;
   org_reviewed: boolean; owner_email: string | null;
-  event_id: string; title: string; location: string | null; starts_at: Date;
+  event_id: string; title: string; location: string | null; starts_at: Date; activity: Activity;
   role: Role; hours_captured: number; hours_adjusted: number | null; adjustment_reason: string | null; attested_at: Date | null; issued_at: Date;
 };
 
@@ -277,6 +285,7 @@ const toRecord = (r: RecordRow): VolRecord => ({
   adjustment_reason: r.hours_adjusted == null ? null : r.adjustment_reason,
   attested_at: new Date(r.attested_at ?? r.issued_at).toISOString(),
   event_id: r.event_id,
+  activity: r.activity,
   starts_at: new Date(r.starts_at).toISOString(),
   shared_at: r.shared_at ? new Date(r.shared_at).toISOString() : null,
   org_id: r.org_id,
@@ -288,13 +297,28 @@ const recordSelect = () => sql`
          o.reviewed_at is not null as org_reviewed,
          (select a2.email from org_member m join account a2 on a2.id = m.account_id
           where m.org_id = o.id and m.role = 'owner' order by m.created_at limit 1) as owner_email,
-         e.id as event_id, e.title, coalesce(e.place_name, e.location) as location, e.starts_at,
+         e.id as event_id, e.title, coalesce(e.place_name, e.location) as location, e.starts_at, e.activity,
          a.role, a.hours_captured, a.hours_adjusted, a.adjustment_reason, a.attested_at
   from record r
   join attendance a on a.id = r.attendance_id
   join event e on e.id = a.event_id
   join org o on o.id = r.org_id
   left join volunteer v on v.id = r.volunteer_id`;
+
+/** Attested records in the shape milestones.ts counts from (Home and Journey already hold them, so no second read). */
+export const recordsToAttended = (records: VolRecord[]): Attended[] =>
+  records.map((r) => ({
+    org_id: r.org_id,
+    org_name: r.org.name,
+    starts_at: r.starts_at,
+    role: r.role,
+    activity: r.activity,
+    hours: r.hours_total,
+    status: 'attested',
+    is_practice: false,
+    revoked: r.status !== 'active',
+    ref: r.id,
+  }));
 
 /** A volunteer's own attested records, newest event first. Practice events never count. */
 export async function volunteerRecords(volunteerId: string): Promise<VolRecord[]> {

@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { activeSession, pendingAttendance, requireVolunteer, volunteerRecords, type VolRecord } from '@/lib/vol-data';
+import { activeSession, pendingAttendance, recordsToAttended, requireVolunteer, volunteerRecords, type VolRecord } from '@/lib/vol-data';
+import { computeMilestones, milestoneLine, nextMilestones } from '@/lib/milestones';
 import { sql } from '@/lib/db';
 import { fmtHours } from '@/lib/hours';
 import { fmtTime, plural, requestNow } from '@/lib/format';
@@ -111,6 +112,8 @@ export default async function Home() {
   const monthHours = live.filter((r) => ym(r.starts_at) === thisMonth).reduce((n, r) => n + r.hours_total, 0);
   const orgCount = new Set(records.map((r) => r.org_id)).size;
   const pendingOrgs = [...new Set(pending.map((p) => p.org.name))];
+  // The closest milestone not yet reached, counted from the records already loaded (lib/milestones.ts).
+  const nextMilestone = nextMilestones(computeMilestones(recordsToAttended(records)), 1)[0];
 
   return (
     <Stagger className={s.page}>
@@ -126,6 +129,15 @@ export default async function Home() {
           <span>{records.length ? `${plural(records.length, 'record')} · ${plural(orgCount, 'organization')}` : 'Confirmed by the organizations you serve'}</span>
         </p>
         <GoalCard goal={vol.hours_goal} attested={hours} />
+        {nextMilestone && (
+          <Link href="/me/badges#milestones" className={s.milestone}>
+            <span>
+              Next milestone: <b>{nextMilestone.name}</b>
+            </span>
+            <span className={s.milestoneCount}>{milestoneLine(nextMilestone)}</span>
+            <Icon name="arrow-right" size={16} />
+          </Link>
+        )}
       </section>
 
       {(active || pending.length > 0 || upNext) && (

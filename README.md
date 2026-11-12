@@ -68,7 +68,9 @@ Same app, same theme: the volunteer pages live in `src/app/(vol)/`. On phones, a
 - **`/me/badges`:** signed / in progress / not started. Signed means the organization signed a `badge_award` row; progress and "ready for sign-off" are computed per organization from attested attendance with the rule targets in `src/lib/badges.ts` (the org dashboard uses the same stats helpers). Pending check-ins and practice events never count.
 - **`/me/badges/[key]`:** the certificate: signer, date, the coordinator's evidence note, attested events and hours with the issuer, the rule; print / save as PDF. Adults can create a public verification link (`/v/b/BDG-XXXX-XXXX`, `POST /api/vol/badges/:id/share`; minors get a 403, like records). With the link, **Add to LinkedIn**: an editable post that states facts only (organization, signer and date, attested events and hours, dates, roles; no skill claims) with the link, Copy, LinkedIn's share URL, and the Licenses & certifications fields to copy. Nothing is posted for them, and there's no LinkedIn partnership.
 - **`/me/journey`:** every attested event (practice excluded) with the role, hours, a running total, firsts, and the badges signed along the way.
+- **Milestones and skills practiced:** counted from attested, non-practice attendance each time a page is read (`src/lib/milestones.ts`, pure functions shared by the app and the public library at `/badges`). Never stored, never signed, no share link, so a corrected hour or a revoked record changes them. Milestones: 10 / 25 / 50 / 100 / 250 verified hours (the same thresholds as the coordinator's Milestones list), service in 3 / 6 / 12 calendar months, hours at 2 organizations, and one per event activity (3 events and 9 hours). Skills practiced maps the confirmed role and the event's activity to skill areas named after Discover's skills, each with the hours and events behind it; areas overlap and don't add up. They show on `/me/badges` under the signed badges, as one "next milestone" line on `/me`, as notes on `/me/journey`, and for coordinators under the hour letter, counted from that organization's rows only.
 - **`/discover`:** upcoming public events from every organization, ranked in the browser by Khanh's matching engine (ported unchanged to `src/lib/discover/`): use my experience / learn something new / follow my interests, a cause, skills to use and develop. Org tags supply the cause and skills; journey time, cost and support are unknown, so each score is the supported fit points with the range. Fit is rule-based, not a probability. Pasted resume or role text (`/discover/profile`) stays in page memory, never sent or stored. Save for later is per volunteer on the server (`saved_event`, `/api/vol/saved`). Each event links to its public page `/e/<slug>` and walk-up check-in; there's no sign-up. Details in `docs/volunteer/DISCOVER.md`.
+- **More places to serve:** under the ranked events, `/discover` shows three public listings (the same three for everyone, changed daily) and a link to `/opportunities`. Nothing about the volunteer is read or sent for it, and the matching engine is untouched.
 - **`/v/<code>`:** public, no cookie, not indexed: VERIFIED or REVOKED, the wording, and who to call. Unknown codes are a 404.
 - **`/me/messages`:** coordinator threads and event group chats, over the existing `/api/vol/messages` and `/api/vol/event-chats`. Volunteers under 18 get the organization's announcements (broadcasts and automatic notices) only: they aren't in event group chats (can't see members, read or post) and direct messages with a coordinator are off in both directions, with "Messages with volunteers under 18 are off" on both sides. The rule lives in the data layer (`src/lib/minors.ts`, used by `messages.ts`, `event-chat.ts` and the vol routes), which answer 403.
 - **API:** `POST /api/vol/join`, `GET`/`PATCH /api/vol/me`, `PATCH`/`DELETE /api/vol/account`, `GET /api/vol/account/export`, `POST /api/vol/checkin`, `GET /api/vol/records`, `POST /api/vol/records/:id/share`, `POST /api/vol/records/:id/blurb`, `POST /api/vol/badges/:id/share`, `GET`/`POST /api/vol/saved`, `GET /api/v/:code` (logic in `src/lib/vol-data.ts`, `vol-badges.ts`, `vol-discover.ts`, `blurb.ts`). The browser never sends hours.
@@ -76,17 +78,43 @@ Same app, same theme: the volunteer pages live in `src/app/(vol)/`. On phones, a
 
 Demo volunteers: `ana@example.test` / 2007-04-12 (adult, three attested records, one pending, one already shared at `/v/SYC-RVR7-PLNT`, Event Coordination signed and Team Leadership ready for sign-off) and `jay@example.test` / 2010-02-03 (16, can't share). Three more made-up organizations (PINs 135790, 864202, 975318) have 8 upcoming events for Discover.
 
+## Public opportunities board
+
+`/opportunities` is open to anyone, signed out, and works with JavaScript off. It shows two kinds of card and keeps them apart:
+
+- **On SycaMore:** upcoming public events (not practice, not verified, open, not ended) from organizations SycaMore has **reviewed** (`org.reviewed_at`). Hours there are scanned in and out and verified by the organization, so they go on a record. There's no sign-up: the card links to the event's public page `/e/<slug>`. An unreviewed organization's events stay off this page, because anyone can create an organization and the board is public and indexable; they still appear on the link the coordinator shares and in signed-in Discover.
+- **Public listing:** a curated row in the `opportunity` table for an organization that mostly doesn't use SycaMore. The button goes to that organization's own page, and the card says SycaMore doesn't record hours there unless the organization uses it, with "Link checked <date>". `/opportunities/<slug>` has the detail and a "Report a broken link" email.
+- **Filters** are plain GET params: `?category=` (kind of work), `?city=`, `?remote=1` (from home) and `?age=`. A listing with no stated minimum age is kept and marked "not listed". Filtered URLs carry a canonical link to `/opportunities`.
+- **Outbound links** go through `/opportunities/go/<slug>`: a 302 to the URL stored for that slug and nothing else (no request value picks the destination), `no-store`, `noindex`. It adds one to `outbound_clicks`, at most 30 counted clicks per address per hour; past that the visitor is still redirected and the click isn't counted. An unknown or hidden slug goes back to `/opportunities`.
+
+**Managing the listings.** There's no admin screen. The listings live in [`db/opportunities.json`](db/opportunities.json) (real, public volunteer pages, each with the day its link was last checked) and are loaded with:
+
+```bash
+npm run db:seed-opportunities   # DATABASE_URL from the shell, else .env.local
+```
+
+It's safe to run again, and it runs against production too (`npm run db:reset` also runs it, so a fresh local database has listings):
+
+- Rows are matched on `slug`, made from the organization and title (or set a `"slug"` in the file to keep it fixed when a title changes).
+- A new slug is added; an existing one gets its words and link updated. `status` and `outbound_clicks` are never touched, and `verified_on` only moves forward.
+- Every row is checked first: one bad row, a link that isn't `https://`, or a repeated slug stops the run before anything is written. `npm test` runs the same check on the file.
+- **To add or edit:** change the file, set `verified_on` to the day you opened the link, run the script.
+- **To take one down:** `update opportunity set status = 'hidden' where slug = '…';`. Removing it from the file doesn't hide it; the script names rows that are in the database but not in the file.
+- The board caches its lists for a few minutes, so a change can take that long to show. The redirect reads the database every time, so a hidden listing stops redirecting at once.
+
+Code: `src/lib/opportunity-rules.ts` (slug, row check, filters; no database), `src/lib/opportunities.ts` (loaders, `visitOpportunity`), `src/app/(site)/opportunities/`.
+
 ## Design
 
 The Oct 25, 2026 redesign is described in [`docs/REDESIGN-2026-10-25.md`](docs/REDESIGN-2026-10-25.md) (the brief: shells, density, motion, volunteer folders, legal pages) and [`docs/UI-KIT.md`](docs/UI-KIT.md) (how to use the tokens, shells, primitives and motion kit). [`docs/DESIGN-BRIEF.md`](docs/DESIGN-BRIEF.md) still holds the colour rules, type and accessibility decisions underneath it. In short:
 
 - **Light and dark themes** from the same tokens. The choice is stored per browser and applied before first paint; the toggle (coordinator rail and account menu, volunteer top bar and Account, site footer) switches with a circular wipe, or instantly under reduced motion.
 - **One motion kit** in `src/components/motion/`: staggered page entrances, count-ups, sparklines, sliding pills, toasts and route transitions. The check-in, event-day and verify paths never wait on animation, and content is visible without JavaScript.
-- **Public site:** home, how it works, organizations, volunteers, trust, pricing, FAQ and about, plus plain-language `/privacy`, `/terms`, `/data` (download, deletion, retention, breach steps) and `/licenses`. Every public page has its own title, description and share card; private pages are `noindex`.
+- **Public site:** home, how it works, organizations, volunteers, trust, pricing, FAQ, about and the opportunities board (`/opportunities`), plus plain-language `/privacy`, `/terms`, `/data` (download, deletion, retention, breach steps) and `/licenses`. Every public page has its own title, description and share card; private pages are `noindex`.
 
 ## Run it
 
-Needs Node 22+ and PostgreSQL 16/17 running locally.
+Needs Node 22.18+ (the seed and the tests run TypeScript files directly) and PostgreSQL 16/17 running locally.
 
 ```bash
 npm install
@@ -123,7 +151,7 @@ Demo coordinator PIN: **246810** (Riverside Restoration Crew, made-up names). Th
 
 ```bash
 npm run check   # tsc + eslint
-npm test        # Discover engine (22 ported tests + 4) and the blurb number check; Node 22.18+ runs the TypeScript directly
+npm test        # Discover engine (22 ported tests + 4), the blurb number check, and the opportunities board (slug, row check, filters, every row of db/opportunities.json); Node 22.18+ runs the TypeScript directly
 ```
 
 ## Paper-sheet import accuracy

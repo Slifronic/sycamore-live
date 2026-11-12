@@ -42,8 +42,8 @@ export default async function Volunteers() {
           <Link href="/join" className="btn btn-primary btn-big">
             Join as a volunteer
           </Link>
-          <Link href="/discover" className="btn btn-big">
-            Find an event
+          <Link href="/opportunities" className="btn btn-big">
+            Find a place to serve
           </Link>
         </div>
       </PageHero>
@@ -149,7 +149,7 @@ export default async function Volunteers() {
         title="Got an event coming up?"
         text="Join with your name, email and birth date."
         primary={{ href: '/join', label: 'Join as a volunteer' }}
-        secondary={{ href: '/discover', label: 'Discover events' }}
+        secondary={{ href: '/opportunities', label: 'Find a place to serve' }}
         note="Volunteers never pay."
       />
     </>

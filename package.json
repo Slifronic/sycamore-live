@@ -7,10 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:reset": "node db/reset.mjs",
+    "db:reset": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON db/reset.mjs",
+    "db:seed-opportunities": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON db/seed-opportunities.mjs",
     "check": "tsc --noEmit && eslint src --quiet",
     "eval:sheets": "node tests/sheets/eval.mjs",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/discover/*.test.ts tests/blurb.test.ts"
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/discover/*.test.ts tests/blurb.test.ts tests/opportunities.test.ts tests/milestones.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

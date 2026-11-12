@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   try {
     await limit(`checkin:${vid}`, 12, 3600);
-    await limitByIp('checkin', 40, 3600);
+    await limitByIp('checkin', 300, 3600);
     return NextResponse.json(await checkIn(vid, body?.code, body?.via), { status: 201 });
   } catch (e) {
     if (e instanceof RateLimitError) return NextResponse.json({ error: e.message }, { status: 429 });

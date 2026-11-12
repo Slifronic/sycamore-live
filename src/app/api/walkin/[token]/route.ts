@@ -24,7 +24,7 @@ export async function POST(req: Request, { params }: RouteContext<'/api/walkin/[
   const body = await req.json().catch(() => null);
   const mode = String(body?.mode ?? '');
   try {
-    await limitByIp('walkin', 20, 600);
+    await limitByIp('walkin', 150, 600);
     let who: WalkinWho;
     if (mode === 'returning') {
       const vid = await currentVolunteerId();

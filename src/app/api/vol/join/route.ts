@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    await limitByIp('join', 10, 3600);
+    await limitByIp('join', 80, 3600);
     // Finishing a Google sign-up: the name and email come from Google, not the form.
     const pending = await readPending('vol');
     const { volunteer, is_new } = await join(

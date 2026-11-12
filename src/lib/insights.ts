@@ -1,8 +1,10 @@
 import 'server-only';
+import { cache } from 'react';
 import { sql } from './db';
 import { BADGES, addAttendance, emptyStats, type BadgeKey, type VolunteerStats } from './badges';
 import { hoursTotal } from './hours';
 import type { Activity, AttendanceRow, EventRow, Role } from './types';
+import { HOUR_MILESTONES } from './milestones';
 
 // Everything the dashboard shows is computed here from attested data only.
 // Nothing is typed in by hand, so every number on screen can be traced back
@@ -12,7 +14,8 @@ const DAY = 86_400_000;
 // Came 2+ times but not in this many days: shown as a plain fact ("Last came
 // 34 days ago"), never as a label about the person.
 export const AWAY_AFTER_DAYS = 30;
-export const MILESTONES = [10, 25, 50, 100, 250];
+// The same five thresholds the volunteer's own milestones use (lib/milestones.ts).
+export const MILESTONES = HOUR_MILESTONES;
 
 export type Tier = 'Platinum' | 'Gold' | 'Silver' | 'Bronze' | 'Building';
 
@@ -57,7 +60,9 @@ export function tierFor(score: number | null): Tier {
   return 'Building';
 }
 
-export async function loadOrgInsights(orgId: string, now = new Date()) {
+// Wrapped in React's cache below: the layout and the page both ask for the same organization
+// in one request, and each call reads the organization's whole attendance history.
+async function loadOrgInsightsUncached(orgId: string, now = new Date()) {
   const events = (await sql`
     select * from event where org_id = ${orgId} order by starts_at desc
   `) as unknown as EventRow[];
@@ -264,3 +269,6 @@ export function weeklyTrend(ins: Pick<OrgInsights, 'series' | 'volunteers'>, now
     since: start,
   };
 }
+
+/** One read per request, however many components ask. */
+export const loadOrgInsights = cache((orgId: string) => loadOrgInsightsUncached(orgId));

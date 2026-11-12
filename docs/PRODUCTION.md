@@ -32,14 +32,36 @@ This is what changed on the `production-launch` branch (Oct 28, 2026) and what h
 
 ## 3. Database migrations (Neon)
 
-Run both. Each is idempotent and safe on the live database:
+Run both of these. Each is idempotent and safe on the live database:
 
 ```bash
 psql "$DATABASE_URL" -f db/migrations-auth.sql
 psql "$DATABASE_URL" -f db/migrations-transcript.sql
 ```
 
+For the public opportunities board (`/opportunities`), run its migration and then load the listings. Both are idempotent and safe on the live database; run them before or right after deploying the code (until the table exists, the board shows no listings rather than an error):
+
+```bash
+psql "$DATABASE_URL" -f db/migrations-opportunities.sql
+DATABASE_URL="$DATABASE_URL" npm run db:seed-opportunities
+```
+
+- The seed loads `db/opportunities.json`: real public listings, not demo data. It never resets a listing's `status` or `outbound_clicks`, and only moves `verified_on` forward. Run it again whenever the file changes.
+- Hide a listing with `update opportunity set status = 'hidden' where slug = '…';`. There's no admin screen for this (see Known gaps).
+- Only organizations with `reviewed_at` set have their events on the signed-out board, so the review step below also decides who appears there.
+- Set `NEXT_PUBLIC_CONTACT_EMAIL` so "Report a broken link" goes to an inbox someone reads; without it, it falls back to `review@sycamore.app`.
+
 If port 5432 is blocked (venue Wi-Fi), run them through the same WebSocket route as `~/Canopy/CalHacks13/deploy/reseed-production.sh`.
+
+Also run the hardening migration (12 Nov 2026; idempotent, builds its indexes without locking):
+
+```bash
+psql "$DATABASE_URL" -f db/migrations-hardening.sql
+```
+
+It marks the one record the home page may show (`record.featured`, the demo's), refuses a
+check-in or walk-in into an event that is already verified, and adds the indexes the database
+review found missing.
 
 After migrating:
 - **Existing organizations** keep PIN sign-in (`pin_enabled` defaults to true). Their owner links Google from **Account and team** and can then turn the PIN off.
@@ -80,6 +102,7 @@ After migrating:
 - Rate limits (Postgres-backed, so they hold across serverless instances) on:
   - sign-in, codes, join, walk-in, check-in and code lookups
   - org setup and invites
+  - the opportunities board's outbound redirect (30 counted clicks per address per hour; the redirect itself always works)
   - every route that calls a model: per org per day, per IP per hour, and a site-wide daily ceiling
 - SSRF filter: IPv4-mapped, NAT64 and 6to4 IPv6 forms are now checked as the IPv4 address they contain.
 - CSV export: cells that would run as spreadsheet formulas are prefixed with a quote.
@@ -95,4 +118,5 @@ After migrating:
 - **SSRF:** DNS rebinding between the address check and the fetch is still possible. A connect-time lookup through an undici `Agent` would close it. Impact on Vercel is low.
 - **Background jobs:** there are none. Supervisor reminders are sent by the volunteer (at most twice, two days apart), and expired sessions and codes are swept during sign-ins.
 - **Organization review is a manual SQL step.** There's no admin screen yet.
+- **Public listings are managed from a file.** `db/opportunities.json` plus `npm run db:seed-opportunities`; hiding one is a SQL update. Links are checked by hand (`verified_on`), not by a job, so a listing can go stale until someone re-checks it.
 - **No automated test** covers the Google callback against real Google. It was checked with a placeholder client: the redirect, PKCE, state, nonce, and the tampered-state rejection.

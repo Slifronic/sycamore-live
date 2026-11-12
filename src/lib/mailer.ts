@@ -25,6 +25,20 @@ export async function sendEmail(msg: { to: string; subject: string; text: string
       text: msg.text,
     }),
     signal: AbortSignal.timeout(10_000),
-  }).catch(() => null);
-  if (!res?.ok) throw new MailError(`Email failed (${res?.status ?? 'no connection'}).`);
+  }).catch((e: unknown) => {
+    console.error(JSON.stringify({ level: 'error', msg: 'mail_send_failed', reason: e instanceof Error ? e.message : String(e) }));
+    return null;
+  });
+  if (!res) throw new MailError('Email failed (no connection).');
+  if (!res.ok) {
+    // Resend says why in the body (an unverified sending domain, a rejected key). Without it
+    // the log only ever said "403". 401 and 403 mean the deployment is misconfigured and
+    // nobody can receive a code until it is fixed.
+    const body = (await res.text().catch(() => '')).slice(0, 400);
+    console.error(JSON.stringify({
+      level: res.status === 401 || res.status === 403 ? 'fatal' : 'error',
+      msg: 'mail_send_failed', status: res.status, body,
+    }));
+    throw new MailError(`Email failed (${res.status}).`);
+  }
 }
