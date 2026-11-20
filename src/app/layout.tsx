@@ -5,16 +5,17 @@ import './palettes.css';
 import { MotionRoot } from '@/components/motion/MotionRoot';
 import { Toaster } from '@/components/shell/Toast';
 import { ThemeScript } from '@/components/shell/ThemeScript';
+import { appUrlOr } from '@/lib/app-url';
 
 const display = Fraunces({ variable: '--font-display', subsets: ['latin'], weight: ['400', '500', '600'], style: ['normal', 'italic'] });
 const sans = Plus_Jakarta_Sans({ variable: '--font-sans', subsets: ['latin'] });
 // The marketing site's voice: Lexend, light at display sizes (--font-site).
 const site = Lexend({ variable: '--font-site', subsets: ['latin'], weight: ['200', '300', '400', '500'] });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3311';
-
 export const metadata: Metadata = {
-  metadataBase: new URL(APP_URL),
+  // Share previews (og:image, canonical links) need the real domain. The old fallback here put
+  // localhost into every preview card when NEXT_PUBLIC_APP_URL was unset in production.
+  metadataBase: new URL(appUrlOr('http://localhost:3311')),
   title: { default: 'SycaMore Live', template: '%s · SycaMore Live' },
   description: 'Volunteer hours recorded as the event happens, verified by the organization. Every volunteer gets a record a school or scholarship committee can check.',
   applicationName: 'SycaMore Live',

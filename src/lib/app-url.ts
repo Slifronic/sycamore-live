@@ -15,3 +15,16 @@ export function appUrl(): string {
   }
   return 'http://localhost:3311';
 }
+
+/**
+ * The same address for places that must never throw while rendering (the root layout's
+ * metadataBase, robots.txt, the sitemap): a local `next build` without the variable still
+ * works, and on Vercel it is the real domain because VERCEL_PROJECT_PRODUCTION_URL is set.
+ */
+export function appUrlOr(fallback: string): string {
+  try {
+    return appUrl();
+  } catch {
+    return fallback;
+  }
+}

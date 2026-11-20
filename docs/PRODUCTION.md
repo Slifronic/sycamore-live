@@ -16,6 +16,8 @@ This is what changed on the `production-launch` branch (Oct 28, 2026) and what h
 | `ANTHROPIC_API_KEY` | sheet import, stories, blurbs | set a monthly spend limit on the key too |
 | `AI_DAILY_LIMIT` | site-wide ceiling on model calls per day | default 2000 |
 | `SYCAMORE_DEMO` | `1` only on a demo deployment | shows the demo ribbon and the demo PIN hint |
+| `BLOB_READ_WRITE_TOKEN` | story videos, voice notes and posters | set for you when a Blob store is connected (step 7); without it, media goes to local disk, which Vercel wipes |
+| `CRON_SECRET` | the daily clean-up (`/api/cron/sweep`) | any long random string (`openssl rand -hex 32`); Vercel Cron sends it, and the route refuses everyone while it's unset |
 
 ## 2. Google OAuth client
 
@@ -113,10 +115,35 @@ After migrating:
 
 ## 6. Known gaps (not done)
 
-- **Media storage:** story clips and voice notes write to local disk (`.media`), which is ephemeral on Vercel. Move them to Vercel Blob or S3 with signed uploads, size and type checks, and a per-org quota.
+- **Media quota:** uploads are capped per file (300 MB video, 50 MB audio) and story uploads per address per hour, but there's no per-org storage quota yet.
+- **Orphaned uploads:** a video that reached Blob but whose page was closed before the clip was saved stays in the store. A sweep that lists `story/` and deletes blobs no row points to (older than a day) would clear them.
 - **The CSP allows inline scripts**, because pages are prerendered and there's no per-request nonce. Moving to nonces means dynamic rendering for every page.
 - **SSRF:** DNS rebinding between the address check and the fetch is still possible. A connect-time lookup through an undici `Agent` would close it. Impact on Vercel is low.
-- **Background jobs:** there are none. Supervisor reminders are sent by the volunteer (at most twice, two days apart), and expired sessions and codes are swept during sign-ins.
+- **Background jobs:** only the daily sweep. Supervisor reminders are sent by the volunteer (at most twice, two days apart).
 - **Organization review is a manual SQL step.** There's no admin screen yet.
 - **Public listings are managed from a file.** `db/opportunities.json` plus `npm run db:seed-opportunities`; hiding one is a SQL update. Links are checked by hand (`verified_on`), not by a job, so a listing can go stale until someone re-checks it.
 - **No automated test** covers the Google callback against real Google. It was checked with a placeholder client: the redirect, PKCE, state, nonce, and the tampered-state rejection.
+
+## 7. Media storage (Vercel Blob), 20 Nov 2026
+
+Story videos, voice notes and posters used to be written to the function's local disk, which Vercel throws away, and a video had to pass through a function whose request body stops at 4.5 MB. Both are fixed once a Blob store is connected:
+
+1. Vercel → Storage → **Create** → **Blob**, access **Private**, and connect it to this project (all environments). That sets `BLOB_READ_WRITE_TOKEN`.
+2. Redeploy.
+
+What happens then:
+- **Videos and voice notes** go straight from the coordinator's browser to the private store (`@vercel/blob/client`), with a ten-minute token from `/api/org/events/<id>/story/upload`. The token only allows that event's folder (`story/<event id>/`), the kind's file types, and its size cap. Our server then checks the finished upload again (`adoptDirectUpload`: our store, that folder, type, size) before saving the row, and deletes it if it doesn't pass.
+- **Reads** still go through `/api/media/...`, which checks who is asking and streams the file from the private store. Range requests pass through, so Safari can seek in a video. The blob URL and token never reach a browser.
+- **Deleting** a clip or note deletes the blob.
+- Rows saved before the switch keep their bare file names and still read from disk (in production those files are already gone).
+
+Without the token (local development) nothing changes: files go to `.media/`.
+
+## 8. Health, clean-up and checks, 20 Nov 2026
+
+- **`/api/health`**: 200 `{ ok, db, db_ms, commit }` when the database answers, 503 when it doesn't. Point an uptime monitor at it (UptimeRobot and Better Stack both have free tiers).
+- **Daily sweep:** `vercel.json` runs `/api/cron/sweep` at 10:17 UTC. It deletes expired sessions, pending Google sign-ins, used sign-in codes and rate-limit rows older than a day (one row per address that ever tried). Needs `CRON_SECRET`.
+- **Error pages:** `error.tsx` and `global-error.tsx` replace Next's bare error screen and show the digest Next logs next to the real error, so a support report can be matched to the log.
+- **SEO and install:** `robots.txt` keeps crawlers off the app and personal links (records, transcripts, walk-in and guardian tokens); `sitemap.xml` lists the public pages; `manifest.webmanifest` lets a volunteer add SycaMore to their home screen, opening on `/me`.
+- **CI** (`.github/workflows/ci.yml`) on every PR: types, lint and tests; a production build against a seeded Postgres; gitleaks over the whole history; `npm audit` on runtime dependencies.
+- **Locally:** `npm run scan` runs gitleaks and the audit. Semgrep (`semgrep scan --config p/nextjs --config p/react --config p/owasp-top-ten src`) and an OWASP ZAP baseline (`docker run --rm ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t <url>`) were run on 20 Nov 2026; see the PR for results.

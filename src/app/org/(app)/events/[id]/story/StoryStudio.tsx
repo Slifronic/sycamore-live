@@ -32,7 +32,21 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
-export function StoryStudio({ eventId, eventTitle, verified, aiEnabled, initial }: { eventId: string; eventTitle: string; verified: boolean; aiEnabled: boolean; initial: Initial }) {
+export function StoryStudio({
+  eventId,
+  eventTitle,
+  verified,
+  aiEnabled,
+  directUpload,
+  initial,
+}: {
+  eventId: string;
+  eventTitle: string;
+  verified: boolean;
+  aiEnabled: boolean;
+  directUpload: boolean;
+  initial: Initial;
+}) {
   const [notes, setNotes] = useState(initial.notes);
   const [clips, setClips] = useState(initial.clips);
   const [campaign, setCampaign] = useState(initial.campaign);
@@ -55,7 +69,7 @@ export function StoryStudio({ eventId, eventTitle, verified, aiEnabled, initial 
         </div>
         <div className="card-pad stack">
           <p className="muted small">Like you’d tell your board: what got done, a moment that stuck, who stepped up (roles, not names), what’s next.</p>
-          <VoiceRecorder base={base} onSaved={(n) => setNotes((ns) => [...ns, n])} />
+          <VoiceRecorder base={base} direct={directUpload ? eventId : null} onSaved={(n) => setNotes((ns) => [...ns, n])} />
           {notes.map((n) => (
             <NoteCard key={n.id} note={n} onDelete={async () => {
               await api(`${base}/notes/${n.id}`, { method: 'DELETE' });
@@ -76,7 +90,7 @@ export function StoryStudio({ eventId, eventTitle, verified, aiEnabled, initial 
           </span>
         </div>
         <div className="card-pad stack">
-          <ClipUploader base={base} onAdded={(c) => setClips((cs) => [...cs, c])} />
+          <ClipUploader base={base} direct={directUpload ? eventId : null} onAdded={(c) => setClips((cs) => [...cs, c])} />
           <div className={s.clipGrid}>
             {clips.map((c) => (
               <ClipCard
@@ -135,7 +149,7 @@ const recognitionCtor = (): (new () => Recognition) | null => {
 const noop = () => () => {};
 const AUDIO_TYPES = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
 
-function VoiceRecorder({ base, onSaved }: { base: string; onSaved: (n: Note) => void }) {
+function VoiceRecorder({ base, direct, onSaved }: { base: string; direct: string | null; onSaved: (n: Note) => void }) {
   const [phase, setPhase] = useState<'idle' | 'recording' | 'review'>('idle');
   const [text, setText] = useState('');
   const [interim, setInterim] = useState('');
@@ -232,7 +246,9 @@ function VoiceRecorder({ base, onSaved }: { base: string; onSaved: (n: Note) => 
       const body = new FormData();
       body.append('transcript', text.trim());
       if (audio) {
-        body.append('audio', audio, audio.type.includes('mp4') ? 'note.m4a' : 'note.webm');
+        const name = audio.type.includes('mp4') ? 'note.m4a' : 'note.webm';
+        if (direct) body.append('audio_url', await uploadDirect(base, direct, new File([audio], name, { type: audio.type }), 'audio'));
+        else body.append('audio', audio, name);
         body.append('duration_s', String(elapsed));
       }
       const { note } = await api<{ note: Note }>(`${base}/notes`, { method: 'POST', body });
@@ -361,9 +377,24 @@ async function cutFrames(file: File): Promise<{ duration: number | null; frames:
   }
 }
 
+// Uploads a file straight to the private Blob store with a token from ../upload, and returns
+// its address for the clips or notes route to check and keep. Loaded only when used.
+async function uploadDirect(base: string, eventId: string, file: File, kind: 'video' | 'audio', onPct?: (pct: number) => void): Promise<string> {
+  const { upload } = await import('@vercel/blob/client');
+  const safe = file.name.replace(/[^\w.-]+/g, '-').slice(-80) || kind;
+  const blob = await upload(`story/${eventId}/${safe}`, file, {
+    access: 'private',
+    handleUploadUrl: `${base}/upload`,
+    clientPayload: kind,
+    multipart: file.size > 20 * 1024 * 1024,
+    onUploadProgress: onPct ? (e) => onPct(Math.round(e.percentage)) : undefined,
+  });
+  return blob.url;
+}
+
 type Upload = { name: string; stage: 'reading' | 'uploading' | 'describing' | 'error'; pct: number; error?: string };
 
-function ClipUploader({ base, onAdded }: { base: string; onAdded: (c: Clip) => void }) {
+function ClipUploader({ base, direct, onAdded }: { base: string; direct: string | null; onAdded: (c: Clip) => void }) {
   const input = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<Upload[]>([]);
   const set = (name: string, patch: Partial<Upload>) => setUploads((us) => us.map((u) => (u.name === name ? { ...u, ...patch } : u)));
@@ -372,12 +403,23 @@ function ClipUploader({ base, onAdded }: { base: string; onAdded: (c: Clip) => v
     set(file.name, { stage: 'reading' });
     const { duration, frames, times } = await cutFrames(file);
     const body = new FormData();
-    body.append('video', file, file.name);
+    if (direct) {
+      // Production: the video goes straight to private Blob storage (a function can't take a
+      // body over 4.5 MB), then only its address and the small frames come to our server.
+      set(file.name, { stage: 'uploading', pct: 0 });
+      try {
+        body.append('video_url', await uploadDirect(base, direct, file, 'video', (pct) => set(file.name, { pct: Math.min(99, pct) })));
+      } catch (e) {
+        set(file.name, { stage: 'error', error: e instanceof Error ? e.message : 'Upload failed.' });
+        return;
+      }
+      body.append('video_name', file.name);
+    } else body.append('video', file, file.name);
     frames.forEach((f, i) => body.append('frames', f, `frame-${i}.jpg`));
     body.append('frame_times', JSON.stringify(times));
     if (frames.length) body.append('poster', frames[Math.min(1, frames.length - 1)], 'poster.jpg');
     if (duration) body.append('duration_s', String(duration));
-    set(file.name, { stage: 'uploading', pct: 0 });
+    if (!direct) set(file.name, { stage: 'uploading', pct: 0 });
     // XHR rather than fetch, so a 200 MB video shows upload progress.
     const data = await new Promise<{ clip?: Clip; error?: string }>((res) => {
       const xhr = new XMLHttpRequest();
