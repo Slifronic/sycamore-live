@@ -138,7 +138,7 @@ export function CheckinForm({ initialCode, fromQr, ready }: { initialCode: strin
   return (
     <div className={c.stack}>
       {!oneTap && <ScanButton onTypeInstead={() => input.current?.focus()} />}
-      <form
+      <form method="post"
         className={oneTap ? c.form : `${c.form} ${c.formQuiet}`}
         aria-busy={busy}
         onSubmit={async (e) => {

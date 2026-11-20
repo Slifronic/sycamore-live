@@ -13,7 +13,7 @@ export function JoinForm({ next, google }: { next: string; google: { name: strin
   const [agreed, setAgreed] = useState(false);
 
   return (
-    <form
+    <form method="post"
       className="card card-pad stack"
       aria-busy={busy}
       onSubmit={async (e) => {

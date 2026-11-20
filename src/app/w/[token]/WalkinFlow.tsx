@@ -178,7 +178,7 @@ function EmailForm(props: {
 }) {
   const { busy, onSubmit } = props;
   return (
-    <form
+    <form method="post"
       className={s.stack}
       onSubmit={(e) => {
         e.preventDefault();
@@ -210,7 +210,7 @@ function EmailForm(props: {
 function BirthDateStep(props: { greeting: string; busy: boolean; agreed: boolean; onAgree: (v: boolean) => void; onSubmit: (dob: string) => void; onCancel: () => void }) {
   const [dob, setDob] = useState('');
   return (
-    <form
+    <form method="post"
       className={s.stack}
       onSubmit={(e) => {
         e.preventDefault();

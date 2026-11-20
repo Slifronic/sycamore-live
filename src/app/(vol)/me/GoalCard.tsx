@@ -28,7 +28,7 @@ export function GoalCard({ goal, attested }: { goal: number | null; attested: nu
 
   if (editing)
     return (
-      <form
+      <form method="post"
         className={s.goalForm}
         onSubmit={(e) => {
           e.preventDefault();
