@@ -86,7 +86,7 @@ export function DeleteAccount() {
           if (e.target === e.currentTarget) setOpen(false);
         }}
       >
-        <form
+        <form method="post"
           className={s.sheetInner}
           onSubmit={async (e) => {
             e.preventDefault();

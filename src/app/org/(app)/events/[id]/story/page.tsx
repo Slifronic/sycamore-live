@@ -9,6 +9,7 @@ import { StoryStudio } from './StoryStudio';
 import { Chip } from '@/components/ui/Chip';
 import { Stagger } from '@/components/motion/Stagger';
 import { orgEventMeta } from '@/lib/page-meta';
+import { usesBlob } from '@/lib/media';
 
 export async function generateMetadata({ params }: PageProps<'/org/events/[id]/story'>) {
   const { id } = await params;
@@ -51,6 +52,7 @@ export default async function StoryPage({ params }: PageProps<'/org/events/[id]/
         eventTitle={event.title}
         verified={!!event.attested_at}
         aiEnabled={storyEnabled()}
+        directUpload={usesBlob()}
         initial={JSON.parse(JSON.stringify({ notes, clips, campaign, facts, blockers: publishBlockers(campaign, event) }))}
       />
     </Stagger>

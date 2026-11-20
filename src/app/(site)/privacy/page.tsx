@@ -153,7 +153,7 @@ const SECTIONS: LegalSection[] = [
               'A record’s facts (organization, event, date, role, hours) to draft a resume line or scholarship sentence. Nothing you typed.',
               'Only when “Use this record” is used and the app is set up to use OpenAI.',
             ],
-            ['Vercel', 'Every request, as our web host.', 'Always.'],
+            ['Vercel', 'Every request, as our web host, and the files of event stories (voice notes, videos), in private storage.', 'Always.'],
             ['Neon', 'The database, as our database host.', 'Always.'],
             ['Google', 'Your sign-in, to confirm who you are.', 'Only if you choose “Continue with Google”.'],
             [

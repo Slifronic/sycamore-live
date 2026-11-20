@@ -11,12 +11,14 @@
     "db:seed-opportunities": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON db/seed-opportunities.mjs",
     "check": "tsc --noEmit && eslint src --quiet",
     "eval:sheets": "node tests/sheets/eval.mjs",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/discover/*.test.ts tests/blurb.test.ts tests/opportunities.test.ts tests/milestones.test.ts"
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/discover/*.test.ts tests/blurb.test.ts tests/opportunities.test.ts tests/milestones.test.ts tests/app-url.test.ts",
+    "scan": "gitleaks git . --redact --no-banner && npm audit --omit=dev --audit-level=moderate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
+    "@vercel/blob": "^2.9.0",
     "motion": "^14.6.0",
-    "next": "16.4.3",
+    "next": "16.4.6",
     "postgres": "^3.4.9",
     "qrcode": "^1.5.4",
     "react": "19.3.0",
@@ -32,7 +34,12 @@
     "@types/react-dom": "^19",
     "@types/three": "^0.180.0",
     "eslint": "^9",
-    "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.6",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@vercel/cli-config": {
+      "zod": "4.6.7"
+    }
   }
 }

@@ -3,7 +3,7 @@ import { limitAi, rateLimited } from '@/lib/rate-limit';
 import { sql } from '@/lib/db';
 import { currentOrg } from '@/lib/session';
 import { getEvent } from '@/lib/org-data';
-import { baseMime, isAllowedMime, removeMedia, saveUpload } from '@/lib/media';
+import { adoptDirectUpload, baseMime, isAllowedMime, removeMedia, saveUpload } from '@/lib/media';
 import { describeClip, type StoryClip } from '@/lib/story';
 
 const MAX_VIDEO = 300 * 1024 * 1024;
@@ -26,11 +26,22 @@ export async function POST(req: Request, { params }: RouteContext<'/api/org/even
   if (!event) return NextResponse.json({ error: 'Event not found.' }, { status: 404 });
 
   const form = await req.formData();
-  const video = form.get('video');
-  if (!(video instanceof File) || video.size === 0) return NextResponse.json({ error: 'Attach a video.' }, { status: 400 });
-  if (!isAllowedMime(video.type) || !baseMime(video.type).startsWith('video/'))
-    return NextResponse.json({ error: 'Use an MP4, MOV or WebM video.' }, { status: 400 });
-  if (video.size > MAX_VIDEO) return NextResponse.json({ error: 'That video is over 300 MB. Trim it on your phone first.' }, { status: 413 });
+  // With Blob on, the browser has already uploaded the video (`video_url`, see ../upload);
+  // otherwise it comes in this request as `video`.
+  let stored: { path: string; mime: string; name: string; size: number } | null = null;
+  const directUrl = form.get('video_url');
+  if (directUrl) {
+    const blob = await adoptDirectUpload(directUrl, id, 'video');
+    if (!blob) return NextResponse.json({ error: 'That upload didn’t arrive. Try adding the video again.' }, { status: 400 });
+    stored = { path: blob.url, mime: blob.mime, name: String(form.get('video_name') ?? 'video'), size: blob.size };
+  } else {
+    const video = form.get('video');
+    if (!(video instanceof File) || video.size === 0) return NextResponse.json({ error: 'Attach a video.' }, { status: 400 });
+    if (!isAllowedMime(video.type) || !baseMime(video.type).startsWith('video/'))
+      return NextResponse.json({ error: 'Use an MP4, MOV or WebM video.' }, { status: 400 });
+    if (video.size > MAX_VIDEO) return NextResponse.json({ error: 'That video is over 300 MB. Trim it on your phone first.' }, { status: 413 });
+    stored = { path: await saveUpload(video, id), mime: baseMime(video.type), name: video.name, size: video.size };
+  }
 
   const frames = form.getAll('frames').filter((f): f is File => f instanceof File && f.size > 0 && f.size < 3 * 1024 * 1024).slice(0, 8);
   let times: number[] = [];
@@ -40,8 +51,9 @@ export async function POST(req: Request, { params }: RouteContext<'/api/org/even
   const poster = form.get('poster');
   const duration = Number(form.get('duration_s'));
 
-  const videoPath = await saveUpload(video);
-  const posterPath = poster instanceof File && poster.size > 0 && baseMime(poster.type) === 'image/jpeg' ? await saveUpload(poster) : null;
+  const videoPath = stored.path;
+  const posterPath =
+    poster instanceof File && poster.size > 0 && poster.size < 3 * 1024 * 1024 && baseMime(poster.type) === 'image/jpeg' ? await saveUpload(poster, id) : null;
   try {
     const description = await describeClip(
       await Promise.all(frames.map(async (f, i) => ({ base64: Buffer.from(await f.arrayBuffer()).toString('base64'), at_s: times[i] ?? 0 }))),
@@ -49,7 +61,7 @@ export async function POST(req: Request, { params }: RouteContext<'/api/org/even
     );
     const [clip] = (await sql`
       insert into story_clip (org_id, event_id, video_path, video_mime, poster_path, original_name, size_bytes, duration_s, description, caption)
-      values (${org.id}, ${id}, ${videoPath}, ${baseMime(video.type)}, ${posterPath}, ${video.name.slice(0, 200)}, ${video.size},
+      values (${org.id}, ${id}, ${videoPath}, ${stored.mime}, ${posterPath}, ${stored.name.slice(0, 200)}, ${stored.size},
               ${Number.isFinite(duration) && duration > 0 ? Math.round(duration * 10) / 10 : null},
               ${description ? sql.json(description as never) : null}, ${description?.caption ?? null})
       returning *

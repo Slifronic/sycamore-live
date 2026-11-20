@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { currentOrg } from '@/lib/session';
 import { getEvent } from '@/lib/org-data';
-import { isAllowedMime, baseMime, saveUpload } from '@/lib/media';
+import { adoptDirectUpload, isAllowedMime, baseMime, saveUpload } from '@/lib/media';
 import type { StoryNote } from '@/lib/story';
 
 // Voice debrief: multipart `transcript` (required), optional `audio` and `duration_s`.
@@ -20,10 +20,17 @@ export async function POST(req: Request, { params }: RouteContext<'/api/org/even
   const audio = form.get('audio');
   let audioPath: string | null = null;
   let audioMime: string | null = null;
-  if (audio instanceof File && audio.size > 0) {
+  const audioUrl = form.get('audio_url');
+  if (audioUrl) {
+    // Uploaded straight to Blob by the browser (see ../upload).
+    const blob = await adoptDirectUpload(audioUrl, id, 'audio');
+    if (!blob) return NextResponse.json({ error: 'The recording didn’t arrive. Try saving again.' }, { status: 400 });
+    audioPath = blob.url;
+    audioMime = blob.mime;
+  } else if (audio instanceof File && audio.size > 0) {
     if (!isAllowedMime(audio.type) || !baseMime(audio.type).startsWith('audio/')) return NextResponse.json({ error: 'That recording format isn’t supported.' }, { status: 400 });
     if (audio.size > 50 * 1024 * 1024) return NextResponse.json({ error: 'That recording is over 50 MB.' }, { status: 413 });
-    audioPath = await saveUpload(audio);
+    audioPath = await saveUpload(audio, id);
     audioMime = baseMime(audio.type);
   }
   const duration = Number(form.get('duration_s'));

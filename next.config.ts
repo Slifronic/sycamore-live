@@ -13,7 +13,8 @@ const csp = [
   "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.googleusercontent.com",
   "media-src 'self' blob:",
   "font-src 'self' data:",
-  `connect-src 'self' https://accounts.google.com/gsi/${dev ? ' ws: http://localhost:*' : ''}`,
+  // vercel.com/api/blob: story videos and voice notes upload straight to the private Blob store.
+  `connect-src 'self' https://accounts.google.com/gsi/ https://vercel.com/api/blob/${dev ? ' ws: http://localhost:*' : ''}`,
   "frame-src https://accounts.google.com/gsi/ https://www.openstreetmap.org",
   "frame-ancestors 'none'",
   "form-action 'self' https://accounts.google.com",

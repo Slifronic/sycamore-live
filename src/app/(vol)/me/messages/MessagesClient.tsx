@@ -70,7 +70,7 @@ export function Composer({ kind, id, placeholder }: { kind: 'org' | 'event'; id:
   };
 
   return (
-    <form
+    <form method="post"
       className={s.composer}
       onSubmit={(e) => {
         e.preventDefault();

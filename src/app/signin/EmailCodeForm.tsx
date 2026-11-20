@@ -30,7 +30,7 @@ export function EmailCodeForm({ next }: { next: string }) {
 
   if (!sent) {
     return (
-      <form
+      <form method="post"
         className="stack"
         aria-busy={busy}
         onSubmit={async (e) => {
@@ -66,7 +66,7 @@ export function EmailCodeForm({ next }: { next: string }) {
   }
 
   return (
-    <form
+    <form method="post"
       className="stack"
       aria-busy={busy}
       onSubmit={async (e) => {
