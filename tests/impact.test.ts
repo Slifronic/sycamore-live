@@ -80,3 +80,24 @@ test('the listings file: every listing names its skills, and Taproot is on the b
   assert(rows.every((r) => r.skills.length > 0), rows.filter((r) => !r.skills.length).map((r) => r.slug).join(', '));
   assert(rows.some((r) => r.org === 'Taproot Foundation' && r.remote));
 });
+
+import { matchListings, matchReason } from '../src/lib/discover/listing-match.ts';
+
+test('Discover listing match: learn beats use beats past, ties keep board order, no overlap is left out', () => {
+  const ls = [
+    { slug: 'warehouse', skills: ['logistics', 'inventory'] },
+    { slug: 'taproot', skills: ['market research', 'design', 'writing'] },
+    { slug: 'hack-night', skills: ['web development', 'design'] },
+    { slug: 'tutor', skills: ['tutoring'] },
+  ];
+  const m = matchListings(ls, { learn: ['design'], use: ['writing'], past: ['logistics'] });
+  assert.deepEqual(m.map((x) => x.listing.slug), ['taproot', 'hack-night', 'warehouse']);
+  assert.deepEqual(m[0]!.learn, ['design']);
+  assert.deepEqual(m[0]!.use, ['writing']);
+  assert.equal(matchReason(m[0]!), 'Builds design, which you want to learn.');
+  assert.equal(matchReason({ learn: [], use: ['writing', 'editing'], past: [] }), 'Uses writing and editing, which you already do.');
+  assert.equal(matchReason({ learn: [], use: [], past: ['logistics', 'events', 'outreach'] }), 'Uses logistics, events and outreach, from your past roles.');
+  assert.deepEqual(matchListings(ls, { learn: [], use: [], past: [] }), []);
+  assert.deepEqual(matchListings(ls, { learn: ['juggling'], use: [], past: [] }), []);
+  assert.equal(matchListings(ls, { learn: ['design', 'logistics', 'tutoring'], use: [], past: [] }, 2).length, 2);
+});
