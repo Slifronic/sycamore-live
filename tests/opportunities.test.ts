@@ -81,9 +81,9 @@ test('two rows with one slug are an error', () => {
 
 test('filters: read from GET params, ignoring anything unrecognized', () => {
   assert.deepEqual(readFilters({}), NO_FILTERS);
-  assert.deepEqual(readFilters({ category: 'distribution', age: '16' }), { category: 'distribution', city: null, remote: false, age: 16 });
+  assert.deepEqual(readFilters({ category: 'distribution', age: '16' }), { category: 'distribution', city: null, remote: false, age: 16, skill: null });
   assert.deepEqual(readFilters({ category: 'nope', city: '  ', remote: '0', age: 'sixteen' }), NO_FILTERS);
-  assert.deepEqual(readFilters({ category: ['arts', 'tech'], city: ' San Jose ', remote: 'on', age: ' 9 ' }), { category: 'arts', city: 'San Jose', remote: true, age: 9 });
+  assert.deepEqual(readFilters({ category: ['arts', 'tech'], city: ' San Jose ', remote: 'on', age: ' 9 ' }), { category: 'arts', city: 'San Jose', remote: true, age: 9, skill: null });
   for (const age of ['-3', '3', '1e2', '100', '16.5', '16; drop table', '']) assert.equal(readFilters({ age }).age, null, age);
   assert.equal(readFilters({ remote: '1' }).remote, true);
   assert.equal(readFilters({ city: 'x'.repeat(200) }).city?.length, 60);
@@ -91,8 +91,8 @@ test('filters: read from GET params, ignoring anything unrecognized', () => {
 });
 test('filters: back to a query string', () => {
   assert.equal(filterQuery(NO_FILTERS), '');
-  assert.equal(filterQuery({ category: 'distribution', city: 'San Jose', remote: true, age: 16 }), '?category=distribution&city=San+Jose&remote=1&age=16');
-  assert.deepEqual(readFilters(Object.fromEntries(new URLSearchParams(filterQuery({ category: 'tech', city: 'Palo Alto', remote: false, age: 13 })))), { category: 'tech', city: 'Palo Alto', remote: false, age: 13 });
+  assert.equal(filterQuery({ category: 'distribution', city: 'San Jose', remote: true, age: 16, skill: 'logistics' }), '?category=distribution&city=San+Jose&remote=1&age=16&skill=logistics');
+  assert.deepEqual(readFilters(Object.fromEntries(new URLSearchParams(filterQuery({ category: 'tech', city: 'Palo Alto', remote: false, age: 13, skill: 'web development' })))), { category: 'tech', city: 'Palo Alto', remote: false, age: 13, skill: 'web development' });
 });
 test('filters: matching', () => {
   const o = { category: 'distribution' as const, city: 'San Jose', remote: false, min_age: 14 };
@@ -105,6 +105,13 @@ test('filters: matching', () => {
   assert(matches(o, readFilters({ age: '14' })));
   // No stated minimum: kept for every age, and labelled as not listed.
   assert(matches({ ...o, min_age: null }, readFilters({ age: '10' })));
+  // Skill: only a word from Discover's vocabulary; a listing must name it.
+  assert.equal(readFilters({ skill: ' Design ' }).skill, 'design');
+  assert.equal(readFilters({ skill: 'juggling' }).skill, null);
+  assert(hasFilters(readFilters({ skill: 'design' })));
+  assert(matches({ ...o, skills: ['logistics', 'design'] }, readFilters({ skill: 'design' })));
+  assert(!matches({ ...o, skills: ['logistics'] }, readFilters({ skill: 'design' })));
+  assert(!matches(o, readFilters({ skill: 'design' })));
   assert.equal(ageLabel(null), 'Minimum age not listed');
   assert.equal(ageLabel(16), 'Ages 16+');
   assert.equal(cityKey('San José, CA'), 'san jose');

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { requireVolunteer } from '@/lib/vol-data';
 import { attestedRows, toAttended, volunteerBadges, type VolBadge } from '@/lib/vol-badges';
 import { computeMilestones, computeSkills, nextMilestones, reachedMilestones } from '@/lib/milestones';
+import { APPLICATION_LABEL, myApplications } from '@/lib/impact';
 import { MilestoneList, SkillList } from '@/components/milestones/Counted';
 import { plural } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
@@ -53,7 +54,9 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
   const raw = (await searchParams).show;
   const show = FILTERS.some((f) => f.key === raw) ? (raw as (typeof FILTERS)[number]['key']) : 'all';
   const rowsRead = attestedRows(vol.id); // one read of the attested attendance, shared by badges, milestones and skills
-  const [badges, rows] = await Promise.all([volunteerBadges(vol.id, rowsRead), rowsRead]);
+  const [badges, rows, applications] = await Promise.all([volunteerBadges(vol.id, rowsRead), rowsRead, myApplications(vol.id).catch(() => [])]);
+  // Skills from listings they were accepted to or finished: their own word, kept apart from the verified lines.
+  const outside = applications.filter((ap) => ap.status === 'accepted' || ap.status === 'completed');
   const attended = toAttended(rows);
   const milestones = computeMilestones(attended);
   const reached = reachedMilestones(milestones);
@@ -175,6 +178,40 @@ export default async function BadgesPage({ searchParams }: PageProps<'/me/badges
           <SkillList lines={skills} empty="Nothing yet. Your first verified event puts a line here, with the hours behind it." />
         </div>
       </section>
+
+      {outside.length > 0 && (
+        <section className={s.counted} id="outside" aria-labelledby="outside-title">
+          <div className={s.countedHead}>
+            <h2 id="outside-title" className={s.h2}>
+              Outside SycaMore
+            </h2>
+            <span className="chip chip-amber">Your own word</span>
+          </div>
+          <p className="small muted">
+            Roles you said you were accepted to or finished, from public listings. The organizations don’t report back to SycaMore, so these aren’t verified hours and
+            don’t count toward badges or milestones.
+          </p>
+          <div className="card card-pad" style={{ display: 'grid', gap: 14 }}>
+            {outside.map((ap) => (
+              <div key={ap.id} style={{ display: 'grid', gap: 6 }}>
+                <span>
+                  <Link href={`/opportunities/${ap.slug}`} style={{ color: 'var(--ink)', fontWeight: 600 }}>
+                    {ap.org_name}
+                  </Link>
+                  <span className="muted"> · {ap.title} · {APPLICATION_LABEL[ap.status]}</span>
+                </span>
+                <span className="row wrap" style={{ gap: 6 }}>
+                  {ap.skills.map((k) => (
+                    <span key={k} className="tag">
+                      {k}
+                    </span>
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <Link href="/badges" className={s.link}>
         How badges, milestones and skills are counted

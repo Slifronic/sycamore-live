@@ -47,6 +47,7 @@ async function main() {
   await sql.unsafe(readFileSync(new URL('./schema.sql', import.meta.url), 'utf8'));
   await sql.unsafe(readFileSync(new URL('./migrations-auth.sql', import.meta.url), 'utf8'));
   await sql.unsafe(readFileSync(new URL('./migrations-transcript.sql', import.meta.url), 'utf8'));
+  await sql.unsafe(readFileSync(new URL('./migrations-impact.sql', import.meta.url), 'utf8'));
 
   const [org] = await sql`
     insert into org (name, contact_phone, contact_email, coordinator_name, coordinator_pin, kind, city, course)

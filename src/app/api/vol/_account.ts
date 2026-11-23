@@ -48,10 +48,10 @@ export async function accountSettings(volunteerId: string) {
 export async function exportData(volunteerId: string) {
   const [volunteer] = await sql`
     select id, name, email, to_char(date_of_birth, 'YYYY-MM-DD') as date_of_birth, created_at, signup_method,
-           (google_sub is not null) as signed_up_with_google, hours_goal, terms_accepted_at, guardian_ack_at, marketing_opt_in, marketing_opt_in_at
+           (google_sub is not null) as signed_up_with_google, hours_goal, terms_accepted_at, guardian_ack_at, marketing_opt_in, marketing_opt_in_at, signup_via
     from volunteer where id = ${volunteerId}`;
   if (!volunteer) return null;
-  const [attendance, records, badges, messages, chatPosts, saved] = await Promise.all([
+  const [attendance, records, badges, messages, chatPosts, saved, applications] = await Promise.all([
     sql`
       select a.id, e.title as event, o.name as organization, e.starts_at as event_starts_at, a.method, a.checked_in_at, a.checked_out_at,
              a.hours_captured, a.hours_adjusted, a.adjustment_reason, a.role, a.status, a.attested_at, a.location_opt_in, a.left_area_at
@@ -71,6 +71,9 @@ export async function exportData(volunteerId: string) {
       from event_chat c join event e on e.id = c.event_id where c.volunteer_id = ${volunteerId} order by c.created_at`,
     sql`
       select e.title as event, s.saved_at from saved_event s join event e on e.id = s.event_id where s.volunteer_id = ${volunteerId} order by s.saved_at`,
+    sql`
+      select o.title as listing, o.org_name as organization, a.status, a.via, a.applied_at, a.updated_at
+      from opportunity_application a join opportunity o on o.id = a.opportunity_id where a.volunteer_id = ${volunteerId} order by a.applied_at`,
   ]);
   return {
     exported_at: new Date().toISOString(),
@@ -83,6 +86,7 @@ export async function exportData(volunteerId: string) {
     messages,
     event_chat_posts: chatPosts,
     saved_events: saved,
+    applications_you_marked: applications,
   };
 }
 
@@ -104,6 +108,7 @@ export async function deleteAccount(volunteerId: string) {
     await tx`delete from event_chat_read where reader = ${volunteerId}`;
     await tx`delete from badge_award where volunteer_id = ${volunteerId}`;
     await tx`delete from saved_event where volunteer_id = ${volunteerId}`;
+    await tx`delete from opportunity_application where volunteer_id = ${volunteerId}`;
     await tx`delete from volunteer where id = ${volunteerId}`;
     return true;
   });

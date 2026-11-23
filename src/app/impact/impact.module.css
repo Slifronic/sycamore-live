@@ -1,0 +1,67 @@
+.page { max-width: var(--page-max); margin: 0 auto; padding: 32px 16px 64px; display: grid; gap: 20px; }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; }
+.head h1 { font-family: var(--font-display); font-size: 40px; font-weight: 500; letter-spacing: -0.02em; color: var(--canopy); }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.sub { color: var(--ink-2); font-size: 15px; margin-top: 4px; }
+.headActions { display: flex; gap: 8px; align-items: center; }
+
+.tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--paper); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; display: grid; gap: 4px; }
+.tile span { font-size: 13px; color: var(--ink-3); }
+.tile b { font-size: 32px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.tile small { font-size: 13px; color: var(--ink-2); }
+
+.card { padding: 20px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.card h2 { font-size: 18px; font-weight: 600; color: var(--ink); }
+.cap { font-size: 14px; color: var(--ink-3); margin-top: -6px; }
+.fine { font-size: 13px; color: var(--ink-3); }
+.fine a, .table a { color: var(--primary); }
+.empty { font-size: 14.5px; color: var(--ink-2); padding: 8px 0; }
+.dim { color: var(--ink-3); }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+
+.strips { display: grid; gap: 18px; }
+.strip { margin: 0; display: grid; gap: 6px; }
+.strip figcaption { display: flex; justify-content: space-between; font-size: 14px; color: var(--ink-2); }
+.strip figcaption b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.strip svg { width: 100%; height: 64px; display: block; overflow: visible; }
+.bar { fill: var(--sap); }
+.hit { fill: transparent; }
+.hit:hover { fill: var(--wash); }
+.base { stroke: var(--line); stroke-width: 1; }
+.axis { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-3); }
+
+.claims { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.claims li { padding: 12px 14px; border-radius: 10px; background: var(--primary-soft); display: grid; gap: 2px; }
+.claims p { font-size: 15.5px; color: var(--ink); line-height: 1.45; }
+.claims small { font-size: 12.5px; color: var(--ink-3); }
+
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--ink-3); padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.table td { padding: 8px; border-bottom: 1px solid var(--rule-soft); color: var(--ink); vertical-align: top; overflow-wrap: anywhere; }
+.table tr:last-child td { border-bottom: 0; }
+.num { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table code, .linkOut code { font-size: 12.5px; background: var(--surface-2); padding: 1px 6px; border-radius: 5px; }
+
+.builder { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 10px 12px; }
+.builder label { display: grid; gap: 4px; font-size: 13px; color: var(--ink-3); min-width: 0; }
+.builder .linkOut { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.linkOut code { overflow-wrap: anywhere; flex: 1 1 260px; padding: 8px 10px; }
+
+.foot { font-size: 12.5px; color: var(--ink-3); max-width: 760px; }
+
+.gate { max-width: 420px; margin: 12vh auto; padding: 0 16px; display: grid; gap: 12px; }
+.gate h1 { font-family: var(--font-display); font-size: 36px; font-weight: 500; color: var(--canopy); }
+.gate p { color: var(--ink-2); }
+.gateForm { display: flex; gap: 8px; }
+.gateForm input { flex: 1; }
+.err { color: var(--red) !important; font-size: 14px; }
+
+@media (max-width: 980px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .two { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .builder { grid-template-columns: 1fr; }
+  .tile b { font-size: 26px; }
+}

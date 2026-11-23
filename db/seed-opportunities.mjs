@@ -33,19 +33,19 @@ export async function seedOpportunities(sql) {
   await sql.begin(async (tx) => {
     for (const r of rows) {
       const [row] = await tx`
-        insert into opportunity (slug, org_name, title, summary, url, org_url, city, category, schedule, min_age, min_age_note, group_friendly, remote, verified_on)
-        values (${r.slug}, ${r.org}, ${r.title}, ${r.summary}, ${r.url}, ${r.org_url}, ${r.city}, ${r.category}, ${r.schedule}, ${r.min_age}, ${r.min_age_note}, ${r.group_friendly}, ${r.remote}, ${r.verified_on}::date)
+        insert into opportunity (slug, org_name, title, summary, url, org_url, city, category, schedule, min_age, min_age_note, group_friendly, remote, verified_on, skills)
+        values (${r.slug}, ${r.org}, ${r.title}, ${r.summary}, ${r.url}, ${r.org_url}, ${r.city}, ${r.category}, ${r.schedule}, ${r.min_age}, ${r.min_age_note}, ${r.group_friendly}, ${r.remote}, ${r.verified_on}::date, ${r.skills})
         on conflict (slug) do update set
           org_name = excluded.org_name, title = excluded.title, summary = excluded.summary, url = excluded.url, org_url = excluded.org_url,
           city = excluded.city, category = excluded.category, schedule = excluded.schedule, min_age = excluded.min_age,
-          min_age_note = excluded.min_age_note, group_friendly = excluded.group_friendly, remote = excluded.remote,
+          min_age_note = excluded.min_age_note, group_friendly = excluded.group_friendly, remote = excluded.remote, skills = excluded.skills,
           verified_on = greatest(opportunity.verified_on, excluded.verified_on),
           updated_at = now()
         where (opportunity.org_name, opportunity.title, opportunity.summary, opportunity.url, opportunity.org_url, opportunity.city, opportunity.category,
-               opportunity.schedule, opportunity.min_age, opportunity.min_age_note, opportunity.group_friendly, opportunity.remote)
+               opportunity.schedule, opportunity.min_age, opportunity.min_age_note, opportunity.group_friendly, opportunity.remote, opportunity.skills)
               is distinct from
               (excluded.org_name, excluded.title, excluded.summary, excluded.url, excluded.org_url, excluded.city, excluded.category,
-               excluded.schedule, excluded.min_age, excluded.min_age_note, excluded.group_friendly, excluded.remote)
+               excluded.schedule, excluded.min_age, excluded.min_age_note, excluded.group_friendly, excluded.remote, excluded.skills)
            or excluded.verified_on > opportunity.verified_on
         returning (xmax = 0) as inserted`;
       if (!row) result.unchanged++;

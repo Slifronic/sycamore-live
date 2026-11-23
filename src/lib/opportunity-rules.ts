@@ -1,7 +1,9 @@
 // The public opportunities board's rules, with no database and no imports, so
 // the seed script (db/seed-opportunities.mjs), the tests and the pages all use
 // the same slug, the same row check and the same filter reading.
-// Plain erasable TypeScript only: Node runs this file directly.
+// Plain erasable TypeScript only: Node runs this file directly. Its one import,
+// the Discover taxonomy, is the same kind of file.
+import { allSkills } from './discover/taxonomy.ts';
 
 export const CATEGORIES = [
   'tree_planting',
@@ -53,7 +55,14 @@ export type OpportunityInput = {
   group_friendly: boolean | null;
   remote: boolean;
   verified_on: string; // YYYY-MM-DD
+  /** The skills the work uses, in Discover's vocabulary. Empty when the file names none. */
+  skills: string[];
 };
+
+/** Every skill a listing may name: Discover's vocabulary, so a listing and a volunteer profile match on the same words. */
+export const SKILL_WORDS: readonly string[] = allSkills;
+export const MAX_LISTING_SKILLS = 8;
+export const isSkillWord = (v: unknown): v is string => typeof v === 'string' && SKILL_WORDS.includes(v);
 
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export const SLUG_MAX = 96;
@@ -141,6 +150,11 @@ export function validateOpportunity(raw: unknown): Checked {
 
   if (!isDay(r.verified_on)) errors.push('verified_on: must be a real date written YYYY-MM-DD');
 
+  const skills = r.skills ?? [];
+  if (!Array.isArray(skills) || skills.length > MAX_LISTING_SKILLS || !skills.every(isSkillWord) || new Set(skills).size !== skills.length) {
+    errors.push(`skills: a list of at most ${MAX_LISTING_SKILLS} different skills from Discover's vocabulary (src/lib/discover/taxonomy.ts)`);
+  }
+
   let slug = '';
   if (r.slug != null) {
     if (isSlug(r.slug)) slug = r.slug;
@@ -168,6 +182,7 @@ export function validateOpportunity(raw: unknown): Checked {
       group_friendly: group as boolean | null,
       remote: remote as boolean,
       verified_on: r.verified_on as string,
+      skills: skills as string[],
     },
   };
 }
@@ -202,29 +217,33 @@ export type Filters = {
   remote: boolean;
   /** The visitor's age: listings whose stated minimum is higher are left out. */
   age: number | null;
+  /** A skill the work uses, in Discover's vocabulary. */
+  skill: string | null;
 };
 
-export const NO_FILTERS: Filters = { category: null, city: null, remote: false, age: null };
+export const NO_FILTERS: Filters = { category: null, city: null, remote: false, age: null, skill: null };
 
 type Params = Record<string, string | string[] | undefined>;
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
-/** Reads ?category=&city=&remote=&age=. Anything unrecognized is ignored, never an error. */
+/** Reads ?category=&city=&remote=&age=&skill=. Anything unrecognized is ignored, never an error. */
 export function readFilters(params: Params): Filters {
   const category = first(params.category);
   const city = first(params.city)?.trim().slice(0, 60);
   const remote = first(params.remote);
   const ageText = first(params.age)?.trim() ?? '';
   const age = /^\d{1,2}$/.test(ageText) ? Number(ageText) : null;
+  const skill = first(params.skill)?.trim().toLowerCase();
   return {
     category: isCategory(category) ? category : null,
     city: city ? city : null,
     remote: remote === '1' || remote === 'true' || remote === 'on',
     age: age !== null && age >= 5 ? age : null,
+    skill: isSkillWord(skill) ? skill : null,
   };
 }
 
-export const hasFilters = (f: Filters) => Boolean(f.category || f.city || f.remote || f.age !== null);
+export const hasFilters = (f: Filters) => Boolean(f.category || f.city || f.remote || f.age !== null || f.skill);
 
 /** "San José, CA" and "san jose" are the same city. */
 export const cityKey = (city: string) =>
@@ -243,7 +262,7 @@ export const cityName = (city: string) =>
     .replace(/,\s*[A-Za-z]{2}\.?$/, '')
     .trim();
 
-type Filterable = { category: Category; city: string | null; remote: boolean; min_age: number | null };
+type Filterable = { category: Category; city: string | null; remote: boolean; min_age: number | null; skills?: readonly string[] };
 
 /**
  * A listing with no stated minimum age is kept (the card says "not listed"):
@@ -254,6 +273,7 @@ export function matches(o: Filterable, f: Filters): boolean {
   if (f.remote && !o.remote) return false;
   if (f.city && (o.city === null || cityKey(o.city) !== cityKey(f.city))) return false;
   if (f.age !== null && o.min_age !== null && o.min_age > f.age) return false;
+  if (f.skill && !(o.skills ?? []).includes(f.skill)) return false;
   return true;
 }
 
@@ -264,6 +284,7 @@ export function filterQuery(f: Filters): string {
   if (f.city) q.set('city', f.city);
   if (f.remote) q.set('remote', '1');
   if (f.age !== null) q.set('age', String(f.age));
+  if (f.skill) q.set('skill', f.skill);
   const s = q.toString();
   return s ? `?${s}` : '';
 }

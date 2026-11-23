@@ -17,6 +17,7 @@ This is what changed on the `production-launch` branch (Oct 28, 2026) and what h
 | `AI_DAILY_LIMIT` | site-wide ceiling on model calls per day | default 2000 |
 | `SYCAMORE_DEMO` | `1` only on a demo deployment | shows the demo ribbon and the demo PIN hint |
 | `BLOB_READ_WRITE_TOKEN` | story videos, voice notes and posters | set for you when a Blob store is connected (step 7); without it, media goes to local disk, which Vercel wipes |
+| `IMPACT_KEY` | the team's `/impact` page | any long random string, shared with the team; without it, `/impact` is closed in production (open on a dev machine) |
 | `CRON_SECRET` | the daily clean-up (`/api/cron/sweep`) | any long random string (`openssl rand -hex 32`); Vercel Cron sends it, and the route refuses everyone while it's unset |
 
 ## 2. Google OAuth client
@@ -52,6 +53,17 @@ DATABASE_URL="$DATABASE_URL" npm run db:seed-opportunities
 - Hide a listing with `update opportunity set status = 'hidden' where slug = '…';`. There's no admin screen for this (see Known gaps).
 - Only organizations with `reviewed_at` set have their events on the signed-out board, so the review step below also decides who appears there.
 - Set `NEXT_PUBLIC_CONTACT_EMAIL` so "Report a broken link" goes to an inbox someone reads; without it, it falls back to `review@sycamore.app`.
+
+For impact tracking (22 Nov 2026: visit counts, `?via=` share tags, "I applied" on listings, listing skills, the team's `/impact` page), run its migration **before** deploying the code, because sign-up now writes `volunteer.signup_via`. Then reload the listings so their skills (and the Taproot listing) land:
+
+```bash
+psql "$DATABASE_URL" -f db/migrations-impact.sql
+DATABASE_URL="$DATABASE_URL" npm run db:seed-opportunities
+```
+
+- `/impact` shows visits, accounts, self-reported applications, verified skill areas, per-listing and per-tag numbers, plus CSV downloads. Seed and demo accounts (`.test` emails) are left out unless `?demo=1`.
+- Share links: `/opportunities/<slug>?via=<tag>`. The page's link builder makes them.
+- Nothing personal is counted: see the "Visit counts" and "I applied" lines on `/privacy`.
 
 If port 5432 is blocked (venue Wi-Fi), run them through the same WebSocket route as `~/Canopy/CalHacks13/deploy/reseed-production.sh`.
 

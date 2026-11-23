@@ -28,6 +28,7 @@ export type Opportunity = {
   group_friendly: boolean | null;
   remote: boolean;
   verified_on: string; // YYYY-MM-DD
+  skills: string[]; // Discover's vocabulary; may be empty
 };
 
 /**
@@ -41,13 +42,21 @@ export type Opportunity = {
 export async function listedOpportunities(): Promise<Opportunity[]> {
   'use cache';
   cacheLife('minutes');
-  try {
-    return (await sql`
+  const read = (withSkills: boolean) => sql`
       select slug, org_name, title, summary, org_url, city, category, schedule, min_age, min_age_note, group_friendly, remote,
+             ${withSkills ? sql`skills` : sql`'{}'::text[] as skills`},
              to_char(verified_on, 'YYYY-MM-DD') as verified_on
       from opportunity where status = 'listed'
-      order by lower(org_name), lower(title)`) as unknown as Opportunity[];
+      order by lower(org_name), lower(title)`;
+  try {
+    return (await read(true)) as unknown as Opportunity[];
   } catch (e) {
+    // A deploy before migrations-impact.sql: no skills column yet. Show the board without skills.
+    if ((e as { code?: string }).code === '42703') {
+      try {
+        return (await read(false)) as unknown as Opportunity[];
+      } catch {}
+    }
     console.error('opportunities: could not load listings', e);
     return [];
   }
@@ -68,11 +77,20 @@ export type BoardEvent = {
   org_name: string;
   org_city: string | null;
   category: Category;
+  skills: string[]; // from the event's activity, in Discover's vocabulary
 };
 
 type Activity = 'general' | 'planting' | 'logistics' | 'outreach' | 'education';
 // The coordinator's activity for the event, in the board's kinds of work.
 const ACTIVITY_CATEGORY: Record<Activity, Category> = { general: 'other', planting: 'tree_planting', logistics: 'logistics', outreach: 'other', education: 'tutoring' };
+// The same activity in skill words, matching the skill areas a verified event counts toward (milestones.ts).
+const ACTIVITY_SKILLS: Record<Activity, string[]> = {
+  general: ['community'],
+  planting: ['planting', 'conservation'],
+  logistics: ['logistics'],
+  outreach: ['outreach', 'communication'],
+  education: ['teaching', 'tutoring'],
+};
 
 /**
  * Upcoming public events for the signed-out board. The same rules as
@@ -94,12 +112,13 @@ export async function boardEvents(): Promise<BoardEvent[]> {
       where not e.is_practice and e.attested_at is null and e.status = 'open' and e.ends_at > now()
         and o.reviewed_at is not null
       order by e.starts_at
-      limit 60`) as unknown as (Omit<BoardEvent, 'starts_at' | 'ends_at' | 'category'> & { starts_at: Date; ends_at: Date; activity: Activity })[];
+      limit 60`) as unknown as (Omit<BoardEvent, 'starts_at' | 'ends_at' | 'category' | 'skills'> & { starts_at: Date; ends_at: Date; activity: Activity })[];
     return rows.map(({ activity, ...r }) => ({
       ...r,
       starts_at: new Date(r.starts_at).toISOString(),
       ends_at: new Date(r.ends_at).toISOString(),
       category: ACTIVITY_CATEGORY[activity] ?? 'other',
+      skills: ACTIVITY_SKILLS[activity] ?? [],
     }));
   } catch (e) {
     console.error('opportunities: could not load events', e);
