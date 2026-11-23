@@ -32,15 +32,26 @@ const PACIFIC = 'America/Los_Angeles';
 
 let saltCache: { day: string; salt: string } | null = null;
 
-/** Today's salt (Pacific day), made on first use; yesterday's is kept so a visit just past midnight still matches, older ones go. */
+/** Today's salt (Pacific day), made on first use. Earlier days' salts go here and in the daily sweep (sweepVisitSalts). */
 async function todaysSalt(): Promise<{ day: string; salt: string }> {
   const [{ day }] = (await sql`select to_char((now() at time zone ${PACIFIC})::date, 'YYYY-MM-DD') as day`) as unknown as { day: string }[];
   if (saltCache?.day === day) return saltCache;
   await sql`insert into usage_salt (day, salt) values (${day}::date, encode(gen_random_bytes(16), 'hex')) on conflict (day) do nothing`;
-  await sql`delete from usage_salt where day < ${day}::date - 1`;
+  await sql`delete from usage_salt where day < ${day}::date`;
   const [r] = (await sql`select salt from usage_salt where day = ${day}::date`) as unknown as { salt: string }[];
   saltCache = { day, salt: r!.salt };
   return saltCache;
+}
+
+/**
+ * Deletes every salt before today (Pacific). Run by the daily cron, so a quiet
+ * site still forgets old salts within a day; after that, past visitors' hashes
+ * can't be matched to anyone. Before the migration has run there's no table: nothing to do.
+ */
+export async function sweepVisitSalts() {
+  await sql`delete from usage_salt where day < (now() at time zone ${PACIFIC})::date`.catch((e: { code?: string }) => {
+    if (e.code !== '42P01') throw e;
+  });
 }
 
 /** Counts one page view under its route (already normalized by countedPath). Bots are skipped. */
@@ -128,6 +139,29 @@ export async function setApplicationStatus(volunteerId: string, id: unknown, sta
 
 // ---------- the team's report ----------
 
+export type ApplicationRow = { id: string; who: string; slug: string; title: string; org_name: string; skills: string[]; status: ApplicationStatus; applied_at: string; via: string | null };
+
+/** Every application, newest first, for the CSV download (the page shows the latest 25). */
+export async function allApplications({ includeDemo = false } = {}): Promise<ApplicationRow[]> {
+  const realVol = includeDemo ? sql`true` : sql`v.email !~* '\\.test$'`;
+  const rows = await sql`
+    select a.id, v.name, o.slug, o.title, o.org_name, o.skills, a.status, a.applied_at, a.via
+    from opportunity_application a join opportunity o on o.id = a.opportunity_id join volunteer v on v.id = a.volunteer_id
+    where ${realVol}
+    order by a.applied_at desc`;
+  return rows.map((r) => ({
+    id: r.id,
+    who: shortName(r.name),
+    slug: r.slug,
+    title: r.title,
+    org_name: r.org_name,
+    skills: r.skills,
+    status: r.status,
+    applied_at: new Date(r.applied_at).toISOString(),
+    via: r.via,
+  }));
+}
+
 export type ImpactReport = {
   includeDemo: boolean;
   totals: {
@@ -153,7 +187,7 @@ export type ImpactReport = {
   via: { via: string; visitors: number; signups: number; applications: number }[];
   verifiedSkills: { key: string; name: string; people: number; hours: number; events: number }[];
   applicationSkills: { skill: string; people: number; accepted: number }[];
-  recent: { id: string; who: string; slug: string; title: string; org_name: string; skills: string[]; status: ApplicationStatus; applied_at: string; via: string | null }[];
+  recent: ApplicationRow[];
   signupMethods: { method: string; n: number }[];
 };
 
@@ -240,7 +274,7 @@ export async function impactReport({ includeDemo = false } = {}): Promise<Impact
       select a.id, v.name, o.slug, o.title, o.org_name, o.skills, a.status, a.applied_at, a.via
       from opportunity_application a join opportunity o on o.id = a.opportunity_id join volunteer v on v.id = a.volunteer_id
       where ${realVol}
-      order by a.applied_at desc limit 500`,
+      order by a.applied_at desc limit 25`,
     sql`select v.signup_method as method, count(*) as n from volunteer v where ${realVol} group by 1 order by 2 desc`,
   ]);
 
