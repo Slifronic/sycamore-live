@@ -7,6 +7,10 @@ import { clip, pageMeta } from '@/components/site/meta';
 import { Icon } from '@/components/shell/icons';
 import { appUrl } from '@/lib/event-intake';
 import { CATEGORY_LABEL, ageLabel, checkedLabel, cityKey, opportunityBySlug } from '@/lib/opportunities';
+import { applicationFor } from '@/lib/impact';
+import { currentVolunteerId } from '@/lib/vol-session';
+import { ApplyTracker } from '@/components/vol/ApplyTracker';
+import a from '@/components/vol/apply.module.css';
 import s from '../opportunities.module.css';
 
 // One public listing: what it is, when, where, who can come, and a button to
@@ -33,6 +37,8 @@ export default async function OpportunityPage({ params }: PageProps<'/opportunit
   const report = `mailto:${REPORT_EMAIL}?subject=${encodeURIComponent(`Broken link: ${o.title} (${o.org_name})`)}&body=${encodeURIComponent(
     `The link on ${appUrl()}/opportunities/${o.slug} doesn’t work.\n\nWhat happened:\n`,
   )}`;
+  const vid = await currentVolunteerId();
+  const app = vid ? await applicationFor(vid, o.slug).catch(() => null) : null;
   const where = o.remote ? (cityKey(o.city) === 'remote' ? 'From home' : `From home · ${o.city}`) : o.city;
 
   return (
@@ -75,6 +81,20 @@ export default async function OpportunityPage({ params }: PageProps<'/opportunit
                 {o.min_age_note && <small>{o.min_age_note}</small>}
               </dd>
             </div>
+            {(o.skills ?? []).length > 0 && (
+              <div>
+                <dt>Skills you’d use</dt>
+                <dd>
+                  <ul className={a.skills}>
+                    {o.skills.map((k) => (
+                      <li key={k} className="tag">
+                        {k}
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            )}
             <div>
               <dt>Groups</dt>
               <dd>{o.group_friendly === null ? 'Not listed' : o.group_friendly ? 'Groups welcome' : 'Individuals only'}</dd>
@@ -96,6 +116,7 @@ export default async function OpportunityPage({ params }: PageProps<'/opportunit
               Go to their page <Icon name="external" size={20} />
             </a>
           </div>
+          <ApplyTracker slug={o.slug} orgName={o.org_name} signedIn={!!vid} initial={app && { id: app.id, status: app.status, applied_at: app.applied_at }} />
           <p className={s.report}>
             Link checked {checkedLabel(o.verified_on)}. <a href={report}>Report a broken link</a>
           </p>

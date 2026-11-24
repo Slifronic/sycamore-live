@@ -22,6 +22,7 @@ export class VolError extends Error {
 }
 
 import { appUrl } from './app-url';
+import { signupVia } from './via';
 export { appUrl }; // shareRecord below uses it too, so it has to be imported, not only re-exported
 
 // ---------- who is this ----------
@@ -105,8 +106,8 @@ export async function join(input: { name?: unknown; email?: unknown; date_of_bir
   const g = input.google ?? null;
   if (g && g.email !== email) throw new VolError('Use the email Google confirmed.', 400);
   const [v] = (await sql`
-    insert into volunteer (name, email, date_of_birth, signup_method, google_sub, email_verified_at)
-    values (${name}, ${email}, ${dob}, 'join', ${g?.sub ?? null}, ${g ? sql`now()` : null})
+    insert into volunteer (name, email, date_of_birth, signup_method, google_sub, email_verified_at, signup_via)
+    values (${name}, ${email}, ${dob}, 'join', ${g?.sub ?? null}, ${g ? sql`now()` : null}, ${await signupVia()})
     on conflict (email) do nothing
     returning id`) as unknown as { id: string }[];
   if (!v) throw new VolError('That email just signed up. Sign in instead.', 409, { signin: true });

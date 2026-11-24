@@ -11,6 +11,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/shell/icons';
 import { OrgFolders, type Folder } from '@/components/vol/OrgFolders';
 import { orgColor, orgInitials, type OrgColor } from '@/components/vol/org-color';
+import { ApplyTracker } from '@/components/vol/ApplyTracker';
+import { myApplications } from '@/lib/impact';
 import { ActiveCard } from './ActiveCard';
 import { GoalCard } from './GoalCard';
 import s from './home.module.css';
@@ -84,7 +86,7 @@ type UpNext = { title: string; slug: string; starts_at: Date; ends_at: Date; pla
 
 export default async function Home() {
   const vol = await requireVolunteer('/me');
-  const [active, records, pending, upNextRows] = await Promise.all([
+  const [active, records, pending, upNextRows, applications] = await Promise.all([
     activeSession(vol.id),
     volunteerRecords(vol.id),
     pendingAttendance(vol.id),
@@ -103,6 +105,8 @@ export default async function Home() {
          and not exists (select 1 from attendance a where a.event_id = e.id and a.volunteer_id = ${vol.id})
        order by e.starts_at limit 1)
       order by rank limit 1` as unknown as Promise<UpNext[]>,
+    // Public listings they marked "I applied" (lib/impact.ts); none before the migration has run.
+    myApplications(vol.id).catch(() => []),
   ]);
   const upNext = upNextRows[0];
 
@@ -230,6 +234,44 @@ export default async function Home() {
           </div>
         )}
       </section>
+
+      {applications.length > 0 && (
+        <section className={s.orgs} aria-labelledby="apps-title">
+          <div className={s.sectionHead}>
+            <h2 id="apps-title" className={s.h2}>
+              Where you applied
+            </h2>
+            <Link href="/opportunities" className={s.headLink}>
+              Opportunities <Icon name="arrow-right" size={16} />
+            </Link>
+          </div>
+          <div className="card" style={{ display: 'grid', gap: 0, padding: 0 }}>
+            {applications.map((ap, i) => (
+              <div key={ap.id} style={{ display: 'grid', gap: 8, padding: '14px 18px', borderTop: i ? '1px solid var(--line)' : 0 }}>
+                <span>
+                  <Link href={`/opportunities/${ap.slug}`} style={{ color: 'var(--ink)', fontWeight: 600 }}>
+                    {ap.title}
+                  </Link>
+                  <span style={{ color: 'var(--ink-3)' }}> · {ap.org_name}</span>
+                </span>
+                {ap.skills.length > 0 && (
+                  <span className="row wrap" style={{ gap: 6 }}>
+                    {ap.skills.map((k) => (
+                      <span key={k} className="tag">
+                        {k}
+                      </span>
+                    ))}
+                  </span>
+                )}
+                <ApplyTracker compact slug={ap.slug} orgName={ap.org_name} signedIn initial={{ id: ap.id, status: ap.status, applied_at: ap.applied_at }} />
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-3)' }}>
+            These are your own notes. The organizations don’t report back to SycaMore, so none of this counts as verified hours.
+          </p>
+        </section>
+      )}
     </Stagger>
   );
 }

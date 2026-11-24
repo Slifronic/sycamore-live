@@ -5,6 +5,7 @@ import './palettes.css';
 import { MotionRoot } from '@/components/motion/MotionRoot';
 import { Toaster } from '@/components/shell/Toast';
 import { ThemeScript } from '@/components/shell/ThemeScript';
+import { UsageBeacon } from '@/components/shell/UsageBeacon';
 import { appUrlOr } from '@/lib/app-url';
 
 const display = Fraunces({ variable: '--font-display', subsets: ['latin'], weight: ['400', '500', '600'], style: ['normal', 'italic'] });
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <body>
         <MotionRoot>{children}</MotionRoot>
         <Toaster />
+        <UsageBeacon />
       </body>
     </html>
   );

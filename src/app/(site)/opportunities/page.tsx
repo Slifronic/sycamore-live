@@ -10,6 +10,22 @@ import {
 } from '@/lib/opportunities';
 import s from './opportunities.module.css';
 
+/** At most four skill words on a card; the listing page has them all. */
+function Skills({ skills, active }: { skills: string[]; active: string | null }) {
+  if (!skills.length) return null;
+  const shown = active && skills.includes(active) ? [active, ...skills.filter((k) => k !== active)].slice(0, 4) : skills.slice(0, 4);
+  return (
+    <ul className={s.skills} aria-label="Skills you’d use">
+      {shown.map((k) => (
+        <li key={k} className="tag">
+          {k}
+        </li>
+      ))}
+      {skills.length > shown.length && <li className={s.more}>+{skills.length - shown.length}</li>}
+    </ul>
+  );
+}
+
 export const metadata = pageMeta(
   'Volunteer opportunities',
   'Places to volunteer around the Bay Area: upcoming events on SycaMore, where hours go on a record, and public listings that link to each organization’s own page.',
@@ -22,7 +38,7 @@ export const metadata = pageMeta(
 // record) and a public listing (a link to another organization's page, where
 // SycaMore records nothing).
 
-function EventCard({ e }: { e: BoardEvent }) {
+function EventCard({ e, skill }: { e: BoardEvent; skill: string | null }) {
   const where = [e.place, e.org_city ? cityName(e.org_city) : null].filter(Boolean).join(' · ');
   return (
     <li className={`${s.card} ${s.onSyc}`}>
@@ -50,6 +66,7 @@ function EventCard({ e }: { e: BoardEvent }) {
           </li>
         )}
       </ul>
+      <Skills skills={e.skills ?? []} active={skill} />
       <p className={s.note}>No sign-up. Turn up and check in. {e.org_name} verifies your hours for your record.</p>
       <div className={s.actions}>
         <Link href={`/e/${e.slug}`} className="btn">
@@ -60,7 +77,7 @@ function EventCard({ e }: { e: BoardEvent }) {
   );
 }
 
-function ListingCard({ o }: { o: Opportunity }) {
+function ListingCard({ o, skill }: { o: Opportunity; skill: string | null }) {
   return (
     <li className={s.card}>
       <p className={s.kind}>
@@ -94,6 +111,7 @@ function ListingCard({ o }: { o: Opportunity }) {
           </li>
         )}
       </ul>
+      <Skills skills={o.skills ?? []} active={skill} />
       <p className={s.note}>SycaMore doesn’t record hours here unless {o.org_name} uses it.</p>
       <div className={s.actions}>
         {/* A plain link, never <Link>: a prefetch would count as a click. */}
@@ -118,7 +136,10 @@ export default async function Opportunities({ searchParams }: PageProps<'/opport
 
   const listings = allListings.filter((o) => matches(o, f));
   // An event's minimum age isn't recorded, so the age filter keeps every event.
-  const events = upcoming.filter((e) => matches({ category: e.category, city: e.org_city, remote: false, min_age: null }, f));
+  const events = upcoming.filter((e) => matches({ category: e.category, city: e.org_city, remote: false, min_age: null, skills: e.skills ?? [] }, f));
+  // Skills to choose from: every skill something on the board uses, A to Z.
+  // (`?? []`: a cached list from before skills existed has none.)
+  const skillList = [...new Set([...allListings.flatMap((o) => o.skills ?? []), ...upcoming.flatMap((e) => e.skills ?? [])])].sort((a, b) => a.localeCompare(b));
 
   // Cities to choose from: everywhere something is listed, A to Z. "Remote" is the From home box.
   const cities = new Map<string, string>();
@@ -169,6 +190,19 @@ export default async function Opportunities({ searchParams }: PageProps<'/opport
                 ))}
               </select>
             </div>
+            {skillList.length > 0 && (
+              <div className={s.field}>
+                <label htmlFor="f-skill">Skill</label>
+                <select id="f-skill" name="skill" className="select" defaultValue={f.skill ?? ''}>
+                  <option value="">Any skill</option>
+                  {skillList.map((k) => (
+                    <option key={k} value={k}>
+                      {k[0]!.toUpperCase() + k.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className={`${s.field} ${s.age}`}>
               <label htmlFor="f-age">Your age</label>
               <input id="f-age" name="age" className="input" type="number" inputMode="numeric" min={5} max={99} placeholder="Any" defaultValue={f.age ?? ''} />
@@ -214,7 +248,7 @@ export default async function Opportunities({ searchParams }: PageProps<'/opport
         <Section id="on-sycamore" eyebrow="On SycaMore" title="Hours here go on your record." lede="No sign-up. Scan in and out on the day; the organization verifies your hours.">
           <ul className={s.grid}>
             {events.map((e) => (
-              <EventCard key={e.slug} e={e} />
+              <EventCard key={e.slug} e={e} skill={f.skill} />
             ))}
           </ul>
         </Section>
@@ -229,7 +263,7 @@ export default async function Opportunities({ searchParams }: PageProps<'/opport
         >
           <ul className={s.grid}>
             {listings.map((o) => (
-              <ListingCard key={o.slug} o={o} />
+              <ListingCard key={o.slug} o={o} skill={f.skill} />
             ))}
           </ul>
         </Section>

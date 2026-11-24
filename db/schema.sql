@@ -6,6 +6,11 @@ create extension if not exists pgcrypto;
 
 -- Accounts and sign-in (migrations-auth.sql) and the transcript (migrations-transcript.sql)
 -- live in their own files, which the seed runs after this one.
+-- Impact tracking (migrations-impact.sql, which the seed runs after this one).
+drop table if exists usage_visitor cascade;
+drop table if exists usage_salt cascade;
+drop table if exists usage_day cascade;
+drop table if exists opportunity_application cascade;
 drop table if exists opportunity cascade;
 drop table if exists hour_request cascade;
 drop table if exists guardian_request cascade;

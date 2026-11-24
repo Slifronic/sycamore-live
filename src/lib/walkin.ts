@@ -2,6 +2,7 @@ import 'server-only';
 import { randomBytes } from 'node:crypto';
 import { sql } from './db';
 import { endOtherVolunteerSessions } from './auth-session';
+import { signupVia } from './via';
 import type { AttendanceRow, EventRow, Org } from './types';
 import type { GoogleIdentity } from './google';
 
@@ -173,9 +174,9 @@ export async function walkInCheckIn(token: string, who: WalkinWho): Promise<Walk
       if (name.length > 80) throw new WalkinError('That name is too long.', 400);
       const dob = checkBirthDate(who.date_of_birth);
       [vol] = (await sql`
-        insert into volunteer (name, email, date_of_birth, google_sub, email_verified_at, signup_method, signup_event_id)
+        insert into volunteer (name, email, date_of_birth, google_sub, email_verified_at, signup_method, signup_event_id, signup_via)
         values (${name}, ${email}, ${dob}, ${who.kind === 'google' ? who.identity.sub : null}, ${who.kind === 'google' ? sql`now()` : null},
-                ${who.kind === 'google' ? 'walk_in_google' : 'walk_in_email'}, ${event.id})
+                ${who.kind === 'google' ? 'walk_in_google' : 'walk_in_email'}, ${event.id}, ${await signupVia()})
         returning id, name, date_of_birth, google_sub`) as unknown as Vol[];
       isNew = true;
     }

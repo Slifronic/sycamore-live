@@ -12,7 +12,8 @@
     "min_age_note": "Age not stated; signed waiver required",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["planting", "conservation", "fieldwork", "community"]
   },
   {
     "org": "Grassroots Ecology",
@@ -27,7 +28,8 @@
     "min_age_note": "Page says all ages welcome; Youth Stewards program is for middle and high school students",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["conservation", "planting", "fieldwork"]
   },
   {
     "org": "Midpeninsula Regional Open Space District",
@@ -42,7 +44,8 @@
     "min_age_note": null,
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["conservation", "fieldwork", "leadership"]
   },
   {
     "org": "Save The Bay",
@@ -57,7 +60,8 @@
     "min_age_note": "Children welcome with a parent or guardian",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["conservation", "planting", "fieldwork"]
   },
   {
     "org": "San Francisco Bay Bird Observatory",
@@ -72,7 +76,8 @@
     "min_age_note": "16+ for tabling and some monitoring; several surveys are 18+",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["fieldwork", "data entry", "conservation", "outreach"]
   },
   {
     "org": "Golden Gate National Parks Conservancy",
@@ -87,7 +92,8 @@
     "min_age_note": null,
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["conservation", "planting", "fieldwork"]
   },
   {
     "org": "Valley Water",
@@ -102,7 +108,8 @@
     "min_age_note": "Children may take part with adult supervision",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["conservation", "community", "leadership"]
   },
   {
     "org": "South Bay Clean Creeks Coalition",
@@ -117,7 +124,8 @@
     "min_age_note": null,
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["conservation", "community", "fieldwork"]
   },
   {
     "org": "Pacific Beach Coalition",
@@ -132,7 +140,8 @@
     "min_age_note": null,
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["conservation", "community", "events"]
   },
   {
     "org": "Guadalupe River Park Conservancy",
@@ -147,7 +156,8 @@
     "min_age_note": "Most activities 10+; groups with anyone under 16 need chaperones",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["planting", "fieldwork", "community"]
   },
   {
     "org": "Hidden Villa",
@@ -162,7 +172,8 @@
     "min_age_note": "Farm Team 12+ with an adult; Garden Keeper 9+ with an adult; ambassador 16+; guides 18+",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["planting", "fieldwork"]
   },
   {
     "org": "Village Harvest",
@@ -177,7 +188,8 @@
     "min_age_note": "Page says most ages; parent consent form for minors",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["logistics", "distribution", "community"]
   },
   {
     "org": "Second Harvest of Silicon Valley",
@@ -192,7 +204,8 @@
     "min_age_note": "12-15 must volunteer with an adult; under 18 need a permission slip 48 hours ahead; Curtner Center is adults only",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["logistics", "inventory", "distribution"]
   },
   {
     "org": "Second Harvest of Silicon Valley",
@@ -207,7 +220,8 @@
     "min_age_note": null,
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["distribution", "logistics", "community"]
   },
   {
     "org": "Sacred Heart Community Service",
@@ -222,7 +236,8 @@
     "min_age_note": "Page describes 7th-8th graders taking part with an adult chaperone; confirm youth rules with the org",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["distribution", "inventory", "community"]
   },
   {
     "org": "Loaves & Fishes Family Kitchen",
@@ -237,7 +252,8 @@
     "min_age_note": "14 is stated for families; individual minimum not stated",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["distribution", "community", "logistics"]
   },
   {
     "org": "Martha's Kitchen",
@@ -252,7 +268,8 @@
     "min_age_note": "Ages 12-13 may volunteer with an adult present",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["distribution", "community"]
   },
   {
     "org": "West Valley Community Services",
@@ -267,7 +284,8 @@
     "min_age_note": "Page says all ages",
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["distribution", "communication", "logistics"]
   },
   {
     "org": "Sunnyvale Community Services",
@@ -282,7 +300,8 @@
     "min_age_note": "Student volunteers are high schoolers 14+ with parent signature; Family Nights are for ages 4-12 with a parent",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["distribution", "logistics", "events"]
   },
   {
     "org": "San Francisco-Marin Food Bank",
@@ -297,7 +316,8 @@
     "min_age_note": "Pennsylvania Ave warehouse: 10 on weekdays, 8 on Saturdays; other warehouses 11; delivery drivers 18+",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["logistics", "inventory", "distribution"]
   },
   {
     "org": "RAFT (Resource Area For Teaching)",
@@ -312,7 +332,8 @@
     "min_age_note": null,
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["inventory", "logistics", "teaching"]
   },
   {
     "org": "San Jose Public Library",
@@ -327,7 +348,8 @@
     "min_age_note": null,
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["tutoring", "teaching", "mentoring"]
   },
   {
     "org": "Reading Partners",
@@ -342,7 +364,8 @@
     "min_age_note": "14+ in person; 18+ online",
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["tutoring", "mentoring", "teaching"]
   },
   {
     "org": "Environmental Volunteers",
@@ -357,7 +380,8 @@
     "min_age_note": null,
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["teaching", "conservation", "communication"]
   },
   {
     "org": "Humane Society Silicon Valley",
@@ -372,7 +396,8 @@
     "min_age_note": "Under 18 can help from home (crafts, fostering with an adult)",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["community", "communication"]
   },
   {
     "org": "Peninsula Humane Society & SPCA",
@@ -387,7 +412,8 @@
     "min_age_note": "13-15 with a parent or guardian; 16-17 limited roles alone; 18+ for general roles",
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["community", "communication"]
   },
   {
     "org": "Happy Hollow Park & Zoo",
@@ -402,7 +428,8 @@
     "min_age_note": "ZooTeen program is for ages 14-17",
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["teaching", "communication", "planting"]
   },
   {
     "org": "Sourcewise",
@@ -417,7 +444,8 @@
     "min_age_note": "Page says all ages; home visits and internships 18+; digital literacy high school age and up",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["communication", "community", "mentoring"]
   },
   {
     "org": "The Tech Interactive",
@@ -432,7 +460,8 @@
     "min_age_note": "Separate teen program; age not stated",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["communication", "events", "teaching"]
   },
   {
     "org": "History San Jose",
@@ -447,7 +476,8 @@
     "min_age_note": null,
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["teaching", "communication", "planting"]
   },
   {
     "org": "Montalvo Arts Center",
@@ -462,7 +492,8 @@
     "min_age_note": "Youth volunteer forms are linked; no age floor stated",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["events", "logistics", "community"]
   },
   {
     "org": "Computer History Museum",
@@ -477,7 +508,8 @@
     "min_age_note": "Background check required",
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["data entry", "writing", "editing"]
   },
   {
     "org": "Open Source San Jose",
@@ -492,7 +524,8 @@
     "min_age_note": null,
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["web development", "design", "data visualization", "project coordination"]
   },
   {
     "org": "Child Advocates of Silicon Valley",
@@ -507,7 +540,8 @@
     "min_age_note": null,
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": false
+    "remote": false,
+    "skills": ["mentoring", "writing", "communication"]
   },
   {
     "org": "Crisis Text Line",
@@ -522,7 +556,8 @@
     "min_age_note": null,
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": true
+    "remote": true,
+    "skills": ["communication", "writing"]
   },
   {
     "org": "UPchieve",
@@ -537,7 +572,8 @@
     "min_age_note": "High school volunteers must be in 9th grade or higher",
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": true
+    "remote": true,
+    "skills": ["tutoring", "teaching", "mentoring"]
   },
   {
     "org": "U.S. National Archives",
@@ -552,7 +588,8 @@
     "min_age_note": null,
     "group_friendly": null,
     "verified_on": "2026-11-12",
-    "remote": true
+    "remote": true,
+    "skills": ["data entry", "writing", "editing"]
   },
   {
     "org": "Missing Maps",
@@ -567,6 +604,24 @@
     "min_age_note": null,
     "group_friendly": true,
     "verified_on": "2026-11-12",
-    "remote": true
+    "remote": true,
+    "skills": ["data entry", "data visualization", "fieldwork"]
+  },
+  {
+    "slug": "taproot-plus-pro-bono",
+    "org": "Taproot Foundation",
+    "title": "Pro bono projects for nonprofits on Taproot Plus",
+    "summary": "Skilled volunteers take on remote projects and one-hour consultations for vetted nonprofits: marketing, design, data, finance, web and strategy work. Browse open projects by skill and apply on Taproot's site.",
+    "url": "https://taprootfoundation.org/opportunities",
+    "org_url": "https://taprootfoundation.org/",
+    "city": "Remote",
+    "category": "other",
+    "schedule": "Project-based; each listing states its length and weekly hours",
+    "min_age": null,
+    "min_age_note": "Age not stated on the listings page; check Taproot's terms when you create an account",
+    "group_friendly": false,
+    "verified_on": "2026-11-22",
+    "remote": true,
+    "skills": ["market research", "business planning", "design", "web development", "data visualization", "social media", "writing", "fundraising"]
   }
 ]

@@ -1,9 +1,11 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { sweepExpired } from '@/lib/auth-session';
+import { sweepVisitSalts } from '@/lib/impact';
 
 // Daily clean-up, run by Vercel Cron (vercel.json). Sign-ins already sweep as they
 // happen; this covers quiet weeks, so expired sessions, sign-in codes and old
 // rate-limit rows (one per address that ever tried) don't pile up between them.
+// It also deletes past days' visit-count salts (lib/impact.ts), as /privacy promises.
 // Vercel sends `Authorization: Bearer $CRON_SECRET`; without the variable set, the
 // route refuses everyone rather than running for anyone.
 export async function GET(req: Request) {
@@ -15,5 +17,6 @@ export async function GET(req: Request) {
   if (!timingSafeEqual(a, b)) return Response.json({ error: 'Not allowed.' }, { status: 401 });
 
   await sweepExpired();
+  await sweepVisitSalts();
   return Response.json({ ok: true, swept_at: new Date().toISOString() }, { headers: { 'Cache-Control': 'no-store' } });
 }

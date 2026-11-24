@@ -11,7 +11,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/org/', '/me', '/join', '/checkin', '/discover', '/signin', '/v/', '/t/', '/w/', '/c/', '/e/', '/confirm/', '/guardian/', '/cal/'],
+        disallow: ['/api/', '/org/', '/me', '/join', '/checkin', '/discover', '/signin', '/v/', '/t/', '/w/', '/c/', '/e/', '/confirm/', '/guardian/', '/cal/', '/impact'],
       },
     ],
     sitemap: `${base}/sitemap.xml`,

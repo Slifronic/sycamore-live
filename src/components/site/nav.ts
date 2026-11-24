@@ -33,6 +33,7 @@ export const FOOTER_GROUPS = [
       { href: '/opportunities', label: 'Volunteer opportunities' },
       { href: '/badges', label: 'Badges and milestones' },
       { href: '/discover', label: 'Discover events' },
+      { href: '/our-impact', label: 'Our impact' },
       { href: '/about', label: 'About the team' },
     ],
   },

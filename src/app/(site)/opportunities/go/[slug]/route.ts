@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { visitOpportunity } from '@/lib/opportunities';
+import { recordOutbound } from '@/lib/impact';
 import { RateLimitError, limitByIp } from '@/lib/rate-limit';
 
 // The outbound link of a public listing. It redirects to the URL stored for
@@ -24,5 +25,7 @@ export async function GET(req: Request, { params }: RouteContext<'/opportunities
     count = false;
   }
   const url = await visitOpportunity(slug, count);
+  // The day's count for /impact; the redirect never waits on it failing.
+  if (url && count) await recordOutbound(slug).catch((e) => console.error('opportunities: outbound not counted', e));
   return NextResponse.redirect(url ?? new URL('/opportunities', req.url), { status: 302, headers: HEADERS });
 }

@@ -77,7 +77,20 @@ const SECTIONS: LegalSection[] = [
           <li>
             <strong>Cookies.</strong> Essential only. <code>vid</code> keeps a volunteer signed in (1 year), <code>oid</code> keeps a coordinator signed in
             (30 days), and <code>sm-hide-lesson</code> remembers that a coordinator hid a tip. Your light or dark theme is saved in your browser’s local
-            storage. No analytics, advertising or tracking cookies.
+            storage. If you opened a shared link with a <code>?via=</code> tag, <code>syc_via</code> remembers that tag (30 days) so we can see which
+            invitations work; it names the link, not you. No analytics, advertising or tracking cookies.
+          </li>
+          <li>
+            <strong>Visit counts.</strong> Each page view adds one to that page’s count for the day. To count people rather than clicks, we keep a
+            one-way hash of the day, a random value we delete after a day, your IP address and browser name. We never store the address itself, and
+            because the random value is deleted, nobody (us included) can tell whether two days’ visits were the same person. Pages with a private
+            code in the address (records, transcripts, walk-in links) are counted without the code. If your browser sends Global Privacy Control or
+            Do Not Track, nothing is counted.
+          </li>
+          <li>
+            <strong>“I applied.”</strong> When you mark a public listing as applied, we keep which listing, the status you set and when. It shows in
+            your account and in your data download, goes when you delete your account, and is counted (without your full name) on the team’s
+            internal impact page.
           </li>
           <li>
             <strong>Server logs.</strong> Our host keeps short-lived request logs (IP address, page, time) to run and secure the service.
