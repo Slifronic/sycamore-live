@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cleanVia, countedPath, isBot, isApplicationStatus } from '../src/lib/impact-rules.ts';
+import { cleanVia, countedPath, isBot, isApplicationStatus, shareSafe } from '../src/lib/impact-rules.ts';
 import { SKILL_WORDS, validateAll, validateOpportunity } from '../src/lib/opportunity-rules.ts';
 
 test('countedPath: static pages and listings keep their path', () => {
@@ -100,4 +100,13 @@ test('Discover listing match: learn beats use beats past, ties keep board order,
   assert.deepEqual(matchListings(ls, { learn: [], use: [], past: [] }), []);
   assert.deepEqual(matchListings(ls, { learn: ['juggling'], use: [], past: [] }), []);
   assert.equal(matchListings(ls, { learn: ['design', 'logistics', 'tutoring'], use: [], past: [] }, 2).length, 2);
+});
+
+test('shareSafe: public counts under 5 are hidden, so no one is picked out', () => {
+  assert.equal(shareSafe(0), null);
+  assert.equal(shareSafe(4), null);
+  assert.equal(shareSafe(5), 5);
+  assert.equal(shareSafe(524.5), 524.5);
+  assert.equal(shareSafe(Number.NaN), null);
+  assert.equal(countedPath('/our-impact'), '/our-impact');
 });

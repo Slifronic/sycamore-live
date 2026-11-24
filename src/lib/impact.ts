@@ -1,4 +1,5 @@
 import 'server-only';
+import { cacheLife } from 'next/cache';
 import { headers } from 'next/headers';
 import { sql } from './db';
 import { sha256 } from './auth-tokens';
@@ -6,7 +7,7 @@ import { currentVia } from './via';
 import { clientIp } from './rate-limit';
 import { computeSkills, SKILL_AREAS, type Attended } from './milestones';
 import { isSlug } from './opportunity-rules';
-import { isApplicationStatus, isBot, type ApplicationStatus } from './impact-rules';
+import { isApplicationStatus, isBot, shareSafe, type ApplicationStatus } from './impact-rules';
 import { VolError } from './vol-data';
 import type { Activity, Role } from './types';
 
@@ -342,5 +343,64 @@ export async function impactReport({ includeDemo = false } = {}): Promise<Impact
       via: r.via,
     })),
     signupMethods: methods.map((m) => ({ method: m.method, n: n(m.n) })),
+  };
+}
+
+// ---------- the public page ----------
+
+export type PublicImpact = {
+  /** null: fewer than SMALL_GROUP, shown as "fewer than 5". */
+  volunteers: number | null;
+  verifiedHours: number | null;
+  verifiedPeople: number | null;
+  verifiedEvents: number | null;
+  orgs: number;
+  applicants: number | null;
+  accepted: number | null;
+  listings: number;
+  /** True only on a dev machine, where the seed's made-up accounts are counted. */
+  demo: boolean;
+  /** Skill areas with at least SMALL_GROUP people behind them. */
+  verifiedSkills: { name: string; people: number; hours: number }[];
+  appliedSkills: { skill: string; people: number }[];
+  asOf: string;
+  /** The numbers couldn't be read (tables not migrated yet). */
+  unavailable?: boolean;
+};
+
+/**
+ * What /our-impact shows anyone: totals only, every count under 5 hidden, no
+ * names, no tags, no per-listing or per-day numbers. Organizations aren't
+ * people, so their count shows as is. Made-up demo accounts count only on a dev
+ * machine (and the page says so). Cached for an hour, so the page can't be used
+ * to watch one sign-up land.
+ */
+export async function publicImpact(): Promise<PublicImpact> {
+  'use cache';
+  cacheLife('hours');
+  const demo = process.env.NODE_ENV !== 'production';
+  let r: ImpactReport;
+  try {
+    r = await impactReport({ includeDemo: demo });
+  } catch (e) {
+    // A build or deploy before migrations-impact.sql: show the page without numbers rather than fail it.
+    console.error('impact: public numbers unavailable', e);
+    return { volunteers: null, verifiedHours: null, verifiedPeople: null, verifiedEvents: null, orgs: 0, applicants: null, accepted: null, listings: 0, demo, verifiedSkills: [], appliedSkills: [], asOf: new Date().toISOString(), unavailable: true };
+  }
+  const t = r.totals;
+  const [{ n: listings }] = (await sql`select count(*)::int as n from opportunity where status = 'listed'`.catch(() => [{ n: 0 }])) as unknown as { n: number }[];
+  return {
+    volunteers: shareSafe(t.volunteers),
+    verifiedHours: shareSafe(t.verifiedPeople) === null ? null : t.verifiedHours,
+    verifiedPeople: shareSafe(t.verifiedPeople),
+    verifiedEvents: shareSafe(t.verifiedPeople) === null ? null : shareSafe(t.verifiedEvents),
+    orgs: t.orgs,
+    applicants: shareSafe(t.applicants),
+    accepted: shareSafe(t.applicants) === null ? null : shareSafe(t.accepted),
+    listings,
+    demo,
+    verifiedSkills: r.verifiedSkills.filter((k) => shareSafe(k.people) !== null).slice(0, 6).map((k) => ({ name: k.name, people: k.people, hours: k.hours })),
+    appliedSkills: r.applicationSkills.filter((k) => shareSafe(k.people) !== null).slice(0, 6).map((k) => ({ skill: k.skill, people: k.people })),
+    asOf: new Date().toISOString(),
   };
 }

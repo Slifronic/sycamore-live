@@ -14,7 +14,7 @@ export function cleanVia(raw: unknown): string | null {
 /** Static top-level pages, counted as they are. */
 const STATIC = new Set([
   'about', 'faq', 'privacy', 'terms', 'data', 'licenses', 'pricing', 'trust', 'how-it-works', 'volunteers',
-  'organizations', 'badges', 'signin', 'join', 'checkin', 'opportunities',
+  'organizations', 'badges', 'signin', 'join', 'checkin', 'opportunities', 'our-impact',
 ]);
 /** Pages under these keep a known second part; anything else there is an id and is counted as [id]. */
 const SECTIONS: Record<string, Set<string>> = {
@@ -70,3 +70,6 @@ export const APPLICATION_LABEL: Record<ApplicationStatus, string> = {
 
 /** "Show fewer than 5" for small groups on anything shared outside the team. */
 export const SMALL_GROUP = 5;
+
+/** A count for a public page: the number when it's at least SMALL_GROUP, else null (shown as "fewer than 5"), so no one is picked out. */
+export const shareSafe = (n: number): number | null => (Number.isFinite(n) && n >= SMALL_GROUP ? n : null);

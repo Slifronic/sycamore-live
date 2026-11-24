@@ -63,6 +63,7 @@ DATABASE_URL="$DATABASE_URL" npm run db:seed-opportunities
 
 - `/impact` shows visits, accounts, self-reported applications, verified skill areas, per-listing and per-tag numbers, plus CSV downloads. Seed and demo accounts (`.test` emails) are left out unless `?demo=1`.
 - Share links: `/opportunities/<slug>?via=<tag>`. The page's link builder makes them.
+- `/our-impact` is the public version: totals only, refreshed hourly, every count under 5 shown as "fewer than 5", demo accounts never counted in production.
 - Nothing personal is counted: see the "Visit counts" and "I applied" lines on `/privacy`.
 
 If port 5432 is blocked (venue Wi-Fi), run them through the same WebSocket route as `~/Canopy/CalHacks13/deploy/reseed-production.sh`.

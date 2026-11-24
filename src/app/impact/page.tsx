@@ -117,6 +117,9 @@ export default async function ImpactPage({ searchParams }: { searchParams: Promi
           </p>
         </div>
         <div className={s.headActions}>
+          <Link className="btn btn-sm" href="/our-impact">
+            Public page
+          </Link>
           <Link className="btn btn-sm" href={includeDemo ? '/impact' : '/impact?demo=1'}>
             {includeDemo ? 'Hide demo data' : 'Show demo data'}
           </Link>
